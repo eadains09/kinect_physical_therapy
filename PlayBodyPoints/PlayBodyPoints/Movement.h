@@ -24,6 +24,9 @@ private:
 public:
     Movement();
     void readPoints(std::string path); //Takes file path, reads joint positions out of it, creates joints array
+    BodyFrame* getFrames();
+    int getCurrFrameCount();
+    void freeFrames();
 };
 
 #endif /* defined(__PlayBodyPoints__Movement__) */

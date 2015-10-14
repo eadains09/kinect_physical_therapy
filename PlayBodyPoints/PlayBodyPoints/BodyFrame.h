@@ -25,6 +25,8 @@ public:
     bool addJoint(Joint currJoint);
     Joint* sortJointsByParent(); //Sorts joints array by the parent of each joint: parent x must be defined above the joint with x as parent, returns sorted array
     Joint* getJoints(); //Returns joints as stored in file
+    int getCurrJointCount();
+    void freeJoints();
 };
 
 #endif

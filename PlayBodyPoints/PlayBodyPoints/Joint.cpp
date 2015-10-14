@@ -125,9 +125,24 @@ void Joint::setYPos(int y) {
     yPos = y;
 }
 
-//TODO: make sure these points are freed somewhere...
 SDL_Point* Joint::getSDLPoint() {
     SDL_Point *currPoint = new SDL_Point({xPos, yPos});
     
     return currPoint;
+}
+
+int Joint::getX() {
+    return xPos;
+}
+
+int Joint::getY() {
+    return yPos;
+}
+
+//TODO: Is this whole chain of freeing even necessary? Or does built in garbage collection/destructors handle it?
+void Joint::freeJoint() {
+    type = JOINT_DEFAULT;
+    parent = JOINT_DEFAULT;
+    xPos = 0;
+    yPos = 0;
 }

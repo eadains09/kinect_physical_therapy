@@ -60,6 +60,9 @@ public:
     void setXPos(int x);
     void setYPos(int y);
     SDL_Point* getSDLPoint();
+    int getX();
+    int getY();
+    void freeJoint();
 };
 
 
