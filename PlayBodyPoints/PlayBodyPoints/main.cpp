@@ -52,10 +52,10 @@ int main(int argc, char* args[]) {
                 BodyFrame *frames = testMove.getFrames();
                 for (int i = 0; i < testMove.getCurrFrameCount(); i++) {
                     Joint *joints = frames[i].getJoints();
-                    for (int j = 0; j < frames[i].getCurrJointCount(); j++) {
-//                        cout << joints[j].getX() << " " << joints[j].getY() << endl;
-                        bodyPoints[j] = *joints[j].getSDLPoint();
-                    }
+//                    for (int j = 0; j < frames[i].getCurrJointCount(); j++) {
+////                        cout << joints[j].getX() << " " << joints[j].getY() << endl;
+//                        bodyPoints[j] = *joints[j].getSDLPoint();
+//                    }
     
                     //Clear screen
                     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
@@ -64,9 +64,20 @@ int main(int argc, char* args[]) {
                     //Render points array
                     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
                     SDL_RenderDrawLines(renderer, bodyPoints, JOINT_TOTAL);
+
+                    for (int j = 0; j < frames[i].getCurrJointCount(); j++) {
+//                        cout << joints[j].getX() << " " << joints[j].getY() << endl;
+//                        bodyPoints[j] = *joints[j].getSDLPoint();
+                        if (joints[j].getParent() != JOINT_DEFAULT) {
+                            SDL_RenderDrawLine(renderer, joints[j].getX(), joints[j].getY(), joints[joints[j].getParent()].getX(), joints[joints[j].getParent()].getY());
+                            if (joints[j].getType() == HEAD) {
+                                SDL_RenderDrawPoint(renderer, joints[j].getX(), joints[j].getY());
+                            }
+                        }
+                    }
                     SDL_RenderPresent(renderer);
                     //Wait half of a second
-                    SDL_Delay(500);
+                    SDL_Delay(50);
                     cout << "Rendering points " << i << endl;
                 }
 //                quit = true;

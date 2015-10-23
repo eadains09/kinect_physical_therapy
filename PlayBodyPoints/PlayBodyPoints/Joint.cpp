@@ -80,7 +80,7 @@ void Joint::setParent() {
             parent = HAND_RIGHT;
             break;
         case HIP_LEFT:
-            parent = SPINE_MID;
+            parent = SPINE_BASE;
             break;
         case KNEE_LEFT:
             parent = HIP_LEFT;
@@ -92,7 +92,7 @@ void Joint::setParent() {
             parent = ANKLE_LEFT;
             break;
         case HIP_RIGHT:
-            parent = SPINE_MID;
+            parent = SPINE_BASE;
             break;
         case KNEE_RIGHT:
             parent = HIP_RIGHT;

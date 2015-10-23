@@ -62,9 +62,7 @@ void Movement::readPoints(std::string path) {
                         zPos = strtod(pEnd, NULL);
                     
                         //Account for Kinect offset
-                        xPos = (xPos + 1) * 150;
-                        yPos = (yPos + 1) * 150;
-                        zPos = (zPos + 1) * 150;
+                        transformPoints(&xPos, &yPos, &zPos);
                     
                         //Declare a joint using count for type and points and add to joints array of current bodyFrame
                         Joint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos);
@@ -90,9 +88,16 @@ int Movement::getCurrFrameCount() {
     return currFrameCount;
 }
 
-//TODO: Should this be a destructor?
+//TODO: Should this be a destructor? Is it even necessary?
 void Movement::freeFrames() {
     for (int i = 0; i < currFrameCount; i++) {
         frames[i].freeJoints();
     }
 }
+
+void Movement::transformPoints(double *xPos, double *yPos, double *zPos) {
+    *xPos = (*xPos + 1) * 200;
+    *yPos = (*yPos - 1) * -200;
+    *zPos = (*zPos + 1) * 200;
+}
+

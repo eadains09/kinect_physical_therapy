@@ -13,13 +13,16 @@
 #include <string>
 #include "BodyFrame.h"
 
-const int FRAME_TOTAL = 50;
+const int FRAME_TOTAL = 500;
 
 class Movement {
 
 private:
     BodyFrame frames[FRAME_TOTAL];
+//    BodyFrame *frames;
     int currFrameCount;
+    
+    void transformPoints(double *xPos, double *yPos, double *zPos);
 
 public:
     Movement();
@@ -27,6 +30,7 @@ public:
     BodyFrame* getFrames();
     int getCurrFrameCount();
     void freeFrames();
+
 };
 
 #endif /* defined(__PlayBodyPoints__Movement__) */
