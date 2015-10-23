@@ -12,13 +12,46 @@ Joint::Joint() {
     setType(JOINT_DEFAULT);
     xPos = NULL;
     yPos = NULL;
+    zPos = NULL;
+    xQuat = NULL;
+    yQuat = NULL;
+    zQuat = NULL;
+    wQuat = NULL;
 }
 
 Joint::Joint(int jType, int x, int y) {
     setType(jType);
     xPos = x;
     yPos = y;
+    zPos = NULL;
+    xQuat = NULL;
+    yQuat = NULL;
+    zQuat = NULL;
+    wQuat = NULL;
 }
+
+Joint::Joint(int jType, int x, int y, int z) {
+    setType(jType);
+    xPos = x;
+    yPos = y;
+    zPos = z;
+    xQuat = NULL;
+    yQuat = NULL;
+    zQuat = NULL;
+    wQuat = NULL;
+}
+
+Joint::Joint(int jType, double x, double y, double z, double w) {
+    setType(jType);
+    xPos = NULL;
+    yPos = NULL;
+    zPos = NULL;
+    xQuat = x;
+    yQuat = y;
+    zQuat = z;
+    wQuat = w;
+}
+
 
 void Joint::setType(int jType) {
     type = (JointType)jType;
@@ -125,6 +158,10 @@ void Joint::setYPos(int y) {
     yPos = y;
 }
 
+void Joint::setZPos(int z) {
+    zPos = z;
+}
+
 SDL_Point* Joint::getSDLPoint() {
     SDL_Point *currPoint = new SDL_Point({xPos, yPos});
     
@@ -137,6 +174,33 @@ int Joint::getX() {
 
 int Joint::getY() {
     return yPos;
+}
+
+int Joint::getZ() {
+    return zPos;
+}
+
+void Joint::setQuaternion(double x, double y, double z, double w) {
+    xQuat = x;
+    yQuat = y;
+    zQuat = z;
+    wQuat = w;
+}
+
+double Joint::getXQuat() {
+    return xQuat;
+}
+
+double Joint::getYQuat() {
+    return yQuat;
+}
+
+double Joint::getZQuat() {
+    return zQuat;
+}
+
+double Joint::getWQuat() {
+    return wQuat;
 }
 
 //TODO: Is this whole chain of freeing even necessary? Or does built in garbage collection/destructors handle it?

@@ -48,20 +48,34 @@ private:
     JointType parent;
     int xPos;
     int yPos;
+    int zPos;
+    double xQuat;
+    double yQuat;
+    double zQuat;
+    double wQuat;
     
     void setParent();
     
 public:
     Joint();
     Joint(int jType, int x, int y);
+    Joint(int jType, int x, int y, int z);
+    Joint(int jType, double x, double y, double z, double w);
     void setType(int jType);
     JointType getType();
     JointType getParent();
     void setXPos(int x);
     void setYPos(int y);
+    void setZPos(int y);
     SDL_Point* getSDLPoint();
     int getX();
     int getY();
+    int getZ();
+    void setQuaternion(double x, double y, double z, double w);
+    double getXQuat();
+    double getYQuat();
+    double getZQuat();
+    double getWQuat();
     void freeJoint();
 };
 
