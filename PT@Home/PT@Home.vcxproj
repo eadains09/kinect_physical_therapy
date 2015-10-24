@@ -39,6 +39,9 @@
     <ClCompile Include="..\PT%40Home\main.cpp" />
     <ClCompile Include="..\PT%40Home\Movement.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\Desktop\SDL2-2.0.3\lib\x86\SDL2.dll" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6E5E35A2-7A3B-4671-AD85-B39DC5D710C9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

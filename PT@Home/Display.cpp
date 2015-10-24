@@ -55,7 +55,7 @@ bool Display::run() {
 
 bool Display::renderFrame(BodyFrame currFrame) {
 
-	Joint *joints = currFrame.getJoints();
+	eJoint *joints = currFrame.getJoints();
 
     //Clear screen
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
@@ -65,7 +65,7 @@ bool Display::renderFrame(BodyFrame currFrame) {
 
     for (int i = 0; i < currFrame.getCurrJointCount(); i++) {
 //      cout << joints[j].getX() << " " << joints[j].getY() << endl;
-    	JointType parent = joints[i].getParent();
+    	eJointType parent = joints[i].getParent();
 
         if (parent != JOINT_DEFAULT) {
             SDL_RenderDrawLine(renderer, joints[i].getX(), joints[i].getY(), joints[parent].getX(), joints[parent].getY());
