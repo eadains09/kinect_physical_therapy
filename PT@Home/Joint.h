@@ -11,7 +11,8 @@
 
 #include <stdio.h>
 #include <SDL.h>
-
+#include <Kinect.h>
+/*
 enum eJointType {
     SPINE_BASE,
     SPINE_MID,
@@ -39,13 +40,13 @@ enum eJointType {
     HAND_TIP_RIGHT,
     THUMB_RIGHT,
     JOINT_DEFAULT
-};
+};*/
 
 class eJoint {
     
 private:
-    eJointType type;
-    eJointType parent;
+    JointType type;
+    JointType parent;
     int xPos;
     int yPos;
     int zPos;
@@ -62,8 +63,8 @@ public:
     eJoint(int jType, int x, int y, int z);
     eJoint(int jType, double x, double y, double z, double w);
     void setType(int jType);
-    eJointType getType();
-    eJointType getParent();
+    JointType getType();
+    JointType getParent();
     void setXPos(int x);
     void setYPos(int y);
     void setZPos(int y);

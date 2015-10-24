@@ -9,7 +9,7 @@
 #include "Joint.h"
 
 eJoint::eJoint() {
-    setType(JOINT_DEFAULT);
+    setType(JointType_SpineMid);
     xPos = NULL;
     yPos = NULL;
     zPos = NULL;
@@ -54,99 +54,99 @@ eJoint::eJoint(int jType, double x, double y, double z, double w) {
 
 
 void eJoint::setType(int jType) {
-    type = (eJointType)jType;
+    type = (JointType)jType;
     setParent();
 }
 
-eJointType eJoint::getType() {
+JointType eJoint::getType() {
     return type;
 }
 
 void eJoint::setParent() {
     switch (type) {
-        case SPINE_BASE:
-            parent = SPINE_MID;
+	case JointType_SpineBase:// SPINE_BASE:
+		parent = JointType_SpineMid;// SPINE_MID;
             break;
-        case SPINE_MID:
-            parent = JOINT_DEFAULT;
+	case JointType_SpineMid:// SPINE_MID:
+		parent = JointType_SpineMid;// JOINT_DEFAULT;
             break;
-        case NECK:
-            parent = SPINE_SHOULDER;
+	case JointType_Neck:// NECK:
+		parent = JointType_SpineShoulder;// SPINE_SHOULDER;
             break;
-        case HEAD:
-            parent = NECK;
+	case JointType_Head:// HEAD:
+		parent = JointType_Neck;// NECK;
             break;
-        case SHOULDER_LEFT:
-            parent = SPINE_SHOULDER;
+	case JointType_ShoulderLeft:// SHOULDER_LEFT:
+		parent = JointType_SpineShoulder;// SPINE_SHOULDER;
             break;
-        case ELBOW_LEFT:
-            parent = SHOULDER_LEFT;
+	case JointType_ElbowLeft:// ELBOW_LEFT:
+		parent = JointType_ShoulderLeft;// SHOULDER_LEFT;
             break;
-        case WRIST_LEFT:
-            parent = ELBOW_LEFT;
+	case JointType_WristLeft:// WRIST_LEFT:
+		parent = JointType_ElbowLeft;// ELBOW_LEFT;
             break;
-        case HAND_LEFT:
-            parent = WRIST_LEFT;
+	case JointType_HandLeft:// HAND_LEFT:
+		parent = JointType_WristLeft;// WRIST_LEFT;
             break;
-        case HAND_TIP_LEFT:
-            parent = HAND_LEFT;
+	case JointType_HandTipLeft:// HAND_TIP_LEFT:
+		parent = JointType_HandLeft;// HAND_LEFT;
             break;
-        case THUMB_LEFT:
-            parent = HAND_LEFT;
+	case JointType_ThumbLeft:// THUMB_LEFT:
+		parent = JointType_HandLeft;// HAND_LEFT;
             break;
-        case SHOULDER_RIGHT:
-            parent = SPINE_SHOULDER;
+	case JointType_ShoulderRight:// SHOULDER_RIGHT:
+		parent = JointType_SpineShoulder; //SPINE_SHOULDER;
             break;
-        case ELBOW_RIGHT:
-            parent = SHOULDER_RIGHT;
+	case JointType_ElbowRight:// ELBOW_RIGHT:
+		parent = JointType_ShoulderRight;// SHOULDER_RIGHT;
             break;
-        case WRIST_RIGHT:
-            parent = ELBOW_RIGHT;
+	case JointType_WristRight:// WRIST_RIGHT:
+		parent = JointType_ElbowRight;// ELBOW_RIGHT;
             break;
-        case HAND_RIGHT:
-            parent = WRIST_RIGHT;
+	case JointType_HandRight:// HAND_RIGHT:
+		parent = JointType_WristRight;// WRIST_RIGHT;
             break;
-        case HAND_TIP_RIGHT:
-            parent = HAND_RIGHT;
+	case JointType_HandTipRight:// HAND_TIP_RIGHT:
+		parent = JointType_HandRight;// HAND_RIGHT;
             break;
-        case THUMB_RIGHT:
-            parent = HAND_RIGHT;
+	case JointType_ThumbRight:// THUMB_RIGHT:
+		parent = JointType_HandRight;// HAND_RIGHT;
             break;
-        case HIP_LEFT:
-            parent = SPINE_BASE;
+	case JointType_HipLeft:// HIP_LEFT:
+		parent = JointType_SpineBase;// SPINE_BASE;
             break;
-        case KNEE_LEFT:
-            parent = HIP_LEFT;
+	case JointType_KneeLeft:// KNEE_LEFT:
+		parent = JointType_HipLeft;// HIP_LEFT;
             break;
-        case ANKLE_LEFT:
-            parent = KNEE_LEFT;
+	case JointType_AnkleLeft:// ANKLE_LEFT:
+		parent = JointType_KneeLeft;// KNEE_LEFT;
             break;
-        case FOOT_LEFT:
-            parent = ANKLE_LEFT;
+	case JointType_FootLeft:// FOOT_LEFT:
+		parent = JointType_AnkleLeft;// ANKLE_LEFT;
             break;
-        case HIP_RIGHT:
-            parent = SPINE_BASE;
+	case JointType_HipRight:// HIP_RIGHT:
+		parent = JointType_SpineBase;// SPINE_BASE;
             break;
-        case KNEE_RIGHT:
-            parent = HIP_RIGHT;
+	case JointType_KneeRight:// KNEE_RIGHT:
+		parent = JointType_HipRight;// HIP_RIGHT;
             break;
-        case ANKLE_RIGHT:
-            parent = KNEE_RIGHT;
+	case JointType_AnkleRight:// ANKLE_RIGHT:
+		parent = JointType_KneeRight;// KNEE_RIGHT;
             break;
-        case FOOT_RIGHT:
-            parent = ANKLE_RIGHT;
+	case JointType_FootRight:// FOOT_RIGHT:
+		parent = JointType_AnkleRight;// ANKLE_RIGHT;
             break;
-        case SPINE_SHOULDER:
-            parent = SPINE_MID;
+	case JointType_SpineShoulder:// SPINE_SHOULDER:
+		parent = JointType_SpineMid;// SPINE_MID;
             break;
         default:
-            parent = JOINT_DEFAULT;
+            parent = type;
             break;
     }
     
 }
 
-eJointType eJoint::getParent() {
+JointType eJoint::getParent() {
     return parent;
 }
 
@@ -205,8 +205,8 @@ double eJoint::getWQuat() {
 
 //TODO: Is this whole chain of freeing even necessary? Or does built in garbage collection/destructors handle it?
 void eJoint::freeJoint() {
-    type = JOINT_DEFAULT;
-    parent = JOINT_DEFAULT;
+    type = (JointType)0;
+    parent = (JointType)0;
     xPos = 0;
     yPos = 0;
 }

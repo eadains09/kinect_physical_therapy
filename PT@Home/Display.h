@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string>
 #include "Movement.h"
+#include <Kinect.h>
 
 using namespace std;
 
@@ -33,6 +34,15 @@ private:
 	bool loadMedia();
 	bool getFramesFromFile(string filename);
 	void close();  //Frees media and shuts down SDL
+
+
+	// Current Kinect
+	IKinectSensor*          m_pKinectSensor;
+	ICoordinateMapper*      m_pCoordinateMapper;
+
+	// Body reader
+	IBodyFrameReader*       m_pBodyFrameReader;
+
 
 public:
 	bool renderFrame(BodyFrame currFrame);
