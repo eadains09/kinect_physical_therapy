@@ -9,6 +9,7 @@
 #define Display_h
 //TODO change other ifdefs to drop PlayBodyPoints name
 
+#include <fstream>
 #include <iostream>
 #include <SDL.h>
 #include <stdio.h>
@@ -29,6 +30,9 @@ private:
 	SDL_Renderer* renderer = NULL;
 	SDL_Point bodyPoints[JOINT_TOTAL];
 	Movement currMove;
+
+	std::ofstream log;
+
 
 	bool init();  //Starts up SDL and creates window
 	bool loadMedia();
