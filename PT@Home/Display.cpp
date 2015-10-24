@@ -7,6 +7,95 @@
 
 #include "Display.h"
 
+bool Display::run() {
+	if (!init()) {
+        printf("Failed to initialize!\n");
+        return false;
+    }
+    
+    //Load media
+    if (!loadMedia()) {
+        printf("Failed to load media!\n");
+        return false;
+    }
+
+    //Main loop flag
+    bool quit = false;
+    //Event Handler
+    SDL_Event e;
+
+    while (!quit) {
+        while (SDL_PollEvent(&e) != 0) {
+            if (e.type == SDL_QUIT) {
+                quit = true;
+            }
+        }
+
+        BodyFrame *frames = currMove.getFrames();
+        for (int i = 0; i < currMove.getCurrFrameCount(); i++) {
+        	renderFrame(frames[i]);
+
+            //Wait briefly
+            SDL_Delay(50);
+            cout << "Rendering points " << i << endl;
+        }
+
+        // Alternatively:
+        // getFramesFromFile("whereData.dat");
+        // If we do this, could pass in the file string to run,
+        // and have another method that just calls renderFrame on frames as they arrive for live playback
+
+    }
+    
+    //Free resources and close SDL
+    close();
+    
+    return true;
+}
+
+bool Display::renderFrame(BodyFrame currFrame) {
+
+	Joint *joints = currFrame.getJoints();
+
+    //Clear screen
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderClear(renderer);
+
+    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
+
+    for (int i = 0; i < currFrame.getCurrJointCount(); i++) {
+//      cout << joints[j].getX() << " " << joints[j].getY() << endl;
+    	JointType parent = joints[i].getParent();
+
+        if (parent != JOINT_DEFAULT) {
+            SDL_RenderDrawLine(renderer, joints[i].getX(), joints[i].getY(), joints[parent].getX(), joints[parent].getY());
+            // if (joints[j].getType() == HEAD) {
+            //     SDL_RenderDrawPoint(renderer, joints[j].getX(), joints[j].getY());
+            // }
+        }
+    }
+
+    SDL_RenderPresent(renderer);
+
+    return true;
+}
+
+bool Display::getFramesFromFile(string filename) {
+    currMove.readPoints(filename);
+
+    BodyFrame *frames = currMove.getFrames();
+    for (int i = 0; i < currMove.getCurrFrameCount(); i++) {
+        renderFrame(frames[i]);
+
+        //Wait briefly
+        SDL_Delay(50);
+        cout << "Rendering points " << i << endl;
+    }
+
+    return true;
+
+}
+
 
 bool Display::init() {
     bool success = true;
@@ -39,14 +128,14 @@ bool Display::init() {
 bool Display::loadMedia() {
     bool success = true;
     
-    testMove.readPoints("whereData.dat");
+    currMove.readPoints("whereData.dat");
     
     return success;
 }
 
 void Display::close() {
     //This may not be necessary:
-    testMove.freeFrames();
+    currMove.freeFrames();
     
     SDL_DestroyRenderer(renderer);
     

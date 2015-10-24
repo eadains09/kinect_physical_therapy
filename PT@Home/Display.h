@@ -27,14 +27,16 @@ private:
 	SDL_Window* window = NULL;  //The window we'll be rendering to
 	SDL_Renderer* renderer = NULL;
 	SDL_Point bodyPoints[JOINT_TOTAL];
-	Movement testMove;
+	Movement currMove;
 
 	bool init();  //Starts up SDL and creates window
 	bool loadMedia();
+	bool getFramesFromFile(string filename);
 	void close();  //Frees media and shuts down SDL
 
 public:
 	bool renderFrame(BodyFrame currFrame);
+	bool run();
 
 };
 
