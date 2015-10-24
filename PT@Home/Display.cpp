@@ -125,7 +125,7 @@ bool Display::renderFrame(BodyFrame currFrame) {
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
 
     for (int i = 0; i < currFrame.getCurrJointCount(); i++) {
-      log << joints[j].getX() << " " << joints[j].getY() << endl;
+      log << joints[i].getX() << " " << joints[i].getY() << endl;
     	JointType parent = joints[i].getParent();
 
         if (parent != joints[i].getType()) {
@@ -198,87 +198,6 @@ bool Display::init() {
             }
         }
     }
-    //<CopyPasta>
-
-
-	IBodyFrame* pBodyFrame = NULL;
-
-
-	for (int i = 0; i<1000 && !pBodyFrame; i++)
-	{
-		m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
-		log << &pBodyFrame << std::endl;
-		if (i == 999)
-			log << "in init() i reached the maximum value before pBodyFrame stopped being null" << std::endl;
-	}
-
-	if (pBodyFrame)
-		log << "pBodyFrame is not null" << std::endl;
-
-
-	
-	INT64 nTime = 0;
-
-	hr = pBodyFrame->get_RelativeTime(&nTime);
-
-	IBody* ppBodies[BODY_COUNT] = { 0 };
-
-	//if (SUCCEEDED(hr))
-	//{
-	hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
-	//}
-	//TODO checkk to make sure at least one body is present
-	//			exit(_countof(ppBodies));
-
-	BodyFrame *anorexia = new BodyFrame();
-
-	Joint *joints = new Joint[JointType_Count];
-	for (int j = 0; j < _countof(ppBodies); j++)
-	{
-
-		BOOLEAN bTracked = false;
-		hr = ppBodies[j]->get_IsTracked(&bTracked);
-
-		if (!SUCCEEDED(hr))
-			log << "in init() failed to even get whether or not a body was tracked" << std::endl;
-		
-
-		if (bTracked)
-		{
-			log << "at least one body is being tracked" << std::endl;
-		}
-
-
-		ppBodies[j]->GetJoints(JointType_Count, joints);
-
-		for (int i = 0; i < JointType_Count; i++)
-		{
-			log << "in init()" << std::endl;
-			log << joints[i].Position.X << joints[i].Position.Y << joints[i].Position.Z << std::endl;
-			anorexia->addJoint(*(new eJoint(i, (int)(joints[i].Position.X + 1) * 200, (int)(joints[i].Position.Y - 1)*-200)));
-
-		}
-
-		//BodyFrame *frames = currMove.getFrames();
-		//for (int i = 0; i < currMove.getCurrFrameCount(); i++) {
-
-
-		//Wait briefly
-
-//		renderFrame(*anorexia);
-//		SDL_Delay(50);
-		//	std::cout << "Rendering points " << endl;// << i << endl;
-	}
-
-
-
-
-
-
-
-
-
-//	</CopyPasta>
     return success;
 }
 
