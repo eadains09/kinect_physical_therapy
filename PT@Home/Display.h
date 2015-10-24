@@ -10,7 +10,7 @@
 //TODO change other ifdefs to drop PlayBodyPoints name
 
 #include <iostream>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <stdio.h>
 #include <string>
 #include "Movement.h"

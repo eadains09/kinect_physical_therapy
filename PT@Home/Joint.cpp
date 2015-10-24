@@ -8,7 +8,7 @@
 
 #include "Joint.h"
 
-Joint::Joint() {
+eJoint::eJoint() {
     setType(JOINT_DEFAULT);
     xPos = NULL;
     yPos = NULL;
@@ -19,7 +19,7 @@ Joint::Joint() {
     wQuat = NULL;
 }
 
-Joint::Joint(int jType, int x, int y) {
+eJoint::eJoint(int jType, int x, int y) {
     setType(jType);
     xPos = x;
     yPos = y;
@@ -30,7 +30,7 @@ Joint::Joint(int jType, int x, int y) {
     wQuat = NULL;
 }
 
-Joint::Joint(int jType, int x, int y, int z) {
+eJoint::eJoint(int jType, int x, int y, int z) {
     setType(jType);
     xPos = x;
     yPos = y;
@@ -41,7 +41,7 @@ Joint::Joint(int jType, int x, int y, int z) {
     wQuat = NULL;
 }
 
-Joint::Joint(int jType, double x, double y, double z, double w) {
+eJoint::eJoint(int jType, double x, double y, double z, double w) {
     setType(jType);
     xPos = NULL;
     yPos = NULL;
@@ -53,16 +53,16 @@ Joint::Joint(int jType, double x, double y, double z, double w) {
 }
 
 
-void Joint::setType(int jType) {
-    type = (JointType)jType;
+void eJoint::setType(int jType) {
+    type = (eJointType)jType;
     setParent();
 }
 
-JointType Joint::getType() {
+eJointType eJoint::getType() {
     return type;
 }
 
-void Joint::setParent() {
+void eJoint::setParent() {
     switch (type) {
         case SPINE_BASE:
             parent = SPINE_MID;
@@ -146,65 +146,65 @@ void Joint::setParent() {
     
 }
 
-JointType Joint::getParent() {
+eJointType eJoint::getParent() {
     return parent;
 }
 
-void Joint::setXPos(int x) {
+void eJoint::setXPos(int x) {
     xPos = x;
 }
 
-void Joint::setYPos(int y) {
+void eJoint::setYPos(int y) {
     yPos = y;
 }
 
-void Joint::setZPos(int z) {
+void eJoint::setZPos(int z) {
     zPos = z;
 }
 
-SDL_Point* Joint::getSDLPoint() {
+SDL_Point* eJoint::getSDLPoint() {
     SDL_Point *currPoint = new SDL_Point({xPos, yPos});
     
     return currPoint;
 }
 
-int Joint::getX() {
+int eJoint::getX() {
     return xPos;
 }
 
-int Joint::getY() {
+int eJoint::getY() {
     return yPos;
 }
 
-int Joint::getZ() {
+int eJoint::getZ() {
     return zPos;
 }
 
-void Joint::setQuaternion(double x, double y, double z, double w) {
+void eJoint::setQuaternion(double x, double y, double z, double w) {
     xQuat = x;
     yQuat = y;
     zQuat = z;
     wQuat = w;
 }
 
-double Joint::getXQuat() {
+double eJoint::getXQuat() {
     return xQuat;
 }
 
-double Joint::getYQuat() {
+double eJoint::getYQuat() {
     return yQuat;
 }
 
-double Joint::getZQuat() {
+double eJoint::getZQuat() {
     return zQuat;
 }
 
-double Joint::getWQuat() {
+double eJoint::getWQuat() {
     return wQuat;
 }
 
 //TODO: Is this whole chain of freeing even necessary? Or does built in garbage collection/destructors handle it?
-void Joint::freeJoint() {
+void eJoint::freeJoint() {
     type = JOINT_DEFAULT;
     parent = JOINT_DEFAULT;
     xPos = 0;

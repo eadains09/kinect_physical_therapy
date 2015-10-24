@@ -6,8 +6,9 @@
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
+#include "stdafx.h"
 #include <iostream>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <stdio.h>
 #include <string>
 #include "Movement.h"
@@ -26,6 +27,21 @@ Movement testMove;
 bool init();  //Starts up SDL and creates window
 bool loadMedia();
 void close();  //Frees media and shuts down SDL
+
+
+int APIENTRY wWinMain(
+	_In_ HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ LPWSTR lpCmdLine,
+	_In_ int nShowCmd
+	)
+{
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(lpCmdLine);
+
+	main(NULL, 0);
+
+}
 
 
 int main(int argc, char* args[]) {
@@ -51,7 +67,7 @@ int main(int argc, char* args[]) {
 
                 BodyFrame *frames = testMove.getFrames();
                 for (int i = 0; i < testMove.getCurrFrameCount(); i++) {
-                    Joint *joints = frames[i].getJoints();
+                    eJoint *joints = frames[i].getJoints();
 //                    for (int j = 0; j < frames[i].getCurrJointCount(); j++) {
 ////                        cout << joints[j].getX() << " " << joints[j].getY() << endl;
 //                        bodyPoints[j] = *joints[j].getSDLPoint();

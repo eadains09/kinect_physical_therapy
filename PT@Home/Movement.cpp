@@ -65,7 +65,7 @@ void Movement::readPoints(std::string path) {
                         transformPoints(&xPos, &yPos, &zPos);
                     
                         //Declare a joint using count for type and points and add to joints array of current bodyFrame
-                        Joint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos);
+                        eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos);
                         currFrame.addJoint(currJoint);
                     }
                 }

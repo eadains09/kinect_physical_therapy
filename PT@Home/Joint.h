@@ -10,9 +10,9 @@
 #define PlayBodyPoints_Joint_h
 
 #include <stdio.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
-enum JointType {
+enum eJointType {
     SPINE_BASE,
     SPINE_MID,
     NECK,
@@ -41,11 +41,11 @@ enum JointType {
     JOINT_DEFAULT
 };
 
-class Joint {
+class eJoint {
     
 private:
-    JointType type;
-    JointType parent;
+    eJointType type;
+    eJointType parent;
     int xPos;
     int yPos;
     int zPos;
@@ -57,13 +57,13 @@ private:
     void setParent();
     
 public:
-    Joint();
-    Joint(int jType, int x, int y);
-    Joint(int jType, int x, int y, int z);
-    Joint(int jType, double x, double y, double z, double w);
+    eJoint();
+    eJoint(int jType, int x, int y);
+    eJoint(int jType, int x, int y, int z);
+    eJoint(int jType, double x, double y, double z, double w);
     void setType(int jType);
-    JointType getType();
-    JointType getParent();
+    eJointType getType();
+    eJointType getParent();
     void setXPos(int x);
     void setYPos(int y);
     void setZPos(int y);

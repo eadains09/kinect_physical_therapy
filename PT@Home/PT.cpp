@@ -10,6 +10,7 @@
 #include "PT.h"
 #include <iostream>
 #include <fstream>
+#include <SDL.h>
 
 static const float c_JointThickness = 3.0f;
 static const float c_TrackedBoneThickness = 6.0f;

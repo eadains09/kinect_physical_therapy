@@ -12,7 +12,7 @@ BodyFrame::BodyFrame() {
     currJointCount = 0;
 }
 
-bool BodyFrame::addJoint(Joint currJoint) {
+bool BodyFrame::addJoint(eJoint currJoint) {
     bool success = false;
     
     if (currJointCount < JOINT_TOTAL) {
@@ -24,13 +24,13 @@ bool BodyFrame::addJoint(Joint currJoint) {
     return success;
 }
 
-Joint* BodyFrame::sortJointsByParent() {
-    Joint *sortedJoints[JOINT_TOTAL];
+eJoint* BodyFrame::sortJointsByParent() {
+    eJoint *sortedJoints[JOINT_TOTAL];
     
     return *sortedJoints;
 }
 
-Joint* BodyFrame::getJoints() {
+eJoint* BodyFrame::getJoints() {
     return joints;
 }
 

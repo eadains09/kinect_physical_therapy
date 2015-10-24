@@ -17,14 +17,14 @@ const int JOINT_TOTAL = 25;
 class BodyFrame {
     
 private:
-    Joint joints[JOINT_TOTAL];
+    eJoint joints[JOINT_TOTAL];
     int currJointCount;
     
 public:
     BodyFrame();
-    bool addJoint(Joint currJoint);
-    Joint* sortJointsByParent(); //Sorts joints array by the parent of each joint: parent x must be defined above the joint with x as parent, returns sorted array
-    Joint* getJoints(); //Returns joints as stored in file
+    bool addJoint(eJoint currJoint);
+    eJoint* sortJointsByParent(); //Sorts joints array by the parent of each joint: parent x must be defined above the joint with x as parent, returns sorted array
+    eJoint* getJoints(); //Returns joints as stored in file
     int getCurrJointCount();
     void freeJoints();
 };
