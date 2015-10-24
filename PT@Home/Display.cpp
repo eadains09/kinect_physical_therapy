@@ -8,7 +8,7 @@
 #include "Display.h"
 
 bool Display::run() {
-	if (!init()) {
+    if (!init()) {
         printf("Failed to initialize!\n");
         return false;
     }
@@ -58,7 +58,7 @@ bool Display::renderFrame(BodyFrame currFrame) {
 	eJoint *joints = currFrame.getJoints();
 
     //Clear screen
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
 
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
