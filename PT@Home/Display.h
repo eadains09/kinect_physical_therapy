@@ -31,14 +31,20 @@ private:
 	SDL_Point bodyPoints[JOINT_TOTAL];
 	Movement currMove;
 
-	std::ofstream log;
+	std::ofstream log, moveData, whereData;
 
 
 	bool init();  //Starts up SDL and creates window
 	bool loadMedia();
 	bool getFramesFromFile(string filename);
 	void close();  //Frees media and shuts down SDL
-
+	void logPoint(float x, float y, float z);
+	void openPointLog();
+	void closePointLog();
+	void openPointBodyFrame();
+	void firstPointBodyFrame();
+	void closePointBodyFrame();
+	void subsequentPoint();
 
 	// Current Kinect
 	IKinectSensor*          m_pKinectSensor;

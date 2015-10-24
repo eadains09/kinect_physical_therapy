@@ -22,14 +22,8 @@ int APIENTRY wWinMain(
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	main(NULL, 0);
+	Display currDisplay;
+	currDisplay.run();
 
-}
-
-
-int main(int argc, char* args[]) {
-    Display currDisplay;    
-    currDisplay.run();
-    
-    return 0;
+	return 0;
 }

@@ -29,6 +29,9 @@ bool Display::run() {
     //Event Handler
     SDL_Event e;
 
+	//true only for the first pointBodyFrame
+	bool firstRun = true;
+
     while (!quit) {
         while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_QUIT) {
@@ -49,6 +52,14 @@ bool Display::run() {
 
 		if (!pBodyFrame)
 			continue;
+
+		if (firstRun)
+		{
+			firstRun = false;
+			firstPointBodyFrame();
+		}
+		else
+			openPointBodyFrame();
 
 		INT64 nTime = 0;
 
@@ -71,14 +82,23 @@ bool Display::run() {
 			{
 				log << "At least one body is being tracked" << std::endl;
 			}
+			else
+			{
+				log << "In this frame no body is being tracked" << std::endl;
+				continue;
+			}
 
 
 			ppBodies[j]->GetJoints(JointType_Count, joints);
 
 			for (int i = 0; i < JointType_Count; i++)
 			{
+				if (i)
+					subsequentPoint();
+
+				logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
 				log << joints[i].Position.X << joints[i].Position.Y << joints[i].Position.Z << std::endl;
-				anorexia->addJoint(*(new eJoint(i, (int)(joints[i].Position.X + 1) * 200, (int)(joints[i].Position.Y - 1)*-200)));
+				anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
 
 			}
 
@@ -90,10 +110,11 @@ bool Display::run() {
 
 			renderFrame(*anorexia);
 
-         SDL_Delay(50);
+//         SDL_Delay(20);
 		//	std::cout << "Rendering points " << endl;// << i << endl;
 		}
 		SafeRelease(pBodyFrame);
+		closePointBodyFrame();
 
 		for (int i = 0; i < _countof(ppBodies); ++i)
 		{
@@ -176,6 +197,8 @@ bool Display::init() {
 	log << &pBodyFrameSource << std::endl;
 //	SafeRelease(pBodyFrameSource);
 
+	openPointLog();
+
 
     //Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -222,5 +245,56 @@ void Display::close() {
     
     //Quit SDL subsystems
     SDL_Quit();
+
+	//TODO this should be closed in response to user event, not the program closing
+	closePointLog();
     
+}
+
+
+void Display::subsequentPoint()
+{
+	whereData << "," << std::endl;
+}
+
+void Display::firstPointBodyFrame()
+{
+	whereData << "[" << std::endl;
+}
+
+
+void Display::openPointBodyFrame()
+{
+	whereData << "," << std::endl << "[" << std::endl;
+}
+
+void Display::closePointBodyFrame()
+{
+	whereData << std::endl << "]";
+}
+
+
+
+void Display::logPoint(float x, float y, float z)
+{
+	whereData
+		<< "["
+		<< x
+		<< ", "
+		<< y
+		<< ", "
+		<< z
+		<< "]";
+}
+
+void Display::openPointLog()
+{
+	whereData.open("whereData.dat");
+	whereData << "{" << std::endl << "\"joints\": [" << std::endl;
+}
+
+void Display::closePointLog()
+{
+	whereData << std::endl << "]" << std::endl << "}";
+	whereData.close();
 }
