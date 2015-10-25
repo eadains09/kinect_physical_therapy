@@ -33,6 +33,9 @@ private:
 
 	std::ofstream log, moveData, whereData;
 
+	//whether we will be displaying data live from kinect or recorded movement
+	bool live = false;
+
 
 	bool init();  //Starts up SDL and creates window
 	bool loadMedia();
@@ -45,6 +48,7 @@ private:
 	void firstPointBodyFrame();
 	void closePointBodyFrame();
 	void subsequentPoint();
+	bool framesFromKinect(bool firstRun);
 
 	// Current Kinect
 	IKinectSensor*          m_pKinectSensor;

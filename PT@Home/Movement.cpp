@@ -52,6 +52,11 @@ void Movement::readPoints(std::string path) {
                         //Trimming jointLine of all extra values so that it is ready for strtod
                         start = jointLine.find_first_not_of("[");
                         end = jointLine.find_last_of("]");
+						//if this is an empty point
+						//then the entire body frame
+						//is invalid and we skip to the next one
+						if (start == -1 || end == -1 ||start >= end-1)
+							break;
                         jointLine = jointLine.substr(start, end-start);
                         jointLine.erase(jointLine.find(",", start), 1);
                         jointLine.erase(jointLine.find(",", start), 1);

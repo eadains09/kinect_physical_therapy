@@ -13,126 +13,119 @@ bool Display::run() {
 
 	log.open("logData.txt");
 
-    if (!init()) {
-        printf("Failed to initialize!\n");
-        return false;
-    }
-    
-    //Load media
-    if (!loadMedia()) {
-        printf("Failed to load media!\n");
-        return false;
-    }
+	if (!init()) {
+		printf("Failed to initialize!\n");
+		return false;
+	}
 
-    //Main loop flag
-    bool quit = false;
-    //Event Handler
-    SDL_Event e;
+	//Load media
+	if (!loadMedia()) {
+		printf("Failed to load media!\n");
+		return false;
+	}
+
+	//Main loop flag
+	bool quit = false;
+	//Event Handler
+	SDL_Event e;
 
 	//true only for the first pointBodyFrame
 	bool firstRun = true;
 
-    while (!quit) {
-        while (SDL_PollEvent(&e) != 0) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
-            }
-        }
-
-
-		if (!m_pBodyFrameReader)
-		{
-			return false;
+	while (!quit) {
+		while (SDL_PollEvent(&e) != 0) {
+			if (e.type == SDL_QUIT) {
+				quit = true;
+			}
 		}
 
-		IBodyFrame* pBodyFrame = NULL;
-
-		m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
-		//	continue;
-
-		if (!pBodyFrame)
-			continue;
-
-		if (firstRun)
+		if (live)
 		{
-			firstRun = false;
-			firstPointBodyFrame();
+			if (framesFromKinect(firstRun))
+				firstRun = false;
 		}
 		else
-			openPointBodyFrame();
+			getFramesFromFile("whereData.dat");
 
-		INT64 nTime = 0;
+//		firstRun = false;
+	}
+		//Free resources and close SDL
+		close();
 
-		hr = pBodyFrame->get_RelativeTime(&nTime);
+		return true;
+}
 
-		IBody* ppBodies[BODY_COUNT] = { 0 };
+bool Display::framesFromKinect(bool firstRun)
+{
+	HRESULT hr;
+	if (!m_pBodyFrameReader)
+	{
+		return false;
+	}
 
-		hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
-		
-		BodyFrame *anorexia = new BodyFrame();
+	IBodyFrame* pBodyFrame = NULL;
+	m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
+	if (!pBodyFrame)
+		return false;
 
-		Joint *joints = new Joint[JointType_Count];
-		for (int j = 0; j < _countof(ppBodies); j++)
+	if (firstRun)
+		firstPointBodyFrame();
+	else
+		openPointBodyFrame();
+
+	INT64 nTime = 0;
+
+	hr = pBodyFrame->get_RelativeTime(&nTime);
+
+	IBody* ppBodies[BODY_COUNT] = { 0 };
+
+	hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
+
+	BodyFrame *anorexia = new BodyFrame();
+
+	Joint *joints = new Joint[JointType_Count];
+	for (int j = 0; j < _countof(ppBodies); j++)
+	{
+
+		BOOLEAN bTracked = false;
+		hr = ppBodies[j]->get_IsTracked(&bTracked);
+
+		if (bTracked)
 		{
-
-			BOOLEAN bTracked = false;
-			hr = ppBodies[j]->get_IsTracked(&bTracked);
-
-			if (bTracked)
-			{
-				log << "At least one body is being tracked" << std::endl;
-			}
-			else
-			{
-				log << "In this frame no body is being tracked" << std::endl;
-				continue;
-			}
-
-
-			ppBodies[j]->GetJoints(JointType_Count, joints);
-
-			for (int i = 0; i < JointType_Count; i++)
-			{
-				if (i)
-					subsequentPoint();
-
-				logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
-				log << joints[i].Position.X << joints[i].Position.Y << joints[i].Position.Z << std::endl;
-				anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
-
-			}
-
-        //BodyFrame *frames = currMove.getFrames();
-        //for (int i = 0; i < currMove.getCurrFrameCount(); i++) {
-
-
-            //Wait briefly
-
-			renderFrame(*anorexia);
-
-//         SDL_Delay(20);
-		//	std::cout << "Rendering points " << endl;// << i << endl;
+			log << "At least one body is being tracked" << std::endl;
 		}
-		SafeRelease(pBodyFrame);
-		closePointBodyFrame();
-
-		for (int i = 0; i < _countof(ppBodies); ++i)
+		else
 		{
-			SafeRelease(ppBodies[i]);
+			log << "In this frame no body is being tracked" << std::endl;
+			continue;
 		}
 
 
-        // Alternatively:
-        // getFramesFromFile("whereData.dat");
-        // If we do this, could pass in the file string to run,
-        // and have another method that just calls renderFrame on frames as they arrive for live playback
+		ppBodies[j]->GetJoints(JointType_Count, joints);
 
-    }
-    
-    //Free resources and close SDL
-    close();
-    
-    return true;
+		for (int i = 0; i < JointType_Count; i++)
+		{
+			if (i)
+				subsequentPoint();
+
+			logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
+			log << joints[i].Position.X << joints[i].Position.Y << joints[i].Position.Z << std::endl;
+			anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
+
+		}
+
+		renderFrame(*anorexia);
+	}
+	SafeRelease(pBodyFrame);
+	closePointBodyFrame();
+
+	for (int i = 0; i < _countof(ppBodies); ++i)
+	{
+		SafeRelease(ppBodies[i]);
+	}
+
+	return true;
+
 }
 
 bool Display::renderFrame(BodyFrame currFrame) {
@@ -185,20 +178,22 @@ bool Display::init() {
 	IBodyFrameSource* pBodyFrameSource = NULL;
 
 	GetDefaultKinectSensor(&m_pKinectSensor);
-	if (!m_pKinectSensor || 
-		!SUCCEEDED(m_pKinectSensor->Open()) || 
-		!SUCCEEDED(m_pKinectSensor->get_CoordinateMapper(&m_pCoordinateMapper)) || 
-		!SUCCEEDED(m_pKinectSensor->get_BodyFrameSource(&pBodyFrameSource)) ||
-		!SUCCEEDED(pBodyFrameSource->OpenReader(&m_pBodyFrameReader)))
+	if (live)
 	{
-		log << "Could not find a connected kinect\n" << std::endl;
-		return false;
+		if (!m_pKinectSensor ||
+			!SUCCEEDED(m_pKinectSensor->Open()) ||
+			!SUCCEEDED(m_pKinectSensor->get_CoordinateMapper(&m_pCoordinateMapper)) ||
+			!SUCCEEDED(m_pKinectSensor->get_BodyFrameSource(&pBodyFrameSource)) ||
+			!SUCCEEDED(pBodyFrameSource->OpenReader(&m_pBodyFrameReader)))
+		{
+			log << "Could not find a connected kinect\n" << std::endl;
+			return false;
+		}
+		log << &pBodyFrameSource << std::endl;
+		SafeRelease(pBodyFrameSource);
+
+		openPointLog();
 	}
-	log << &pBodyFrameSource << std::endl;
-//	SafeRelease(pBodyFrameSource);
-
-	openPointLog();
-
 
     //Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -234,7 +229,8 @@ bool Display::loadMedia() {
 
 void Display::close() {
     //This may not be necessary:
-    currMove.freeFrames();
+	if(!live)
+		currMove.freeFrames();
     
     SDL_DestroyRenderer(renderer);
     
@@ -247,7 +243,8 @@ void Display::close() {
     SDL_Quit();
 
 	//TODO this should be closed in response to user event, not the program closing
-	closePointLog();
+	if(live)
+		closePointLog();
     
 }
 
