@@ -7,6 +7,67 @@
 
 #include "Display.h"
 #include "stdafx.h"
+#include <quaternion.h>
+
+
+int getParent(int type) {
+	switch (type) {
+	case JointType_SpineBase:// SPINE_BASE:
+		return JointType_SpineMid;// SPINE_MID;
+	case JointType_SpineMid:// SPINE_MID:
+		return JointType_SpineMid;// JOINT_DEFAULT;
+	case JointType_Neck:// NECK:
+		return JointType_SpineShoulder;// SPINE_SHOULDER;
+	case JointType_Head:// HEAD:
+		return JointType_Neck;// NECK;
+	case JointType_ShoulderLeft:// SHOULDER_LEFT:
+		return JointType_SpineShoulder;// SPINE_SHOULDER;
+	case JointType_ElbowLeft:// ELBOW_LEFT:
+		return JointType_ShoulderLeft;// SHOULDER_LEFT;
+	case JointType_WristLeft:// WRIST_LEFT:
+		return JointType_ElbowLeft;// ELBOW_LEFT;
+	case JointType_HandLeft:// HAND_LEFT:
+		return JointType_WristLeft;// WRIST_LEFT;
+	case JointType_HandTipLeft:// HAND_TIP_LEFT:
+		return JointType_HandLeft;// HAND_LEFT;
+	case JointType_ThumbLeft:// THUMB_LEFT:
+		return JointType_HandLeft;// HAND_LEFT;
+	case JointType_ShoulderRight:// SHOULDER_RIGHT:
+		return JointType_SpineShoulder; //SPINE_SHOULDER;
+	case JointType_ElbowRight:// ELBOW_RIGHT:
+		return JointType_ShoulderRight;// SHOULDER_RIGHT;
+	case JointType_WristRight:// WRIST_RIGHT:
+		return JointType_ElbowRight;// ELBOW_RIGHT;
+	case JointType_HandRight:// HAND_RIGHT:
+		return JointType_WristRight;// WRIST_RIGHT;
+	case JointType_HandTipRight:// HAND_TIP_RIGHT:
+		return JointType_HandRight;// HAND_RIGHT;
+	case JointType_ThumbRight:// THUMB_RIGHT:
+		return JointType_HandRight;// HAND_RIGHT;
+	case JointType_HipLeft:// HIP_LEFT:
+		return JointType_SpineBase;// SPINE_BASE;
+	case JointType_KneeLeft:// KNEE_LEFT:
+		return JointType_HipLeft;// HIP_LEFT;
+	case JointType_AnkleLeft:// ANKLE_LEFT:
+		return JointType_KneeLeft;// KNEE_LEFT;
+	case JointType_FootLeft:// FOOT_LEFT:
+		return JointType_AnkleLeft;// ANKLE_LEFT;
+	case JointType_HipRight:// HIP_RIGHT:
+		return JointType_SpineBase;// SPINE_BASE;
+	case JointType_KneeRight:// KNEE_RIGHT:
+		return JointType_HipRight;// HIP_RIGHT;
+	case JointType_AnkleRight:// ANKLE_RIGHT:
+		return JointType_KneeRight;// KNEE_RIGHT;
+	case JointType_FootRight:// FOOT_RIGHT:
+		return JointType_AnkleRight;// ANKLE_RIGHT;
+	case JointType_SpineShoulder:// SPINE_SHOULDER:
+		return JointType_SpineMid;// SPINE_MID;
+	default:
+		return type;
+	}
+
+}
+
 
 bool Display::run() {
 	HRESULT hr;
@@ -47,7 +108,6 @@ bool Display::run() {
 		else
 			getFramesFromFile("whereData.dat");
 
-//		firstRun = false;
 	}
 		//Free resources and close SDL
 		close();
@@ -69,9 +129,15 @@ bool Display::framesFromKinect(bool firstRun)
 		return false;
 
 	if (firstRun)
+	{
 		firstPointBodyFrame();
+		firstQuatBodyFrame();
+	}
 	else
+	{
 		openPointBodyFrame();
+		openQuatBodyFrame();
+	}
 
 	INT64 nTime = 0;
 
@@ -106,7 +172,29 @@ bool Display::framesFromKinect(bool firstRun)
 		for (int i = 0; i < JointType_Count; i++)
 		{
 			if (i)
+			{
 				subsequentPoint();
+				subsequentQuat();
+			}
+			irr::core::quaternion *quat;
+			if (getParent(i) == i)
+			{
+				quat = new irr::core::quaternion(0, 0, 0, 0);
+			}
+			else
+			{
+				float x = joints[i].Position.X - joints[getParent(i)].Position.X;
+				float y = joints[i].Position.Y - joints[getParent(i)].Position.Y;
+				float z = joints[i].Position.Z - joints[getParent(i)].Position.Z;
+				float yaw = atan2(x, z) *180.0 / 3.141592653;
+				float padj = sqrt(pow(x, 2) + pow(z, 2));
+				float pitch = atan2(padj, y) *180.0 / 3.141592653;
+
+
+				quat = new irr::core::quaternion(0, pitch, yaw);
+			}
+			logQuat(quat->X, quat->Y, quat->Z, quat->W);
+			delete quat;
 
 			logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
 			log << joints[i].Position.X << joints[i].Position.Y << joints[i].Position.Z << std::endl;
@@ -118,6 +206,7 @@ bool Display::framesFromKinect(bool firstRun)
 	}
 	SafeRelease(pBodyFrame);
 	closePointBodyFrame();
+	closeQuatBodyFrame();
 
 	for (int i = 0; i < _countof(ppBodies); ++i)
 	{
@@ -193,6 +282,7 @@ bool Display::init() {
 		SafeRelease(pBodyFrameSource);
 
 		openPointLog();
+		openQuatLog();
 	}
 
     //Initialize SDL
@@ -243,8 +333,11 @@ void Display::close() {
     SDL_Quit();
 
 	//TODO this should be closed in response to user event, not the program closing
-	if(live)
+	if (live)
+	{
 		closePointLog();
+		closeQuatLog();
+	}
     
 }
 
@@ -294,4 +387,54 @@ void Display::closePointLog()
 {
 	whereData << std::endl << "]" << std::endl << "}";
 	whereData.close();
+}
+
+
+void Display::subsequentQuat()
+{
+	moveData << "," << std::endl;
+}
+
+void Display::firstQuatBodyFrame()
+{
+	moveData << "[" << std::endl;
+}
+
+
+void Display::openQuatBodyFrame()
+{
+	moveData << "," << std::endl << "[" << std::endl;
+}
+
+void Display::closeQuatBodyFrame()
+{
+	moveData << std::endl << "]";
+}
+
+
+
+void Display::logQuat(float x, float y, float z, float w)
+{
+	moveData
+		<< "["
+		<< x
+		<< ", "
+		<< y
+		<< ", "
+		<< z
+		<< ", "
+		<< w
+		<< "]";
+}
+
+void Display::openQuatLog()
+{
+	moveData.open("moveData.dat");
+	moveData << "{" << std::endl << "\"jointQuats\": [" << std::endl;
+}
+
+void Display::closeQuatLog()
+{
+	moveData << std::endl << "]" << std::endl << "}";
+	moveData.close();
 }
