@@ -100,13 +100,27 @@ bool Display::run() {
 			}
 		}
 
-		if (live)
-		{
+		if (live == 0) {
+			bodyCount = 1;
 			if (framesFromKinect(firstRun))
 				firstRun = false;
 		}
-		else
-			getFramesFromFile("whereData.dat");
+		else if (live == 1) {
+			bodyCount = 1;
+			getSingleFrameFromFile();
+		}
+		else {
+			//simultaneous playback
+			bodyCount = 2;
+
+			getSingleFrameFromFile();
+			if (framesFromKinect(firstRun))
+				firstRun = false;
+		}
+
+		renderFrame();
+		SDL_Delay(50);
+		frameNumber++;
 
 	}
 		//Free resources and close SDL
@@ -201,8 +215,7 @@ bool Display::framesFromKinect(bool firstRun)
 			anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
 
 		}
-
-		renderFrame(*anorexia);
+		displayBodies[bodyCount-1] = *anorexia;
 	}
 	SafeRelease(pBodyFrame);
 	closePointBodyFrame();
@@ -217,39 +230,39 @@ bool Display::framesFromKinect(bool firstRun)
 
 }
 
-bool Display::renderFrame(BodyFrame currFrame) {
-
-	eJoint *joints = currFrame.getJoints();
+bool Display::renderFrame() {
 
     //Clear screen
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
 
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
+	for (int j = 0; j < bodyCount; j++) {
+		eJoint *joints = displayBodies[j].getJoints();
 
-    for (int i = 0; i < currFrame.getCurrJointCount(); i++) {
-      log << joints[i].getX() << " " << joints[i].getY() << endl;
-    	JointType parent = joints[i].getParent();
+		for (int i = 0; i < displayBodies[j].getCurrJointCount(); i++) {
+			log << joints[i].getX() << " " << joints[i].getY() << endl;
+			JointType parent = joints[i].getParent();
 
-        if (parent != joints[i].getType()) {
-            SDL_RenderDrawLine(renderer, joints[i].getX(), joints[i].getY(), joints[parent].getX(), joints[parent].getY());
-            // if (joints[j].getType() == HEAD) {
-            //     SDL_RenderDrawPoint(renderer, joints[j].getX(), joints[j].getY());
-            // }
-        }
-    }
+			if (parent != joints[i].getType()) {
+				SDL_RenderDrawLine(renderer, joints[i].getX(), joints[i].getY(), joints[parent].getX(), joints[parent].getY());
+			}
+		}
+	}
 
     SDL_RenderPresent(renderer);
 
     return true;
 }
 
+/*
 bool Display::getFramesFromFile(string filename) {
     currMove.readPoints(filename);
 
     BodyFrame *frames = currMove.getFrames();
     for (int i = 0; i < currMove.getCurrFrameCount(); i++) {
-        renderFrame(frames[i]);
+		displayBodies[0] = frames[i];
+		renderFrame();
 
         //Wait briefly
         SDL_Delay(50);
@@ -257,7 +270,16 @@ bool Display::getFramesFromFile(string filename) {
     }
 
     return true;
+}
+*/
 
+bool Display::getSingleFrameFromFile() {
+	if (frameNumber >= currMove.getCurrFrameCount()) {
+		frameNumber = frameNumber % currMove.getCurrFrameCount();
+	}
+	displayBodies[0] = currMove.getSingleFrame(frameNumber);
+
+	return true;
 }
 
 
@@ -265,9 +287,10 @@ bool Display::init() {
     bool success = true;
 	HRESULT hr;
 	IBodyFrameSource* pBodyFrameSource = NULL;
+	frameNumber = 0;
 
 	GetDefaultKinectSensor(&m_pKinectSensor);
-	if (live)
+	if (live == 0 || live == 2)
 	{
 		if (!m_pKinectSensor ||
 			!SUCCEEDED(m_pKinectSensor->Open()) ||
@@ -312,7 +335,9 @@ bool Display::init() {
 bool Display::loadMedia() {
     bool success = true;
     
-    currMove.readPoints("whereData.dat");
+    //currMove.readPoints("movement1.dat");
+	currMove.readPoints("whereData.dat");
+
     
     return success;
 }

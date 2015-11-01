@@ -89,6 +89,16 @@ BodyFrame* Movement::getFrames() {
     return frames;
 }
 
+BodyFrame Movement::getSingleFrame(int i) {
+	if (i < currFrameCount) {
+		return frames[i];
+	}
+	else {
+		//returns last frame in array when called on int greater than number of frames (instead of returning null)
+		return frames[currFrameCount-1];
+	}
+}
+
 int Movement::getCurrFrameCount() {
     return currFrameCount;
 }
