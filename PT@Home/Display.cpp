@@ -274,6 +274,7 @@ bool Display::getFramesFromFile(string filename) {
 */
 
 bool Display::getSingleFrameFromFile() {
+    //check if getCurrFrameCount is 0, and figure out what needs to be done to display a blank if it is 0
 	if (frameNumber >= currMove.getCurrFrameCount()) {
 		frameNumber = frameNumber % currMove.getCurrFrameCount();
 	}
