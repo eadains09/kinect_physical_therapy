@@ -98,6 +98,10 @@ bool Display::run() {
 			if (e.type == SDL_QUIT) {
 				quit = true;
 			}
+            
+            for (int i = 0; i < TOTAL_BUTTONS; i++) {
+                (*gButtons[i]).handleEvent(&e);
+            }
 		}
 
 		if (live == 0) {
@@ -231,14 +235,21 @@ bool Display::framesFromKinect(bool firstRun)
 }
 
 bool Display::renderFrame() {
+    int colorArray[2] = {0x00, 0xFF};
 
     //Clear screen
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
-
-    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
+    
+    //render buttons
+    for (int i = 0; i < TOTAL_BUTTONS; i++) {
+        (*gButtons[i]).render(renderer);
+    }
+    
+    //render bodies
 	for (int j = 0; j < bodyCount; j++) {
 		eJoint *joints = displayBodies[j].getJoints();
+        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i%2], 0xFF);
 
 		for (int i = 0; i < displayBodies[j].getCurrJointCount(); i++) {
 			log << joints[i].getX() << " " << joints[i].getY() << endl;
@@ -338,6 +349,10 @@ bool Display::loadMedia() {
     
     //currMove.readPoints("movement1.dat");
 	currMove.readPoints("whereData.dat");
+    
+    //initialize buttons
+    gButtons[0] = new LButton(BUTTON_SPRITE_BACK, 0, 0, "back.bmp");
+    gButtons[1] = new LButton(BUTTON_SPRITE_RECORD, SCREEN_WIDTH-BUTTON_WIDTH, 0, "play.bmp");
 
     
     return success;
@@ -345,8 +360,12 @@ bool Display::loadMedia() {
 
 void Display::close() {
     //This may not be necessary:
-	if(!live)
+	if(live == 1 || live == 2)
 		currMove.freeFrames();
+    
+    for (int i = 0; i < TOTAL_BUTTONS; i++) {
+        (*gButtons[i]).freeButton();
+    }
     
     SDL_DestroyRenderer(renderer);
     
@@ -359,7 +378,7 @@ void Display::close() {
     SDL_Quit();
 
 	//TODO this should be closed in response to user event, not the program closing
-	if (live)
+	if (live == 0 || live == 2)
 	{
 		closePointLog();
 		closeQuatLog();

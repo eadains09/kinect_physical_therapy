@@ -16,10 +16,12 @@
 #include <string>
 #include "Movement.h"
 #include <Kinect.h>
+#include "Button.h"
 
 using namespace std;
 
 const int TOTAL_BODIES = 2;
+const int TOTAL_BUTTONS = 2;
 
 class Display {
 
@@ -34,6 +36,7 @@ private:
 	//SDL_Point bodyPoints[JOINT_TOTAL];
 	BodyFrame displayBodies[TOTAL_BODIES];
 	Movement currMove;
+    Button* gButtons[TOTAL_BUTTONS];
 
 
 	std::ofstream log, moveData, whereData;
