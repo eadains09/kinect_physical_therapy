@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <iostream>
 
-Button::Button()
+/*Button::Button()
 {
     mCurrentSprite = BUTTON_SPRITE_PLAY;
     
@@ -26,9 +26,9 @@ Button::Button()
     buttonSurface = NULL;
 
 }
-
-Button::Button(ButtonSprite type, int x, int y, string image) {
-    mCurrentSprite = type;
+*/
+Button::Button(ButtonSprite type, int x, int y, std::string image) {
+	mCurrentSprite = type;
     
     srcR.x = 0;
     srcR.y = 0;
@@ -94,7 +94,7 @@ void Button::handleEvent( SDL_Event* e )
         //Mouse is inside button
         if( inside )
         {
-            cout << mCurrentSprite << " button clicked" << endl;
+            std::cout << mCurrentSprite << " button clicked" << std::endl;
             //do something in response to which button it is
         }
     }

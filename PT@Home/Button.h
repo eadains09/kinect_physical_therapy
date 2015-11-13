@@ -9,9 +9,8 @@
 #define __Button_H__
 
 #include <stdio.h>
-#include <SDL2/SDL.h>
-
-using namespace std;
+#include <SDL.h>
+#include <string>
 
 //Button constants
 const int BUTTON_WIDTH = 100;
@@ -30,9 +29,9 @@ class Button
 {
 public:
     //Initializes internal variables
-    Button();
+   // Button();
     
-    Button(ButtonSprite type, int x, int y, string image);
+    Button(ButtonSprite type, int x, int y, std::string image);
 
     void setType(ButtonSprite type);
     

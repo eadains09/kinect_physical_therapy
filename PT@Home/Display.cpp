@@ -7,7 +7,6 @@
 
 #include "Display.h"
 #include "stdafx.h"
-#include <quaternion.h>
 
 
 int getParent(int type) {
@@ -249,7 +248,7 @@ bool Display::renderFrame() {
     //render bodies
 	for (int j = 0; j < bodyCount; j++) {
 		eJoint *joints = displayBodies[j].getJoints();
-        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i%2], 0xFF);
+        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j%2], 0xFF);
 
 		for (int i = 0; i < displayBodies[j].getCurrJointCount(); i++) {
 			log << joints[i].getX() << " " << joints[i].getY() << endl;
@@ -351,8 +350,8 @@ bool Display::loadMedia() {
 	currMove.readPoints("whereData.dat");
     
     //initialize buttons
-    gButtons[0] = new LButton(BUTTON_SPRITE_BACK, 0, 0, "back.bmp");
-    gButtons[1] = new LButton(BUTTON_SPRITE_RECORD, SCREEN_WIDTH-BUTTON_WIDTH, 0, "play.bmp");
+    gButtons[0] = new Button(BUTTON_SPRITE_BACK, 0, 0, "back.bmp");
+    gButtons[1] = new Button(BUTTON_SPRITE_RECORD, SCREEN_WIDTH-BUTTON_WIDTH, 0, "play.bmp");
 
     
     return success;

@@ -17,6 +17,8 @@
 #include "Movement.h"
 #include <Kinect.h>
 #include "Button.h"
+#include <quaternion.h>
+
 
 using namespace std;
 
