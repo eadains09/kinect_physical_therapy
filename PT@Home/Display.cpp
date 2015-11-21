@@ -8,6 +8,7 @@
 #include "Display.h"
 #include "stdafx.h"
 #include <quaternion.h>
+#include "QuatFrame.h"
 
 
 int getParent(int type) {
@@ -170,13 +171,8 @@ bool Display::framesFromKinect(bool firstRun)
 		BOOLEAN bTracked = false;
 		hr = ppBodies[j]->get_IsTracked(&bTracked);
 
-		if (bTracked)
+		if (!bTracked)
 		{
-			log << "At least one body is being tracked" << std::endl;
-		}
-		else
-		{
-			log << "In this frame no body is being tracked" << std::endl;
 			continue;
 		}
 
@@ -230,6 +226,105 @@ bool Display::framesFromKinect(bool firstRun)
 
 }
 
+bool Display::framesFromQuaternions(bool firstRun)
+{
+	HRESULT hr;
+	if (!m_pBodyFrameReader)
+	{
+		return false;
+	}
+
+	IBodyFrame* pBodyFrame = NULL;
+	m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
+	if (!pBodyFrame)
+		return false;
+
+	if (firstRun)
+	{
+		firstPointBodyFrame();
+		firstQuatBodyFrame();
+	}
+	else
+	{
+		openPointBodyFrame();
+		openQuatBodyFrame();
+	}
+
+	INT64 nTime = 0;
+
+	hr = pBodyFrame->get_RelativeTime(&nTime);
+
+	IBody* ppBodies[BODY_COUNT] = { 0 };
+
+	hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
+
+	BodyFrame *anorexia = new BodyFrame();
+
+	Joint *joints = new Joint[JointType_Count];
+	for (int j = 0; j < _countof(ppBodies); j++)
+	{
+
+		BOOLEAN bTracked = false;
+		hr = ppBodies[j]->get_IsTracked(&bTracked);
+
+		if (!bTracked)
+		{
+			continue;
+		}
+
+
+		ppBodies[j]->GetJoints(JointType_Count, joints);
+
+		for (int i = 0; i < JointType_Count; i++)
+		{
+			if (i)
+			{
+				subsequentPoint();
+				subsequentQuat();
+			}
+			irr::core::quaternion *quat;
+			if (getParent(i) == i)
+			{
+				quat = new irr::core::quaternion(0, 0, 0, 0);
+			}
+			else
+			{
+				float x = joints[i].Position.X - joints[getParent(i)].Position.X;
+				float y = joints[i].Position.Y - joints[getParent(i)].Position.Y;
+				float z = joints[i].Position.Z - joints[getParent(i)].Position.Z;
+				float yaw = atan2(x, z) *180.0 / 3.141592653;
+				float padj = sqrt(pow(x, 2) + pow(z, 2));
+				float pitch = atan2(padj, y) *180.0 / 3.141592653;
+
+
+				quat = new irr::core::quaternion(0, pitch, yaw);
+			}
+			logQuat(quat->X, quat->Y, quat->Z, quat->W);
+			delete quat;
+
+			logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
+			anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
+
+		}
+		displayBodies[bodyCount - 1] = *anorexia;
+	}
+	SafeRelease(pBodyFrame);
+	closePointBodyFrame();
+	closeQuatBodyFrame();
+
+	for (int i = 0; i < _countof(ppBodies); ++i)
+	{
+		SafeRelease(ppBodies[i]);
+	}
+
+	return true;
+
+}
+
+
+
+
+
 bool Display::renderFrame() {
 
     //Clear screen
@@ -238,6 +333,9 @@ bool Display::renderFrame() {
 
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
 	for (int j = 0; j < bodyCount; j++) {
+		QuatFrame *proof = new QuatFrame(displayBodies[j]);
+		proof->initBodyFrame(&displayBodies[j]);
+
 		eJoint *joints = displayBodies[j].getJoints();
 
 		for (int i = 0; i < displayBodies[j].getCurrJointCount(); i++) {

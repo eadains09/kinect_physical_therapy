@@ -110,6 +110,13 @@ void Movement::freeFrames() {
     }
 }
 
+void Movement::logMove(std::string fileName)
+{
+	ofstream jointFile;
+	jointFile.open(fileName);
+	//TODO
+}
+
 void Movement::transformPoints(double *xPos, double *yPos, double *zPos) {
     *xPos = (*xPos + 1) * 200;
     *yPos = (*yPos - 1) * -200;

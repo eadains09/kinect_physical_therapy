@@ -60,6 +60,8 @@ private:
 	void subsequentPoint();
 	bool framesFromKinect(bool firstRun);
 
+	bool framesFromQuaternions(bool firstRun);
+
 
 	void logQuat(float x, float y, float z, float w);
 	void openQuatLog();
@@ -83,6 +85,6 @@ public:
 	bool run();
 
 };
-
+int getParent(int);
 
 #endif

@@ -31,6 +31,7 @@ public:
 	BodyFrame getSingleFrame(int i);
     int getCurrFrameCount();
     void freeFrames();
+	void logMove(std::string fileName);
 
 };
 
