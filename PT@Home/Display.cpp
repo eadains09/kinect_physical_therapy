@@ -412,7 +412,6 @@ bool Display::init() {
 bool Display::loadMedia() {
     bool success = true;
     
-    //currMove.readPoints("movement1.dat");
 	currMove.readPoints("whereData2.dat");
 	//currMove.readPoints("testMovement1.dat");
     

@@ -53,7 +53,7 @@ private:
 
 	std::ofstream log; //, moveData, whereData;
 
-	int playback = RECORDED;
+	int playback = LIVE_RECORD;
 
 
 	bool init();  //Starts up SDL and creates window
