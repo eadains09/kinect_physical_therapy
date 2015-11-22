@@ -105,12 +105,12 @@ bool Display::run() {
             }
 		}
 
-		if (live == 0) {
+		if (playback == LIVE) {
 			bodyCount = 1;
 			if (framesFromKinect(firstRun))
 				firstRun = false;
 		}
-		else if (live == 1) {
+		else if (playback == RECORDED) {
 			bodyCount = 1;
 			getSingleFrameFromFile();
 		}
@@ -400,7 +400,7 @@ bool Display::init() {
 	frameNumber = 0;
 
 	GetDefaultKinectSensor(&m_pKinectSensor);
-	if (live == 0 || live == 2)
+	if (playback == LIVE || playback == LIVE_RECORD)
 	{
 		if (!m_pKinectSensor ||
 			!SUCCEEDED(m_pKinectSensor->Open()) ||
@@ -449,8 +449,8 @@ bool Display::loadMedia() {
 	currMove.readPoints("whereData.dat");
     
     //initialize buttons
-    gButtons[0] = new Button(BUTTON_SPRITE_BACK, 0, 0, "back.bmp");
-    gButtons[1] = new Button(BUTTON_SPRITE_RECORD, SCREEN_WIDTH-BUTTON_WIDTH, 0, "play.bmp");
+    gButtons[0] = new Button(BUTTON_SPRITE_BACK, 0, 0, "art/back2.bmp");
+    gButtons[1] = new Button(BUTTON_SPRITE_RECORD, SCREEN_WIDTH-BUTTON_WIDTH, 0, "art/play2.bmp");
 
     
     return success;
@@ -458,7 +458,7 @@ bool Display::loadMedia() {
 
 void Display::close() {
     //This may not be necessary:
-	if(live == 1 || live == 2)
+	if(playback == RECORDED || playback == LIVE_RECORD)
 		currMove.freeFrames();
     
     for (int i = 0; i < TOTAL_BUTTONS; i++) {
@@ -476,7 +476,7 @@ void Display::close() {
     SDL_Quit();
 
 	//TODO this should be closed in response to user event, not the program closing
-	if (live == 0 || live == 2)
+	if (playback == LIVE || playback == LIVE_RECORD)
 	{
 		closePointLog();
 		closeQuatLog();

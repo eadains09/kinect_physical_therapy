@@ -25,6 +25,12 @@ using namespace std;
 const int TOTAL_BODIES = 2;
 const int TOTAL_BUTTONS = 2;
 
+enum playbackType {
+	LIVE = 0,
+	RECORDED = 1,
+	LIVE_RECORD = 2
+};
+
 class Display {
 
 private:
@@ -48,7 +54,7 @@ private:
 	// 1 = just recorded playback
 	// 2 = live and recorded playback
 	// ?3 = 2 recorded playbacks? - dont know if implementation will be necessary 
-	int live = 1;
+	int playback = RECORDED;
 
 
 	bool init();  //Starts up SDL and creates window
