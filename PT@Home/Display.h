@@ -5,8 +5,8 @@
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
-#ifndef Display_h
-#define Display_h
+#ifndef _DISPLAY_H_
+#define _DISPLAY_H_
 //TODO change other ifdefs to drop PlayBodyPoints name
 
 #include <fstream>
@@ -18,6 +18,7 @@
 #include <quaternion.h>
 #include "Button.h"
 #include "Movement.h"
+#include "FileWriter.h"
 
 
 using namespace std;
@@ -37,7 +38,7 @@ private:
 	//Screen dimension constants
 	const int SCREEN_WIDTH = 640;
 	const int SCREEN_HEIGHT = 480;
-	static int saveCount;
+	int saveCount;
 	int frameNumber; //Which frame to read from file
 	int bodyCount; //Number of bodies being displayed, right now only options are 1 or 2
 	SDL_Window* window = NULL;  //The window we'll be rendering to
@@ -47,6 +48,7 @@ private:
 	Movement currMove;
 	Movement keyframes;
     Button* gButtons[TOTAL_BUTTONS];
+	FileWriter writer;
 
 
 	std::ofstream log; //, moveData, whereData;
@@ -104,4 +106,4 @@ public:
 };
 int getParent(int);
 
-#endif
+#endif /* _DISPLAY_H_ */

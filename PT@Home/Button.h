@@ -13,8 +13,8 @@
 #include <string>
 
 //Button constants
-const int BUTTON_WIDTH = 100;
-const int BUTTON_HEIGHT = 100;
+const int BUTTON_WIDTH = 40;
+const int BUTTON_HEIGHT = 40;
 
 enum ButtonSprite
 {

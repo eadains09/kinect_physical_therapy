@@ -9,7 +9,6 @@
 #include "stdafx.h"
 #include <quaternion.h>
 #include "QuatFrame.h"
-#include "FileWriter.h"
 
 
 bool Display::run() {
@@ -97,9 +96,9 @@ void Display::handleKeyPresses(SDL_Event e) {
 }
 
 void Display::captureKeyframe() {
-		framesFromKinect(false);
-		keyframes.pushBackKeyframe(displayBodies[bodyCount-1]);
-		flashScreen();
+	framesFromKinect(false);
+	keyframes.pushBackKeyframe(displayBodies[bodyCount-1]);
+	flashScreen();
 }
 
 void Display::flashScreen() {
@@ -113,6 +112,7 @@ void Display::saveKeyframes() {
 	string filename = "testMovement" + to_string(saveCount);
 	keyframes.logKeyframes(filename);
 }
+
 
 bool Display::framesFromKinect(bool firstRun)
 {
@@ -129,13 +129,13 @@ bool Display::framesFromKinect(bool firstRun)
 
 	if (firstRun)
 	{
-		firstPointBodyFrame();
-		firstQuatBodyFrame();
+		writer.firstPointBodyFrame();
+		writer.firstQuatBodyFrame();
 	}
 	else
 	{
-		openPointBodyFrame();
-		openQuatBodyFrame();
+		writer.openPointBodyFrame();
+		writer.openQuatBodyFrame();
 	}
 
 	INT64 nTime = 0;
@@ -167,8 +167,8 @@ bool Display::framesFromKinect(bool firstRun)
 		{
 			if (i)
 			{
-				subsequentPoint();
-				subsequentQuat();
+				writer.subsequentPoint();
+				writer.subsequentQuat();
 			}
 			irr::core::quaternion *quat;
 			if (getParent(i) == i)
@@ -187,10 +187,10 @@ bool Display::framesFromKinect(bool firstRun)
 
 				quat = new irr::core::quaternion(0, pitch, yaw);
 			}
-			logQuat(quat->X, quat->Y, quat->Z, quat->W);
+			writer.logQuat(quat->X, quat->Y, quat->Z, quat->W);
 			delete quat;
 
-			logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
+			writer.logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
 			log << joints[i].Position.X << joints[i].Position.Y << joints[i].Position.Z << std::endl;
 			anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
 
@@ -198,8 +198,8 @@ bool Display::framesFromKinect(bool firstRun)
 		displayBodies[bodyCount-1] = *anorexia;
 	}
 	SafeRelease(pBodyFrame);
-	closePointBodyFrame();
-	closeQuatBodyFrame();
+	writer.closePointBodyFrame();
+	writer.closeQuatBodyFrame();
 
 	for (int i = 0; i < _countof(ppBodies); ++i)
 	{
@@ -225,13 +225,13 @@ bool Display::framesFromQuaternions(bool firstRun)
 
 	if (firstRun)
 	{
-		firstPointBodyFrame();
-		firstQuatBodyFrame();
+		writer.firstPointBodyFrame();
+		writer.firstQuatBodyFrame();
 	}
 	else
 	{
-		openPointBodyFrame();
-		openQuatBodyFrame();
+		writer.openPointBodyFrame();
+		writer.openQuatBodyFrame();
 	}
 
 	INT64 nTime = 0;
@@ -263,8 +263,8 @@ bool Display::framesFromQuaternions(bool firstRun)
 		{
 			if (i)
 			{
-				subsequentPoint();
-				subsequentQuat();
+				writer.subsequentPoint();
+				writer.subsequentQuat();
 			}
 			irr::core::quaternion *quat;
 			if (getParent(i) == i)
@@ -283,18 +283,18 @@ bool Display::framesFromQuaternions(bool firstRun)
 
 				quat = new irr::core::quaternion(0, pitch, yaw);
 			}
-			logQuat(quat->X, quat->Y, quat->Z, quat->W);
+			writer.logQuat(quat->X, quat->Y, quat->Z, quat->W);
 			delete quat;
 
-			logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
+			writer.logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
 			anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
 
 		}
 		displayBodies[bodyCount - 1] = *anorexia;
 	}
 	SafeRelease(pBodyFrame);
-	closePointBodyFrame();
-	closeQuatBodyFrame();
+	writer.closePointBodyFrame();
+	writer.closeQuatBodyFrame();
 
 	for (int i = 0; i < _countof(ppBodies); ++i)
 	{
@@ -344,31 +344,17 @@ bool Display::renderFrame() {
     return true;
 }
 
-/*
-bool Display::getFramesFromFile(string filename) {
-    currMove.readPoints(filename);
-
-    BodyFrame *frames = currMove.getFrames();
-    for (int i = 0; i < currMove.getCurrFrameCount(); i++) {
-		displayBodies[0] = frames[i];
-		renderFrame();
-
-        //Wait briefly
-        SDL_Delay(50);
-        log << "Rendering points " << i << endl;
-    }
-
-    return true;
-}
-*/
-
 bool Display::getSingleFrameFromFile() {
-    //TODO check if getCurrFrameCount is 0, and figure out what needs to be done to display a blank if it is 0
-	if (frameNumber >= currMove.getCurrFrameCount()) {
-		frameNumber = frameNumber % currMove.getCurrFrameCount();
+    //TODO check if getCurrFrameCount is 0, if it is, subtract one from bodyCount and only display kinect body or no body
+	if (currMove.getCurrFrameCount() <= 0) {
+		bodyCount--;
 	}
-	displayBodies[0] = currMove.getSingleFrame(frameNumber);
-
+	else {
+		if (frameNumber >= currMove.getCurrFrameCount()) {
+			frameNumber = frameNumber % currMove.getCurrFrameCount();
+		}
+		displayBodies[0] = currMove.getSingleFrame(frameNumber);
+	}
 	return true;
 }
 
@@ -395,8 +381,8 @@ bool Display::init() {
 		log << &pBodyFrameSource << std::endl;
 		SafeRelease(pBodyFrameSource);
 
-		openPointLog();
-		openQuatLog();
+		writer.openPointLog();
+		writer.openQuatLog();
 	}
 
     //Initialize SDL
@@ -427,11 +413,12 @@ bool Display::loadMedia() {
     bool success = true;
     
     //currMove.readPoints("movement1.dat");
-	currMove.readPoints("whereData.dat");
+	currMove.readPoints("whereData2.dat");
+	//currMove.readPoints("testMovement1.dat");
     
     //initialize buttons
-    gButtons[0] = new Button(BUTTON_SPRITE_BACK, 0, 0, "art/back2.bmp");
-    gButtons[1] = new Button(BUTTON_SPRITE_RECORD, SCREEN_WIDTH-BUTTON_WIDTH, 0, "art/play2.bmp");
+    gButtons[0] = new Button(BUTTON_SPRITE_BACK, 0, 0, "art/back.bmp");
+    gButtons[1] = new Button(BUTTON_SPRITE_RECORD, SCREEN_WIDTH-BUTTON_WIDTH, 0, "art/play.bmp");
 
     
     return success;
@@ -460,8 +447,8 @@ void Display::close() {
 	//TODO this should be closed in response to user event, not the program closing
 	if (playback == LIVE || playback == LIVE_RECORD)
 	{
-		closePointLog();
-		closeQuatLog();
+		writer.closePointLog();
+		writer.closeQuatLog();
 	}
     
 }
@@ -523,4 +510,3 @@ int getParent(int type) {
 	}
 
 }
-

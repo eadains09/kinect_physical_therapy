@@ -5,6 +5,8 @@
 #include "FileWriter.h"
 #include "stdafx.h"
 
+FileWriter::FileWriter() {}
+
 FileWriter::FileWriter(string fileName, string header) {
 	string fullFileName = fileName + ".dat";
 	currFile.open(fullFileName);

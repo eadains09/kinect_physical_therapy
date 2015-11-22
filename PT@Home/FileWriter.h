@@ -9,10 +9,10 @@
 
 using namespace std;
 
-enum logType {
+/*enum logType {
 	QUAT = 0,
-	POINT = 1
-};
+	POINTS = 1
+};*/
 
 class FileWriter {
 
@@ -21,6 +21,7 @@ private:
 	ofstream currFile;
 
 public:
+	FileWriter();
 	FileWriter(string fileName, string header);
 	void openBodyFrame();
 	void logDataQuat(float x, float y, float z, float w);

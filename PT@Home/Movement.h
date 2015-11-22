@@ -13,7 +13,7 @@
 #include <deque>
 #include "BodyFrame.h"
 
-const int FRAME_TOTAL = 500;
+const int FRAME_TOTAL = 250;
 
 using namespace std;
 
@@ -22,7 +22,6 @@ class Movement {
 private:
     BodyFrame frames[FRAME_TOTAL];
     deque<BodyFrame> keyframeStack;
-//    BodyFrame *frames;
     int currFrameCount;
     
     void transformPoints(double *xPos, double *yPos, double *zPos);

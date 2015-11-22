@@ -27,7 +27,7 @@ public:
     eJoint* getJoints(); //Returns joints as stored in file
     int getCurrJointCount();
     void freeJoints();
-    void writeFrame(FileWriter currFile);
+    void writeFrame(FileWriter *currFile);
 };
 
 #endif /* _BODYFRAME_H_ */

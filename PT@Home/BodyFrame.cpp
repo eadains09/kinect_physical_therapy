@@ -43,14 +43,14 @@ void BodyFrame::freeJoints() {
     }
 }
 
-void BodyFrame::writeFrame(FileWriter currFile) {
-    currFile.openBodyFrame();
+void BodyFrame::writeFrame(FileWriter *currFile) {
+    (*currFile).openBodyFrame();
     if (currJointCount > 0) {
-        currFile.logDataPoint(joints[0].getX(), joints[0].getY(), joints[0].getZ);
+        (*currFile).logDataPoint(joints[0].getX(), joints[0].getY(), joints[0].getZ());
         for (int i = 1; i < currJointCount; i++) {
-            currFile.addComma();
-            currFile.logDataPoint(joints[i].getX(), joints[i].getY(), joints[i].getZ());
+            (*currFile).addComma();
+            (*currFile).logDataPoint(joints[i].getX(), joints[i].getY(), joints[i].getZ());
         }
     }
-    currFile.closeBodyFrame();
+    (*currFile).closeBodyFrame();
 }

@@ -111,13 +111,15 @@ void Movement::freeFrames() {
 
 void Movement::logKeyframes(std::string fileName)
 {
-    FileWriter file = new FileWriter(fileName);
+    FileWriter file(fileName, "joints");
 
     if (keyframeStack.size() > 0) {
-        keyframeStack.pop_front().writeFrame(file);
+		keyframeStack.front().writeFrame(&file);
+		keyframeStack.pop_front();
         while (keyframeStack.size() > 0) {
             file.addComma();
-            keyframeStack.pop_front().writeFrame(file);
+            keyframeStack.front().writeFrame(&file);
+			keyframeStack.pop_front();
         }
     }
 
