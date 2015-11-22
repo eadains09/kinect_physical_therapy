@@ -1,16 +1,16 @@
 //
-//  Body.h
-//  PlayBodyPoints
+//  BodyFrame.h
 //
 //  Created by Erika Dains on 10/12/15.
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
-#ifndef PlayBodyPoints_BodyFrame_h
-#define PlayBodyPoints_BodyFrame_h
+#ifndef _BODYFRAME_H_
+#define _BODYFRAME_H_
 
 #include <stdio.h>
 #include "Joint.h"
+#include "FileWriter.h"
 
 const int JOINT_TOTAL = 25;
 
@@ -27,7 +27,8 @@ public:
     eJoint* getJoints(); //Returns joints as stored in file
     int getCurrJointCount();
     void freeJoints();
+    void writeFrame(FileWriter currFile);
 };
 
-#endif
+#endif /* _BODYFRAME_H_ */
 

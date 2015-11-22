@@ -11,13 +11,13 @@
 
 #include <fstream>
 #include <iostream>
+#include <Kinect.h>
 #include <SDL.h>
 #include <stdio.h>
 #include <string>
-#include "Movement.h"
-#include <Kinect.h>
-#include "Button.h"
 #include <quaternion.h>
+#include "Button.h"
+#include "Movement.h"
 
 
 using namespace std;
@@ -37,6 +37,7 @@ private:
 	//Screen dimension constants
 	const int SCREEN_WIDTH = 640;
 	const int SCREEN_HEIGHT = 480;
+	static int saveCount;
 	int frameNumber; //Which frame to read from file
 	int bodyCount; //Number of bodies being displayed, right now only options are 1 or 2
 	SDL_Window* window = NULL;  //The window we'll be rendering to
@@ -44,16 +45,12 @@ private:
 	//SDL_Point bodyPoints[JOINT_TOTAL];
 	BodyFrame displayBodies[TOTAL_BODIES];
 	Movement currMove;
+	Movement keyframes;
     Button* gButtons[TOTAL_BUTTONS];
 
 
-	std::ofstream log, moveData, whereData;
+	std::ofstream log; //, moveData, whereData;
 
-	//whether we will be displaying data live from kinect or recorded movement
-	// 0 = just live playback
-	// 1 = just recorded playback
-	// 2 = live and recorded playback
-	// ?3 = 2 recorded playbacks? - dont know if implementation will be necessary 
 	int playback = RECORDED;
 
 
@@ -62,6 +59,24 @@ private:
 	//bool getFramesFromFile(string filename);
 	bool getSingleFrameFromFile();
 	void close();  //Frees media and shuts down SDL
+	bool framesFromKinect(bool firstRun);
+	bool framesFromQuaternions(bool firstRun);
+	void handleKeyPresses(SDL_Event e);
+	void captureKeyframe();
+	void flashScreen();
+	void saveKeyframes();
+
+
+
+/* Moved to FileWriter.h 
+	void openQuatLog();
+	void closeQuatLog();
+	void openQuatBodyFrame();
+	void firstQuatBodyFrame();
+	void closeQuatBodyFrame();
+	void subsequentQuat();
+	void logQuat(float x, float y, float z, float w);
+
 	void logPoint(float x, float y, float z);
 	void openPointLog();
 	void closePointLog();
@@ -69,18 +84,9 @@ private:
 	void firstPointBodyFrame();
 	void closePointBodyFrame();
 	void subsequentPoint();
-	bool framesFromKinect(bool firstRun);
-
-	bool framesFromQuaternions(bool firstRun);
+*/
 
 
-	void logQuat(float x, float y, float z, float w);
-	void openQuatLog();
-	void closeQuatLog();
-	void openQuatBodyFrame();
-	void firstQuatBodyFrame();
-	void closeQuatBodyFrame();
-	void subsequentQuat();
 
 	// Current Kinect
 	IKinectSensor*          m_pKinectSensor;

@@ -9,65 +9,7 @@
 #include "stdafx.h"
 #include <quaternion.h>
 #include "QuatFrame.h"
-
-
-int getParent(int type) {
-	switch (type) {
-	case JointType_SpineBase:// SPINE_BASE:
-		return JointType_SpineMid;// SPINE_MID;
-	case JointType_SpineMid:// SPINE_MID:
-		return JointType_SpineMid;// JOINT_DEFAULT;
-	case JointType_Neck:// NECK:
-		return JointType_SpineShoulder;// SPINE_SHOULDER;
-	case JointType_Head:// HEAD:
-		return JointType_Neck;// NECK;
-	case JointType_ShoulderLeft:// SHOULDER_LEFT:
-		return JointType_SpineShoulder;// SPINE_SHOULDER;
-	case JointType_ElbowLeft:// ELBOW_LEFT:
-		return JointType_ShoulderLeft;// SHOULDER_LEFT;
-	case JointType_WristLeft:// WRIST_LEFT:
-		return JointType_ElbowLeft;// ELBOW_LEFT;
-	case JointType_HandLeft:// HAND_LEFT:
-		return JointType_WristLeft;// WRIST_LEFT;
-	case JointType_HandTipLeft:// HAND_TIP_LEFT:
-		return JointType_HandLeft;// HAND_LEFT;
-	case JointType_ThumbLeft:// THUMB_LEFT:
-		return JointType_HandLeft;// HAND_LEFT;
-	case JointType_ShoulderRight:// SHOULDER_RIGHT:
-		return JointType_SpineShoulder; //SPINE_SHOULDER;
-	case JointType_ElbowRight:// ELBOW_RIGHT:
-		return JointType_ShoulderRight;// SHOULDER_RIGHT;
-	case JointType_WristRight:// WRIST_RIGHT:
-		return JointType_ElbowRight;// ELBOW_RIGHT;
-	case JointType_HandRight:// HAND_RIGHT:
-		return JointType_WristRight;// WRIST_RIGHT;
-	case JointType_HandTipRight:// HAND_TIP_RIGHT:
-		return JointType_HandRight;// HAND_RIGHT;
-	case JointType_ThumbRight:// THUMB_RIGHT:
-		return JointType_HandRight;// HAND_RIGHT;
-	case JointType_HipLeft:// HIP_LEFT:
-		return JointType_SpineBase;// SPINE_BASE;
-	case JointType_KneeLeft:// KNEE_LEFT:
-		return JointType_HipLeft;// HIP_LEFT;
-	case JointType_AnkleLeft:// ANKLE_LEFT:
-		return JointType_KneeLeft;// KNEE_LEFT;
-	case JointType_FootLeft:// FOOT_LEFT:
-		return JointType_AnkleLeft;// ANKLE_LEFT;
-	case JointType_HipRight:// HIP_RIGHT:
-		return JointType_SpineBase;// SPINE_BASE;
-	case JointType_KneeRight:// KNEE_RIGHT:
-		return JointType_HipRight;// HIP_RIGHT;
-	case JointType_AnkleRight:// ANKLE_RIGHT:
-		return JointType_KneeRight;// KNEE_RIGHT;
-	case JointType_FootRight:// FOOT_RIGHT:
-		return JointType_AnkleRight;// ANKLE_RIGHT;
-	case JointType_SpineShoulder:// SPINE_SHOULDER:
-		return JointType_SpineMid;// SPINE_MID;
-	default:
-		return type;
-	}
-
-}
+#include "FileWriter.h"
 
 
 bool Display::run() {
@@ -98,10 +40,12 @@ bool Display::run() {
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_QUIT) {
 				quit = true;
-			}
-            
-            for (int i = 0; i < TOTAL_BUTTONS; i++) {
-                (*gButtons[i]).handleEvent(&e);
+			} else if (e.type == SDL_KEYDOWN) {
+				handleKeyPresses(e);
+			} else {
+            	for (int i = 0; i < TOTAL_BUTTONS; i++) {
+                	(*gButtons[i]).handleEvent(&e);
+            	}
             }
 		}
 
@@ -132,6 +76,42 @@ bool Display::run() {
 		close();
 
 		return true;
+}
+
+void Display::handleKeyPresses(SDL_Event e) {
+	switch (e.key.keysym.sym) {
+		case SDLK_SPACE:
+			captureKeyframe();
+		break;
+
+		case SDLK_BACKSPACE:
+			//pop most recent from stack
+			keyframes.popBackKeyframe();
+		break;
+
+		case SDLK_s:
+			//save current contents of stack to file
+			saveKeyframes();
+		break;
+	}
+}
+
+void Display::captureKeyframe() {
+		framesFromKinect(false);
+		keyframes.pushBackKeyframe(displayBodies[bodyCount-1]);
+		flashScreen();
+}
+
+void Display::flashScreen() {
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderClear(renderer);
+    SDL_Delay(10);
+}
+
+void Display::saveKeyframes() {
+	saveCount++;
+	string filename = "movement" + to_string(saveCount);
+	keyframes.logKeyframes(filename);
 }
 
 bool Display::framesFromKinect(bool firstRun)
@@ -383,7 +363,7 @@ bool Display::getFramesFromFile(string filename) {
 */
 
 bool Display::getSingleFrameFromFile() {
-    //check if getCurrFrameCount is 0, and figure out what needs to be done to display a blank if it is 0
+    //TODO check if getCurrFrameCount is 0, and figure out what needs to be done to display a blank if it is 0
 	if (frameNumber >= currMove.getCurrFrameCount()) {
 		frameNumber = frameNumber % currMove.getCurrFrameCount();
 	}
@@ -395,6 +375,7 @@ bool Display::getSingleFrameFromFile() {
 
 bool Display::init() {
     bool success = true;
+    saveCount = 0;
 	HRESULT hr;
 	IBodyFrameSource* pBodyFrameSource = NULL;
 	frameNumber = 0;
@@ -475,6 +456,7 @@ void Display::close() {
     //Quit SDL subsystems
     SDL_Quit();
 
+// TODO Should we be closing log file also?
 	//TODO this should be closed in response to user event, not the program closing
 	if (playback == LIVE || playback == LIVE_RECORD)
 	{
@@ -484,100 +466,61 @@ void Display::close() {
     
 }
 
+int getParent(int type) {
+	switch (type) {
+	case JointType_SpineBase:// SPINE_BASE:
+		return JointType_SpineMid;// SPINE_MID;
+	case JointType_SpineMid:// SPINE_MID:
+		return JointType_SpineMid;// JOINT_DEFAULT;
+	case JointType_Neck:// NECK:
+		return JointType_SpineShoulder;// SPINE_SHOULDER;
+	case JointType_Head:// HEAD:
+		return JointType_Neck;// NECK;
+	case JointType_ShoulderLeft:// SHOULDER_LEFT:
+		return JointType_SpineShoulder;// SPINE_SHOULDER;
+	case JointType_ElbowLeft:// ELBOW_LEFT:
+		return JointType_ShoulderLeft;// SHOULDER_LEFT;
+	case JointType_WristLeft:// WRIST_LEFT:
+		return JointType_ElbowLeft;// ELBOW_LEFT;
+	case JointType_HandLeft:// HAND_LEFT:
+		return JointType_WristLeft;// WRIST_LEFT;
+	case JointType_HandTipLeft:// HAND_TIP_LEFT:
+		return JointType_HandLeft;// HAND_LEFT;
+	case JointType_ThumbLeft:// THUMB_LEFT:
+		return JointType_HandLeft;// HAND_LEFT;
+	case JointType_ShoulderRight:// SHOULDER_RIGHT:
+		return JointType_SpineShoulder; //SPINE_SHOULDER;
+	case JointType_ElbowRight:// ELBOW_RIGHT:
+		return JointType_ShoulderRight;// SHOULDER_RIGHT;
+	case JointType_WristRight:// WRIST_RIGHT:
+		return JointType_ElbowRight;// ELBOW_RIGHT;
+	case JointType_HandRight:// HAND_RIGHT:
+		return JointType_WristRight;// WRIST_RIGHT;
+	case JointType_HandTipRight:// HAND_TIP_RIGHT:
+		return JointType_HandRight;// HAND_RIGHT;
+	case JointType_ThumbRight:// THUMB_RIGHT:
+		return JointType_HandRight;// HAND_RIGHT;
+	case JointType_HipLeft:// HIP_LEFT:
+		return JointType_SpineBase;// SPINE_BASE;
+	case JointType_KneeLeft:// KNEE_LEFT:
+		return JointType_HipLeft;// HIP_LEFT;
+	case JointType_AnkleLeft:// ANKLE_LEFT:
+		return JointType_KneeLeft;// KNEE_LEFT;
+	case JointType_FootLeft:// FOOT_LEFT:
+		return JointType_AnkleLeft;// ANKLE_LEFT;
+	case JointType_HipRight:// HIP_RIGHT:
+		return JointType_SpineBase;// SPINE_BASE;
+	case JointType_KneeRight:// KNEE_RIGHT:
+		return JointType_HipRight;// HIP_RIGHT;
+	case JointType_AnkleRight:// ANKLE_RIGHT:
+		return JointType_KneeRight;// KNEE_RIGHT;
+	case JointType_FootRight:// FOOT_RIGHT:
+		return JointType_AnkleRight;// ANKLE_RIGHT;
+	case JointType_SpineShoulder:// SPINE_SHOULDER:
+		return JointType_SpineMid;// SPINE_MID;
+	default:
+		return type;
+	}
 
-void Display::subsequentPoint()
-{
-	whereData << "," << std::endl;
 }
 
-void Display::firstPointBodyFrame()
-{
-	whereData << "[" << std::endl;
-}
-
-
-void Display::openPointBodyFrame()
-{
-	whereData << "," << std::endl << "[" << std::endl;
-}
-
-void Display::closePointBodyFrame()
-{
-	whereData << std::endl << "]";
-}
-
-
-
-void Display::logPoint(float x, float y, float z)
-{
-	whereData
-		<< "["
-		<< x
-		<< ", "
-		<< y
-		<< ", "
-		<< z
-		<< "]";
-}
-
-void Display::openPointLog()
-{
-	whereData.open("whereData.dat");
-	whereData << "{" << std::endl << "\"joints\": [" << std::endl;
-}
-
-void Display::closePointLog()
-{
-	whereData << std::endl << "]" << std::endl << "}";
-	whereData.close();
-}
-
-
-void Display::subsequentQuat()
-{
-	moveData << "," << std::endl;
-}
-
-void Display::firstQuatBodyFrame()
-{
-	moveData << "[" << std::endl;
-}
-
-
-void Display::openQuatBodyFrame()
-{
-	moveData << "," << std::endl << "[" << std::endl;
-}
-
-void Display::closeQuatBodyFrame()
-{
-	moveData << std::endl << "]";
-}
-
-
-
-void Display::logQuat(float x, float y, float z, float w)
-{
-	moveData
-		<< "["
-		<< x
-		<< ", "
-		<< y
-		<< ", "
-		<< z
-		<< ", "
-		<< w
-		<< "]";
-}
-
-void Display::openQuatLog()
-{
-	moveData.open("moveData.dat");
-	moveData << "{" << std::endl << "\"jointQuats\": [" << std::endl;
-}
-
-void Display::closeQuatLog()
-{
-	moveData << std::endl << "]" << std::endl << "}";
-	moveData.close();
-}

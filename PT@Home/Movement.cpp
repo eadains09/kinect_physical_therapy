@@ -1,6 +1,5 @@
 //
 //  Movement.cpp
-//  PlayBodyPoints
 //
 //  Created by Erika Dains on 10/13/15.
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
@@ -18,7 +17,7 @@ Movement::Movement() {
     currFrameCount = 0;
 }
 
-//Change this to return a success boolean
+//TODO Change this to return a success boolean?
 void Movement::readPoints(std::string path) {
     ifstream jointFile;
     string currLine;
@@ -110,11 +109,27 @@ void Movement::freeFrames() {
     }
 }
 
-void Movement::logMove(std::string fileName)
+void Movement::logKeyframes(std::string fileName)
 {
-	ofstream jointFile;
-	jointFile.open(fileName);
-	//TODO
+    FileWriter file = new FileWriter(fileName);
+
+    if (keyframeStack.size() > 0) {
+        keyframeStack.pop_front().writeFrame(file);
+        while (keyframeStack.size() > 0) {
+            file.addComma();
+            keyframeStack.pop_front().writeFrame(file);
+        }
+    }
+
+    file.closeFile();
+}
+
+void Movement::popBackKeyframe() {
+    keyframeStack.pop_back();
+}
+
+void Movement::pushBackKeyframe(BodyFrame frame) {
+    keyframeStack.push_back(frame);
 }
 
 void Movement::transformPoints(double *xPos, double *yPos, double *zPos) {

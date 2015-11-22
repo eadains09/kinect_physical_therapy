@@ -1,24 +1,27 @@
 //
 //  Movement.h
-//  PlayBodyPoints
 //
 //  Created by Erika Dains on 10/13/15.
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
-#ifndef __PlayBodyPoints__Movement__
-#define __PlayBodyPoints__Movement__
+#ifndef __Movement_H__
+#define __Movement_H__
 
 #include <stdio.h>
 #include <string>
+#include <deque>
 #include "BodyFrame.h"
 
 const int FRAME_TOTAL = 500;
+
+using namespace std;
 
 class Movement {
 
 private:
     BodyFrame frames[FRAME_TOTAL];
+    deque<BodyFrame> keyframeStack;
 //    BodyFrame *frames;
     int currFrameCount;
     
@@ -31,8 +34,12 @@ public:
 	BodyFrame getSingleFrame(int i);
     int getCurrFrameCount();
     void freeFrames();
-	void logMove(std::string fileName);
+	void logKeyframes(std::string fileName);
+    void popBackKeyframe();
+    void pushBackKeyframe(BodyFrame frame);
+
+
 
 };
 
-#endif /* defined(__PlayBodyPoints__Movement__) */
+#endif /* defined(__Movement_H__) */
