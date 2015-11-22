@@ -1,3 +1,7 @@
+//
+//  FileWriter.h
+//
+
 #ifndef _FILEWRITER_H_
 #define _FILEWRITER_H_
 

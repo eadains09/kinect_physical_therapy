@@ -345,7 +345,9 @@ bool Display::renderFrame() {
 }
 
 bool Display::getSingleFrameFromFile() {
-    //TODO check if getCurrFrameCount is 0, if it is, subtract one from bodyCount and only display kinect body or no body
+    // If loaded file was empty, getCurrFrameCount will be 0
+    // In that case, subtract one from bodyCount so that only 
+    // the kinect body or no body will be rendered
 	if (currMove.getCurrFrameCount() <= 0) {
 		bodyCount--;
 	}
@@ -391,7 +393,7 @@ bool Display::init() {
         success = false;
     } else {
         //Create window
-        window = SDL_CreateWindow("Kinect Display", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+        window = SDL_CreateWindow("Kinect Physical Therapy", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
         if (window == NULL) {
             printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
             success = false;

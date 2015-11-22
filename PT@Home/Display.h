@@ -7,7 +7,6 @@
 
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
-//TODO change other ifdefs to drop PlayBodyPoints name
 
 #include <fstream>
 #include <iostream>
@@ -43,22 +42,19 @@ private:
 	int bodyCount; //Number of bodies being displayed, right now only options are 1 or 2
 	SDL_Window* window = NULL;  //The window we'll be rendering to
 	SDL_Renderer* renderer = NULL;
-	//SDL_Point bodyPoints[JOINT_TOTAL];
 	BodyFrame displayBodies[TOTAL_BODIES];
 	Movement currMove;
 	Movement keyframes;
     Button* gButtons[TOTAL_BUTTONS];
+	
 	FileWriter writer;
-
-
-	std::ofstream log; //, moveData, whereData;
+	std::ofstream log;
 
 	int playback = RECORDED;
 
 
 	bool init();  //Starts up SDL and creates window
 	bool loadMedia();
-	//bool getFramesFromFile(string filename);
 	bool getSingleFrameFromFile();
 	void close();  //Frees media and shuts down SDL
 	bool framesFromKinect(bool firstRun);
@@ -67,27 +63,6 @@ private:
 	void captureKeyframe();
 	void flashScreen();
 	void saveKeyframes();
-
-
-
-/* Moved to FileWriter.h 
-	void openQuatLog();
-	void closeQuatLog();
-	void openQuatBodyFrame();
-	void firstQuatBodyFrame();
-	void closeQuatBodyFrame();
-	void subsequentQuat();
-	void logQuat(float x, float y, float z, float w);
-
-	void logPoint(float x, float y, float z);
-	void openPointLog();
-	void closePointLog();
-	void openPointBodyFrame();
-	void firstPointBodyFrame();
-	void closePointBodyFrame();
-	void subsequentPoint();
-*/
-
 
 
 	// Current Kinect
@@ -99,7 +74,6 @@ private:
 
 
 public:
-	//bool renderFrame(BodyFrame currFrame);
 	bool renderFrame();
 	bool run();
 
