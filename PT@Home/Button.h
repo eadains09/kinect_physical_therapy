@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <SDL.h>
 #include <string>
+#include <fstream>
+#include <iostream>
 
 //Button constants
 const int BUTTON_WIDTH = 40;
@@ -61,7 +63,7 @@ private:
     //Button type sprite
     ButtonSprite mCurrentSprite;
 
-    bool isInside(SDL_Event *e) {
+	bool isInside(SDL_Event *e);
 
 };
 

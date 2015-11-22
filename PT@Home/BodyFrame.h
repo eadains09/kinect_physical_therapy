@@ -17,7 +17,7 @@ const int JOINT_TOTAL = 25;
 class BodyFrame {
     
 private:
-    eJoint joints[JOINT_TOTAL];
+    eJoint joints[BodyFrame::JOINT_TOTAL];
     int currJointCount;
     
 public:

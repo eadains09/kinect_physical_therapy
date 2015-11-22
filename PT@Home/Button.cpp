@@ -6,8 +6,10 @@
 //
 
 #include "Button.h"
+#include "stdafx.h"
 #include <stdio.h>
 #include <iostream>
+
 
 /*Button::Button()
 {
@@ -127,6 +129,7 @@ bool Button::isInside(SDL_Event *e) {
 void Button::render(SDL_Renderer* renderer) {
     buttonTexture = SDL_CreateTextureFromSurface(renderer, buttonSurface);
     SDL_RenderCopy(renderer, buttonTexture, NULL, &destR);
+	SDL_DestroyTexture(buttonTexture);
 }
 
 void Button::freeButton() {

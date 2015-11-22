@@ -6,35 +6,10 @@
 
 DisplayBase::DisplayBase() {
 	window = NULL;
-	renderer = NULL:
+	renderer = NULL;
 }
 
-void runLoop() {
-	//Main loop flag
-	bool quit = false;
-	//Event Handler
-	SDL_Event e;
-
-	while (!quit) {
-		while (SDL_PollEvent(&e) != 0) {
-			if (e.type == SDL_QUIT) {
-				quit = true;
-			} else if (e.type == SDL_KEYDOWN) {
-				handleKeyPresses(e);
-			} else {
-            	for (int i = 0; i < gButtons.size(); i++) {
-                	(*gButtons.at(i)).handleEvent(&e);
-            	}
-            }
-		}
-
-		renderScreen();
-
-	}
-}
-
-
-virtual bool DisplayBase::init() {
+bool DisplayBase::init() {
 	bool success = true;
 
 	//Initialize SDL
@@ -93,7 +68,5 @@ void DisplayBase::closeButtons() {
         (*gButtons.at(i)).freeButton();
     }
 }
-
-
 
 

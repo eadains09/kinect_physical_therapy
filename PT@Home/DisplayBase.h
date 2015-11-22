@@ -11,13 +11,14 @@
 
 class DisplayBase {
 protected:
-	const int SCREEN_WIDTH = 640;
-	const int SCREEN_HEIGHT = 480;
+	const int SCREEN_WIDTH = 800;
+	const int SCREEN_HEIGHT = 600;
 	
-	static SDL_Window* window;  //The window we'll be rendering to
-	static SDL_Renderer* renderer;
+	// TODO I think these should be static
+	SDL_Window* window;  //The window we'll be rendering to
+	SDL_Renderer* renderer;
 	
-    vector<Button*> gButtons;
+    std::vector<Button*> gButtons;
 
     virtual bool init(); // Init's SDL window and renderer only - should be called by inheriting classes
 
@@ -35,7 +36,6 @@ protected:
 
 public:
 	DisplayBase();
-	void runLoop(); //TODO should this be virtual? Should be called by inheriting classes
 	//Does render frame need to go here?
 
 

@@ -5,8 +5,8 @@
 #include "MainDisplay.h"
 
 
-MainDisplay::MainDisplay() {
-	DisplayBase::DisplayBase();
+MainDisplay::MainDisplay() : DisplayBase() {
+	//DisplayBase::DisplayBase();
 
 	headerSurface = NULL;
 	headerTexture = NULL;
@@ -25,29 +25,59 @@ bool MainDisplay::run() {
 		return false;
 	}
 
-	runLoop();
+	//runLoop();
+	//Main loop flag
+	bool quit = false;
+	//Event Handler
+	SDL_Event e;
+
+	while (!quit) {
+		while (SDL_PollEvent(&e) != 0) {
+			if (e.type == SDL_QUIT) {
+				quit = true;
+			} else if (e.type == SDL_KEYDOWN) {
+				handleKeyPresses(e);
+			} else {
+				for (int i = 0; i < gButtons.size(); i++) {
+					(*gButtons.at(i)).handleEvent(&e);
+				}
+			}
+		}
+
+		renderScreen();
+
+	}
 
 	close();
 }
 
-virtual bool MainDisplay::init() {
+bool MainDisplay::init() {
 	bool success;
 
 	success = DisplayBase::init();
+
+	return success;
 }
     
-virtual bool MainDisplay::renderScreen() {
+bool MainDisplay::renderScreen() {
 	renderFrame();
+
+	return true;
 }
 
-virtual bool MainDisplay::renderFrame() {
+bool MainDisplay::renderFrame() {
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
+	bool once = true;
 
 	headerTexture = SDL_CreateTextureFromSurface(renderer, headerSurface);
     SDL_RenderCopy(renderer, headerTexture, NULL, &headerDestR);
-
-	renderButtons();
+	SDL_DestroyTexture(headerTexture);
+	
+	//if (once) {
+		renderButtons();
+		once = false;
+	//}
 
 	SDL_RenderPresent(renderer);
 
@@ -55,12 +85,12 @@ virtual bool MainDisplay::renderFrame() {
 
 }
 
-virtual bool MainDisplay::loadMedia() {
+bool MainDisplay::loadMedia() {
 	bool success = true;
 
 	headerSurface = SDL_LoadBMP("art/MainDisplay/title.bmp");
-	headerDestR.x = 100;
-    headerDestR.y = 50;
+	headerDestR.x = (SCREEN_WIDTH/2) - 150;
+    headerDestR.y = 100;
     headerDestR.w = 300;
     headerDestR.h = 100;
 
@@ -69,14 +99,18 @@ virtual bool MainDisplay::loadMedia() {
 	return success;
 }
 
-virtual bool MainDisplay::loadButtons() {
+bool MainDisplay::loadButtons() {
 
-	gButtons[0] = new Button(BUTTON_SPRITE_PHYSICIAN, 300, 100, 50, 200, "art/MainDisplay/physician.bmp");
-    gButtons[1] = new Button(BUTTON_SPRITE_PATIENT, 300, 100, SCREEN_WIDTH-350, 200, "art/MainDisplay/patient.bmp");
+	gButtons.push_back(new Button(BUTTON_SPRITE_PHYSICIAN, 300, 100, 66, SCREEN_HEIGHT/2, "art/MainDisplay/physician.bmp"));
+	gButtons.push_back(new Button(BUTTON_SPRITE_PATIENT, 300, 100, SCREEN_WIDTH - 366, SCREEN_HEIGHT/2, "art/MainDisplay/patient.bmp"));
 
+	//gButtons[0] = new Button(BUTTON_SPRITE_PHYSICIAN, 300, 100, 50, 200, "art/MainDisplay/physician.bmp");
+    //gButtons[1] = new Button(BUTTON_SPRITE_PATIENT, 300, 100, SCREEN_WIDTH-350, 200, "art/MainDisplay/patient.bmp");
+
+	return true;
 }
 
-virtual void MainDisplay::handleKeyPresses(SDL_Event e) {
+void MainDisplay::handleKeyPresses(SDL_Event e) {
 	switch (e.key.keysym.sym) {
 		case SDLK_d:
 			//Load Physician screen
@@ -88,7 +122,7 @@ virtual void MainDisplay::handleKeyPresses(SDL_Event e) {
 	}
 }
 
-virtual void MainDisplay::close() {
+void MainDisplay::close() {
 	SDL_FreeSurface(headerSurface);
     SDL_DestroyTexture(headerTexture);
 

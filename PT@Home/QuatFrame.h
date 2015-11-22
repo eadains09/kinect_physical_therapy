@@ -8,7 +8,7 @@
 #include <irrlicht.h>
 #include "Joint.h"
 #include "BodyFrame.h"
-#include "FloatJoint.h"
+//#include "FloatJoint.h"
 
 
 //const int JOINT_TOTAL = 25;
