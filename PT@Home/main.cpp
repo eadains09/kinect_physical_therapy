@@ -7,6 +7,7 @@
 
 #include "stdafx.h"
 #include "Display.h"
+#include "MainDisplay.h"
 
 using namespace std;
 

@@ -7,6 +7,7 @@
 
 #include "Display.h"
 #include "stdafx.h"
+#include <time.h>
 #include <quaternion.h>
 #include "QuatFrame.h"
 
@@ -85,7 +86,7 @@ void Display::handleKeyPresses(SDL_Event e) {
 
 		case SDLK_BACKSPACE:
 			//pop most recent from stack
-			keyframes.popBackKeyframe();
+			keyframes.popBackFrame();
 		break;
 
 		case SDLK_s:
@@ -109,7 +110,7 @@ void Display::captureKeyframe() {
 
 	framesFromKinect(false);
 	displayBodies[bodyCount-1].setTimestamp(seconds);
-	keyframes.pushBackKeyframe(displayBodies[bodyCount-1]);
+	keyframes.pushBackFrame(displayBodies[bodyCount-1]);
 	flashScreen();
 }
 
@@ -122,7 +123,7 @@ void Display::flashScreen() {
 void Display::saveKeyframes() {
 	saveCount++;
 	string filename = "testMovement" + to_string(saveCount);
-	keyframes.logKeyframes(filename);
+	keyframes.logFrames(filename);
 }
 
 
