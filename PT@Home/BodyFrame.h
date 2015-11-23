@@ -17,7 +17,8 @@ const int JOINT_TOTAL = 25;
 class BodyFrame {
     
 private:
-    eJoint joints[BodyFrame::JOINT_TOTAL];
+    eJoint joints[JOINT_TOTAL];
+    double timestamp;
     int currJointCount;
     
 public:
@@ -26,6 +27,8 @@ public:
     eJoint* sortJointsByParent(); //Sorts joints array by the parent of each joint: parent x must be defined above the joint with x as parent, returns sorted array
     eJoint* getJoints(); //Returns joints as stored in file
     int getCurrJointCount();
+    void setTimestamp(double ts);
+    double getTimestamp();
     void freeJoints();
     void writeFrame(FileWriter *currFile);
 };

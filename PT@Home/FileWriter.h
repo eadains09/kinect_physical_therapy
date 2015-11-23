@@ -28,6 +28,7 @@ public:
 	FileWriter();
 	FileWriter(string fileName, string header);
 	void openBodyFrame();
+	void logTimestamp(double timestamp);
 	void logDataQuat(float x, float y, float z, float w);
 	void logDataPoint(float x, float y, float z);
 	void closeBodyFrame();

@@ -45,6 +45,7 @@ private:
 	BodyFrame displayBodies[TOTAL_BODIES];
 	Movement currMove;
 	Movement keyframes;
+	time_t prevTime = NULL;
     Button* gButtons[TOTAL_BUTTONS];
 	
 	FileWriter writer;

@@ -96,7 +96,19 @@ void Display::handleKeyPresses(SDL_Event e) {
 }
 
 void Display::captureKeyframe() {
+	time_t currTime;
+	double seconds;
+
+	time(&currTime);
+	if (prevTime != NULL) {
+		seconds = difftime(currTime, prevTime);
+	} else {
+		seconds = 0;
+	}
+	prevTime = currTime;
+
 	framesFromKinect(false);
+	displayBodies[bodyCount-1].setTimestamp(seconds);
 	keyframes.pushBackKeyframe(displayBodies[bodyCount-1]);
 	flashScreen();
 }
@@ -209,105 +221,6 @@ bool Display::framesFromKinect(bool firstRun)
 	return true;
 
 }
-
-bool Display::framesFromQuaternions(bool firstRun)
-{
-	HRESULT hr;
-	if (!m_pBodyFrameReader)
-	{
-		return false;
-	}
-
-	IBodyFrame* pBodyFrame = NULL;
-	m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
-	if (!pBodyFrame)
-		return false;
-
-	if (firstRun)
-	{
-		writer.firstPointBodyFrame();
-		writer.firstQuatBodyFrame();
-	}
-	else
-	{
-		writer.openPointBodyFrame();
-		writer.openQuatBodyFrame();
-	}
-
-	INT64 nTime = 0;
-
-	hr = pBodyFrame->get_RelativeTime(&nTime);
-
-	IBody* ppBodies[BODY_COUNT] = { 0 };
-
-	hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
-
-	BodyFrame *anorexia = new BodyFrame();
-
-	Joint *joints = new Joint[JointType_Count];
-	for (int j = 0; j < _countof(ppBodies); j++)
-	{
-
-		BOOLEAN bTracked = false;
-		hr = ppBodies[j]->get_IsTracked(&bTracked);
-
-		if (!bTracked)
-		{
-			continue;
-		}
-
-
-		ppBodies[j]->GetJoints(JointType_Count, joints);
-
-		for (int i = 0; i < JointType_Count; i++)
-		{
-			if (i)
-			{
-				writer.subsequentPoint();
-				writer.subsequentQuat();
-			}
-			irr::core::quaternion *quat;
-			if (getParent(i) == i)
-			{
-				quat = new irr::core::quaternion(0, 0, 0, 0);
-			}
-			else
-			{
-				float x = joints[i].Position.X - joints[getParent(i)].Position.X;
-				float y = joints[i].Position.Y - joints[getParent(i)].Position.Y;
-				float z = joints[i].Position.Z - joints[getParent(i)].Position.Z;
-				float yaw = atan2(x, z) *180.0 / 3.141592653;
-				float padj = sqrt(pow(x, 2) + pow(z, 2));
-				float pitch = atan2(padj, y) *180.0 / 3.141592653;
-
-
-				quat = new irr::core::quaternion(0, pitch, yaw);
-			}
-			writer.logQuat(quat->X, quat->Y, quat->Z, quat->W);
-			delete quat;
-
-			writer.logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
-			anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
-
-		}
-		displayBodies[bodyCount - 1] = *anorexia;
-	}
-	SafeRelease(pBodyFrame);
-	writer.closePointBodyFrame();
-	writer.closeQuatBodyFrame();
-
-	for (int i = 0; i < _countof(ppBodies); ++i)
-	{
-		SafeRelease(ppBodies[i]);
-	}
-
-	return true;
-
-}
-
-
-
-
 
 bool Display::renderFrame() {
     int colorArray[2] = {0x00, 0xFF};

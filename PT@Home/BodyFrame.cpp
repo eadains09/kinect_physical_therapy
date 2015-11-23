@@ -9,6 +9,7 @@
 
 BodyFrame::BodyFrame() {
     currJointCount = 0;
+    timestamp = 0;
 }
 
 bool BodyFrame::addJoint(eJoint currJoint) {
@@ -37,6 +38,14 @@ int BodyFrame::getCurrJointCount() {
     return currJointCount;
 }
 
+void BodyFrame::setTimestamp(double ts) {
+    timestamp = ts;
+}
+
+double BodyFrame::getTimestamp() {
+    return timestamp;
+}
+
 void BodyFrame::freeJoints() {
     for (int i = 0; i < currJointCount; i++) {
         joints[i].freeJoint();
@@ -45,6 +54,7 @@ void BodyFrame::freeJoints() {
 
 void BodyFrame::writeFrame(FileWriter *currFile) {
     (*currFile).openBodyFrame();
+    (*currFile).logTimestamp(timestamp);
     if (currJointCount > 0) {
         (*currFile).logDataPoint(joints[0].getX(), joints[0].getY(), joints[0].getZ());
         for (int i = 1; i < currJointCount; i++) {
