@@ -102,12 +102,8 @@ bool MainDisplay::loadMedia() {
 }
 
 bool MainDisplay::loadButtons() {
-
 	gButtons.push_back(new Button(BUTTON_SPRITE_PHYSICIAN, 300, 100, 66, SCREEN_HEIGHT/2, "art/MainDisplay/physician.bmp"));
 	gButtons.push_back(new Button(BUTTON_SPRITE_PATIENT, 300, 100, SCREEN_WIDTH - 366, SCREEN_HEIGHT/2, "art/MainDisplay/patient.bmp"));
-
-	//gButtons[0] = new Button(BUTTON_SPRITE_PHYSICIAN, 300, 100, 50, 200, "art/MainDisplay/physician.bmp");
-    //gButtons[1] = new Button(BUTTON_SPRITE_PATIENT, 300, 100, SCREEN_WIDTH-350, 200, "art/MainDisplay/patient.bmp");
 
 	return true;
 }
