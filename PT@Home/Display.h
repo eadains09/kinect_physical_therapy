@@ -23,7 +23,7 @@
 using namespace std;
 
 const int TOTAL_BODIES = 2;
-const int TOTAL_BUTTONS = 2;
+const int TOTAL_BUTTONS = 4;
 
 enum playbackType {
 	LIVE = 0,
@@ -43,6 +43,8 @@ private:
 	SDL_Window* window = NULL;  //The window we'll be rendering to
 	SDL_Renderer* renderer = NULL;
 	BodyFrame displayBodies[TOTAL_BODIES];
+
+	BodyFrame prevKeyframe;
 	Movement currMove;
 	Movement keyframes;
 	time_t prevTime = NULL;
@@ -64,6 +66,8 @@ private:
 	void captureKeyframe();
 	void flashScreen();
 	void saveKeyframes();
+	void renderBody(BodyFrame currBody);
+
 
 
 	// Current Kinect
