@@ -44,6 +44,7 @@ private:
 	SDL_Renderer* renderer = NULL;
 	BodyFrame displayBodies[TOTAL_BODIES];
 
+	bool keyframeCaptured;
 	BodyFrame prevKeyframe;
 	Movement currMove;
 	Movement keyframes;
@@ -52,8 +53,9 @@ private:
 	
 	FileWriter writer;
 	std::ofstream log;
+	std::ofstream buttonLog;
 
-	int playback = RECORDED;
+	int playback = LIVE;
 
 
 	bool init();  //Starts up SDL and creates window
@@ -61,9 +63,10 @@ private:
 	bool getSingleFrameFromFile();
 	void close();  //Frees media and shuts down SDL
 	bool framesFromKinect(bool firstRun);
-	bool framesFromQuaternions(bool firstRun);
 	void handleKeyPresses(SDL_Event e);
+	void handleButtonEvent(SDL_Event* e, Button *currButton);
 	void captureKeyframe();
+	void deleteLastKeyframe();
 	void flashScreen();
 	void saveKeyframes();
 	void renderBody(BodyFrame currBody);

@@ -35,7 +35,7 @@ bool PhysicianMenuDisplay::run() {
 				handleKeyPresses(e);
 			} else {
 				for (int i = 0; i < gButtons.size(); i++) {
-					(*gButtons.at(i)).handleEvent(&e);
+					//(*gButtons.at(i)).handleEvent(&e);
 				}
 			}
 		}
@@ -72,18 +72,25 @@ bool PhysicianMenuDisplay::renderFrame() {
 	SDL_DestroyTexture(headerTexture);
 	
 	renderButtons();
-	once = false;
 
 	SDL_RenderPresent(renderer);
 
 	return true;
 }
 
-bool PhysicianMenuDisplay::loadMedia(); 
+bool PhysicianMenuDisplay::loadMedia() {
+	return true;
+}
 
-bool PhysicianMenuDisplay::loadButtons();
+bool PhysicianMenuDisplay::loadButtons() {
+	return true;
+}
 
-void PhysicianMenuDisplay::handleKeyPresses(SDL_Event e);
+void PhysicianMenuDisplay::handleKeyPresses(SDL_Event e) {
+	
+}
 
-void PhysicianMenuDisplay::close();
+void PhysicianMenuDisplay::close() {
+	
+}
 

@@ -44,7 +44,7 @@ bool Display::run() {
 				handleKeyPresses(e);
 			} else {
             	for (int i = 0; i < TOTAL_BUTTONS; i++) {
-                	(*gButtons[i]).handleEvent(&e);
+                	handleButtonEvent(&e, gButtons[i]);
             	}
             }
 		}
@@ -85,9 +85,7 @@ void Display::handleKeyPresses(SDL_Event e) {
 		break;
 
 		case SDLK_BACKSPACE:
-			//pop most recent from stack
-			keyframes.popBackFrame();
-			prevKeyframe = keyframes.getBackFrame();
+			deleteLastKeyframe();
 		break;
 
 		case SDLK_s:
@@ -97,9 +95,42 @@ void Display::handleKeyPresses(SDL_Event e) {
 	}
 }
 
+void Display::handleButtonEvent(SDL_Event* e, Button *currButton)
+{
+	//If mouse event happened
+	if (e->type == SDL_MOUSEBUTTONDOWN)
+	{
+		//Mouse is inside button
+		if ((*currButton).isInside(e))
+		{
+			switch ((*currButton).getType()) {
+				case BUTTON_SPRITE_ADD:
+					captureKeyframe();
+					break;
+
+				case BUTTON_SPRITE_DELETE:
+					deleteLastKeyframe();
+					break;
+
+				case BUTTON_SPRITE_SAVE:
+					saveKeyframes();
+			}
+			buttonLog.open("buttonLogData.txt", std::ofstream::app);
+
+			buttonLog << (*currButton).getType() << " button clicked" << std::endl;
+			//do something in response to which button it is
+
+			buttonLog.close();
+		}
+	}
+}
+
+
 void Display::captureKeyframe() {
 	time_t currTime;
 	double seconds;
+
+	keyframeCaptured = true;
 
 	time(&currTime);
 	if (prevTime != NULL) {
@@ -122,11 +153,17 @@ void Display::flashScreen() {
     SDL_Delay(50);
 }
 
+void Display::deleteLastKeyframe() {
+	//pop most recent from stack
+	keyframes.popBackFrame();
+	prevKeyframe = keyframes.getBackFrame();
+}
+
 void Display::saveKeyframes() {
 	saveCount++;
 	string filename = "testMovement" + to_string(saveCount);
 	keyframes.logFrames(filename);
-	prevKeyframe = NULL;
+	keyframeCaptured = false;
 }
 
 
@@ -248,7 +285,7 @@ bool Display::renderFrame() {
 		renderBody(displayBodies[j]);
 	}
 
-	if (prevKeyframe != NULL) {
+	if (keyframeCaptured) {
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j%2], 0xFF);
 		renderBody(prevKeyframe);
 	}
@@ -294,7 +331,7 @@ bool Display::init() {
 	HRESULT hr;
 	IBodyFrameSource* pBodyFrameSource = NULL;
 	frameNumber = 0;
-	prevKeyframe = NULL;
+	keyframeCaptured = false;
 
 	GetDefaultKinectSensor(&m_pKinectSensor);
 	if (playback == LIVE || playback == LIVE_RECORD)

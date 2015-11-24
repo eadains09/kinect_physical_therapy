@@ -39,9 +39,6 @@ public:
     void pushBackFrame(BodyFrame frame);
     BodyFrame getBackFrame();
 
-
-
-
 };
 
 #endif /* defined(__Movement_H__) */

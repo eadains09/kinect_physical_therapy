@@ -37,7 +37,7 @@ bool MainDisplay::run() {
 				handleKeyPresses(e);
 			} else {
 				for (int i = 0; i < gButtons.size(); i++) {
-					(*gButtons.at(i)).handleEvent(&e);
+					//(*gButtons.at(i)).handleEvent(&e);
 				}
 			}
 		}
@@ -74,7 +74,6 @@ bool MainDisplay::renderFrame() {
 	SDL_DestroyTexture(headerTexture);
 	
 	renderButtons();
-	once = false;
 
 	SDL_RenderPresent(renderer);
 

@@ -27,7 +27,7 @@ private:
     virtual void close();
 
 public:
-	MainDisplay();
+	PhysicianMenuDisplay();
 	bool run();
 };
 #endif /* _PHYSICIAN_MENU_DISPLAY_H_*/

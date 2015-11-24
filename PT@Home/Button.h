@@ -45,11 +45,13 @@ public:
     //Sets top left position
     void setPosition( int x, int y );
     //Handles mouse event
-    void handleEvent( SDL_Event* e );
+    //void handleEvent( SDL_Event* e );
     //Shows button sprite
     //void render(LTexture gButtonSpriteSheetTexture, SDL_Renderer* renderer, SDL_Rect* gSpriteClips);
     void render(SDL_Renderer* renderer);
-    
+	ButtonSprite getType();
+	bool isInside(SDL_Event *e);
+
     void freeButton();
     
 private:
@@ -66,9 +68,7 @@ private:
     //Button type sprite
     ButtonSprite mCurrentSprite;
 
-	bool isInside(SDL_Event *e);
 
 };
-
 
 #endif /* defined(__Button_H__) */

@@ -67,33 +67,14 @@ void Button::setType(ButtonSprite type)
     mCurrentSprite = type;
 }
 
+ButtonSprite Button::getType() {
+	return mCurrentSprite;
+}
+
 void Button::setPosition( int x, int y )
 {
     destR.x = x;
     destR.y = y;
-}
-
-void Button::handleEvent( SDL_Event* e )
-{
-    //If mouse event happened
-    if(e->type == SDL_MOUSEBUTTONDOWN)
-    {   
-        //Mouse is inside button
-        if(isInside(e))
-        {
-            switch (mCurrentSprite) {
-                case BUTTON_SPRITE_ADD:
-                    captureKeyFrame();
-                    break;
-            }
-            log.open("buttonLogData.txt", std::ofstream::app);
-
-            log << mCurrentSprite << " button clicked" << std::endl;
-            //do something in response to which button it is
-
-            log.close();
-        }
-    }
 }
 
 bool Button::isInside(SDL_Event *e) {
