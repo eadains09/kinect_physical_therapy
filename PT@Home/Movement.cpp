@@ -66,7 +66,7 @@ void Movement::readPoints(std::string path) {
                         zPos = strtod(pEnd, NULL);
                     
                         //Account for Kinect offset
-                        transformPoints(&xPos, &yPos, &zPos);
+                        //transformPoints(&xPos, &yPos, &zPos);
                     
                         //Declare a joint using count for type and points and add to joints array of current bodyFrame
                         eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos);

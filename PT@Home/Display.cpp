@@ -329,8 +329,8 @@ bool Display::loadMedia() {
     bool success = true;
     
     //currMove.readPoints("movement1.dat");
-	currMove.readPoints("whereData2.dat");
-	//currMove.readPoints("testMovement1.dat");
+	//currMove.readPoints("whereData2.dat");
+	currMove.readPoints("testMovement1.dat");
     
     //initialize buttons
     gButtons[0] = new Button(BUTTON_SPRITE_BACK, 0, 0, "art/back.bmp");
