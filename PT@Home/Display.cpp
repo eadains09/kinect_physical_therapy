@@ -87,6 +87,7 @@ void Display::handleKeyPresses(SDL_Event e) {
 		case SDLK_BACKSPACE:
 			//pop most recent from stack
 			keyframes.popBackFrame();
+			prevKeyframe = keyframes.getBackFrame();
 		break;
 
 		case SDLK_s:
@@ -109,21 +110,23 @@ void Display::captureKeyframe() {
 	prevTime = currTime;
 
 	framesFromKinect(false);
-	displayBodies[bodyCount-1].setTimestamp(seconds);
-	keyframes.pushBackFrame(displayBodies[bodyCount-1]);
+	prevKeyframe = displayBodies[bodyCount-1];
+	prevKeyframe.setTimestamp(seconds);
+	keyframes.pushBackFrame(prevKeyframe);
 	flashScreen();
 }
 
 void Display::flashScreen() {
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
-    SDL_Delay(10);
+    SDL_Delay(50);
 }
 
 void Display::saveKeyframes() {
 	saveCount++;
 	string filename = "testMovement" + to_string(saveCount);
 	keyframes.logFrames(filename);
+	prevKeyframe = NULL;
 }
 
 
@@ -224,6 +227,7 @@ bool Display::framesFromKinect(bool firstRun)
 }
 
 bool Display::renderFrame() {
+	int j;
     int colorArray[2] = {0x00, 0xFF};
 
     //Clear screen
@@ -236,14 +240,28 @@ bool Display::renderFrame() {
     }
     
     //render bodies
-	for (int j = 0; j < bodyCount; j++) {
+	for (j = 0; j < bodyCount; j++) {
 		QuatFrame *proof = new QuatFrame(displayBodies[j]);
 		proof->initBodyFrame(&displayBodies[j]);
 
-		eJoint *joints = displayBodies[j].getJoints();
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j%2], 0xFF);
+		renderBody(displayBodies[j]);
+	}
 
-		for (int i = 0; i < displayBodies[j].getCurrJointCount(); i++) {
+	if (prevKeyframe != NULL) {
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j%2], 0xFF);
+		renderBody(prevKeyframe);
+	}
+
+    SDL_RenderPresent(renderer);
+
+    return true;
+}
+
+void Display::renderBody(BodyFrame currBody) {
+	eJoint *joints = currBody.getJoints();
+
+	for (int i = 0; i < currBody.getCurrJointCount(); i++) {
 			log << joints[i].getX() << " " << joints[i].getY() << endl;
 			JointType parent = joints[i].getParent();
 
@@ -251,11 +269,6 @@ bool Display::renderFrame() {
 				SDL_RenderDrawLine(renderer, joints[i].getX(), joints[i].getY(), joints[parent].getX(), joints[parent].getY());
 			}
 		}
-	}
-
-    SDL_RenderPresent(renderer);
-
-    return true;
 }
 
 bool Display::getSingleFrameFromFile() {
@@ -281,6 +294,7 @@ bool Display::init() {
 	HRESULT hr;
 	IBodyFrameSource* pBodyFrameSource = NULL;
 	frameNumber = 0;
+	prevKeyframe = NULL;
 
 	GetDefaultKinectSensor(&m_pKinectSensor);
 	if (playback == LIVE || playback == LIVE_RECORD)
@@ -333,10 +347,11 @@ bool Display::loadMedia() {
 	currMove.readPoints("testMovement1.dat");
     
     //initialize buttons
-    gButtons[0] = new Button(BUTTON_SPRITE_BACK, 0, 0, "art/back.bmp");
-    gButtons[1] = new Button(BUTTON_SPRITE_RECORD, SCREEN_WIDTH-BUTTON_WIDTH, 0, "art/play.bmp");
+    gButtons[0] = new Button(BUTTON_SPRITE_BACK, 10, 10, "art/back.bmp");
+    gButtons[1] = new Button(BUTTON_SPRITE_ADD, (SCREEN_WIDTH-BUTTON_WIDTH*3)-30, 10, "art/add.bmp");
+    gButtons[2] = new Button(BUTTON_SPRITE_DELETE, (SCREEN_WIDTH-BUTTON_WIDTH*2)-20, 10, "art/delete.bmp");
+    gButtons[3] = new Button(BUTTON_SPRITE_SAVE, (SCREEN_WIDTH-BUTTON_WIDTH)-10, 10, "art/save.bmp");
 
-    
     return success;
 }
 

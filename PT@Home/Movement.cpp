@@ -140,6 +140,10 @@ void Movement::pushBackFrame(BodyFrame frame) {
     currFrameCount++;
 }
 
+BodyFrame Movement::getBackFrame() {
+    return frames.back();
+}
+
 void Movement::transformPoints(double *xPos, double *yPos, double *zPos) {
     *xPos = (*xPos + 1) * 200;
     *yPos = (*yPos - 1) * -200;

@@ -6,8 +6,6 @@
 
 
 MainDisplay::MainDisplay() : DisplayBase() {
-	//DisplayBase::DisplayBase();
-
 	headerSurface = NULL;
 	headerTexture = NULL;
 }
@@ -70,21 +68,17 @@ bool MainDisplay::renderScreen() {
 bool MainDisplay::renderFrame() {
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
-	bool once = true;
 
 	headerTexture = SDL_CreateTextureFromSurface(renderer, headerSurface);
     SDL_RenderCopy(renderer, headerTexture, NULL, &headerDestR);
 	SDL_DestroyTexture(headerTexture);
 	
-	//if (once) {
-		renderButtons();
-		once = false;
-	//}
+	renderButtons();
+	once = false;
 
 	SDL_RenderPresent(renderer);
 
 	return true;
-
 }
 
 bool MainDisplay::loadMedia() {

@@ -37,6 +37,8 @@ public:
 	void logFrames(std::string fileName);
     void popBackFrame();
     void pushBackFrame(BodyFrame frame);
+    BodyFrame getBackFrame();
+
 
 
 

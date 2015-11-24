@@ -9,6 +9,7 @@
 #include "stdafx.h"
 #include <stdio.h>
 #include <iostream>
+#include "Display.h"
 
 
 /*Button::Button()
@@ -80,6 +81,11 @@ void Button::handleEvent( SDL_Event* e )
         //Mouse is inside button
         if(isInside(e))
         {
+            switch (mCurrentSprite) {
+                case BUTTON_SPRITE_ADD:
+                    captureKeyFrame();
+                    break;
+            }
             log.open("buttonLogData.txt", std::ofstream::app);
 
             log << mCurrentSprite << " button clicked" << std::endl;
