@@ -7,6 +7,7 @@
 
 #include "Display.h"
 #include "stdafx.h"
+#include <time.h>
 #include <quaternion.h>
 #include "QuatFrame.h"
 
@@ -43,7 +44,7 @@ bool Display::run() {
 				handleKeyPresses(e);
 			} else {
             	for (int i = 0; i < TOTAL_BUTTONS; i++) {
-                	(*gButtons[i]).handleEvent(&e);
+                	handleButtonEvent(&e, gButtons[i]);
             	}
             }
 		}
@@ -84,8 +85,7 @@ void Display::handleKeyPresses(SDL_Event e) {
 		break;
 
 		case SDLK_BACKSPACE:
-			//pop most recent from stack
-			keyframes.popBackKeyframe();
+			deleteLastKeyframe();
 		break;
 
 		case SDLK_s:
@@ -95,22 +95,75 @@ void Display::handleKeyPresses(SDL_Event e) {
 	}
 }
 
+void Display::handleButtonEvent(SDL_Event* e, Button *currButton)
+{
+	//If mouse event happened
+	if (e->type == SDL_MOUSEBUTTONDOWN)
+	{
+		//Mouse is inside button
+		if ((*currButton).isInside(e))
+		{
+			switch ((*currButton).getType()) {
+				case BUTTON_SPRITE_ADD:
+					captureKeyframe();
+					break;
+
+				case BUTTON_SPRITE_DELETE:
+					deleteLastKeyframe();
+					break;
+
+				case BUTTON_SPRITE_SAVE:
+					saveKeyframes();
+			}
+			buttonLog.open("buttonLogData.txt", std::ofstream::app);
+
+			buttonLog << (*currButton).getType() << " button clicked" << std::endl;
+			//do something in response to which button it is
+
+			buttonLog.close();
+		}
+	}
+}
+
+
 void Display::captureKeyframe() {
+	time_t currTime;
+	double seconds;
+
+	keyframeCaptured = true;
+
+	time(&currTime);
+	if (prevTime != NULL) {
+		seconds = difftime(currTime, prevTime);
+	} else {
+		seconds = 0;
+	}
+	prevTime = currTime;
+
 	framesFromKinect(false);
-	keyframes.pushBackKeyframe(displayBodies[bodyCount-1]);
+	prevKeyframe = displayBodies[bodyCount-1];
+	prevKeyframe.setTimestamp(seconds);
+	keyframes.pushBackFrame(prevKeyframe);
 	flashScreen();
 }
 
 void Display::flashScreen() {
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
-    SDL_Delay(10);
+    SDL_Delay(50);
+}
+
+void Display::deleteLastKeyframe() {
+	//pop most recent from stack
+	keyframes.popBackFrame();
+	prevKeyframe = keyframes.getBackFrame();
 }
 
 void Display::saveKeyframes() {
 	saveCount++;
 	string filename = "testMovement" + to_string(saveCount);
-	keyframes.logKeyframes(filename);
+	keyframes.logFrames(filename);
+	keyframeCaptured = false;
 }
 
 
@@ -210,106 +263,8 @@ bool Display::framesFromKinect(bool firstRun)
 
 }
 
-bool Display::framesFromQuaternions(bool firstRun)
-{
-	HRESULT hr;
-	if (!m_pBodyFrameReader)
-	{
-		return false;
-	}
-
-	IBodyFrame* pBodyFrame = NULL;
-	m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
-	if (!pBodyFrame)
-		return false;
-
-	if (firstRun)
-	{
-		writer.firstPointBodyFrame();
-		writer.firstQuatBodyFrame();
-	}
-	else
-	{
-		writer.openPointBodyFrame();
-		writer.openQuatBodyFrame();
-	}
-
-	INT64 nTime = 0;
-
-	hr = pBodyFrame->get_RelativeTime(&nTime);
-
-	IBody* ppBodies[BODY_COUNT] = { 0 };
-
-	hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
-
-	BodyFrame *anorexia = new BodyFrame();
-
-	Joint *joints = new Joint[JointType_Count];
-	for (int j = 0; j < _countof(ppBodies); j++)
-	{
-
-		BOOLEAN bTracked = false;
-		hr = ppBodies[j]->get_IsTracked(&bTracked);
-
-		if (!bTracked)
-		{
-			continue;
-		}
-
-
-		ppBodies[j]->GetJoints(JointType_Count, joints);
-
-		for (int i = 0; i < JointType_Count; i++)
-		{
-			if (i)
-			{
-				writer.subsequentPoint();
-				writer.subsequentQuat();
-			}
-			irr::core::quaternion *quat;
-			if (getParent(i) == i)
-			{
-				quat = new irr::core::quaternion(0, 0, 0, 0);
-			}
-			else
-			{
-				float x = joints[i].Position.X - joints[getParent(i)].Position.X;
-				float y = joints[i].Position.Y - joints[getParent(i)].Position.Y;
-				float z = joints[i].Position.Z - joints[getParent(i)].Position.Z;
-				float yaw = atan2(x, z) *180.0 / 3.141592653;
-				float padj = sqrt(pow(x, 2) + pow(z, 2));
-				float pitch = atan2(padj, y) *180.0 / 3.141592653;
-
-
-				quat = new irr::core::quaternion(0, pitch, yaw);
-			}
-			writer.logQuat(quat->X, quat->Y, quat->Z, quat->W);
-			delete quat;
-
-			writer.logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
-			anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
-
-		}
-		displayBodies[bodyCount - 1] = *anorexia;
-	}
-	SafeRelease(pBodyFrame);
-	writer.closePointBodyFrame();
-	writer.closeQuatBodyFrame();
-
-	for (int i = 0; i < _countof(ppBodies); ++i)
-	{
-		SafeRelease(ppBodies[i]);
-	}
-
-	return true;
-
-}
-
-
-
-
-
 bool Display::renderFrame() {
+	int j;
     int colorArray[2] = {0x00, 0xFF};
 
     //Clear screen
@@ -322,21 +277,17 @@ bool Display::renderFrame() {
     }
     
     //render bodies
-	for (int j = 0; j < bodyCount; j++) {
+	for (j = 0; j < bodyCount; j++) {
 		QuatFrame *proof = new QuatFrame(displayBodies[j]);
 		proof->initBodyFrame(&displayBodies[j]);
 
-		eJoint *joints = displayBodies[j].getJoints();
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j%2], 0xFF);
+		renderBody(displayBodies[j]);
+	}
 
-		for (int i = 0; i < displayBodies[j].getCurrJointCount(); i++) {
-			log << joints[i].getX() << " " << joints[i].getY() << endl;
-			JointType parent = joints[i].getParent();
-
-			if (parent != joints[i].getType()) {
-				SDL_RenderDrawLine(renderer, joints[i].getX(), joints[i].getY(), joints[parent].getX(), joints[parent].getY());
-			}
-		}
+	if (keyframeCaptured) {
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j%2], 0xFF);
+		renderBody(prevKeyframe);
 	}
 
     SDL_RenderPresent(renderer);
@@ -344,8 +295,23 @@ bool Display::renderFrame() {
     return true;
 }
 
+void Display::renderBody(BodyFrame currBody) {
+	eJoint *joints = currBody.getJoints();
+
+	for (int i = 0; i < currBody.getCurrJointCount(); i++) {
+			log << joints[i].getX() << " " << joints[i].getY() << endl;
+			JointType parent = joints[i].getParent();
+
+			if (parent != joints[i].getType()) {
+				SDL_RenderDrawLine(renderer, joints[i].getX(), joints[i].getY(), joints[parent].getX(), joints[parent].getY());
+			}
+		}
+}
+
 bool Display::getSingleFrameFromFile() {
-    //TODO check if getCurrFrameCount is 0, if it is, subtract one from bodyCount and only display kinect body or no body
+    // If loaded file was empty, getCurrFrameCount will be 0
+    // In that case, subtract one from bodyCount so that only 
+    // the kinect body or no body will be rendered
 	if (currMove.getCurrFrameCount() <= 0) {
 		bodyCount--;
 	}
@@ -365,6 +331,7 @@ bool Display::init() {
 	HRESULT hr;
 	IBodyFrameSource* pBodyFrameSource = NULL;
 	frameNumber = 0;
+	keyframeCaptured = false;
 
 	GetDefaultKinectSensor(&m_pKinectSensor);
 	if (playback == LIVE || playback == LIVE_RECORD)
@@ -391,7 +358,7 @@ bool Display::init() {
         success = false;
     } else {
         //Create window
-        window = SDL_CreateWindow("Kinect Display", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+        window = SDL_CreateWindow("Kinect Physical Therapy", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
         if (window == NULL) {
             printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
             success = false;
@@ -412,14 +379,16 @@ bool Display::init() {
 bool Display::loadMedia() {
     bool success = true;
     
-	currMove.readPoints("whereData2.dat");
-	//currMove.readPoints("testMovement1.dat");
+    //currMove.readPoints("movement1.dat");
+	//currMove.readPoints("whereData2.dat");
+	currMove.readPoints("testMovement1.dat");
     
     //initialize buttons
-    gButtons[0] = new Button(BUTTON_SPRITE_BACK, 0, 0, "art/back.bmp");
-    gButtons[1] = new Button(BUTTON_SPRITE_RECORD, SCREEN_WIDTH-BUTTON_WIDTH, 0, "art/play.bmp");
+    gButtons[0] = new Button(BUTTON_SPRITE_BACK, 10, 10, "art/back.bmp");
+    gButtons[1] = new Button(BUTTON_SPRITE_ADD, (SCREEN_WIDTH-BUTTON_WIDTH*3)-30, 10, "art/add.bmp");
+    gButtons[2] = new Button(BUTTON_SPRITE_DELETE, (SCREEN_WIDTH-BUTTON_WIDTH*2)-20, 10, "art/delete.bmp");
+    gButtons[3] = new Button(BUTTON_SPRITE_SAVE, (SCREEN_WIDTH-BUTTON_WIDTH)-10, 10, "art/save.bmp");
 
-    
     return success;
 }
 

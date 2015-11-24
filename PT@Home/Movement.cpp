@@ -66,14 +66,15 @@ void Movement::readPoints(std::string path) {
                         zPos = strtod(pEnd, NULL);
                     
                         //Account for Kinect offset
-                        transformPoints(&xPos, &yPos, &zPos);
+                        //transformPoints(&xPos, &yPos, &zPos);
                     
                         //Declare a joint using count for type and points and add to joints array of current bodyFrame
                         eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos);
                         currFrame.addJoint(currJoint);
                     }
                 }
-                frames[currFrameCount] = currFrame;
+                //frames[currFrameCount] = currFrame;
+                frames.push_back(currFrame);
                 currFrameCount++;
             }
         }
@@ -83,18 +84,20 @@ void Movement::readPoints(std::string path) {
     
     jointFile.close();
 }
-
-BodyFrame* Movement::getFrames() {
+/*
+deque<BodyFrame> Movement::getFrames() {
     return frames;
 }
-
+*/
 BodyFrame Movement::getSingleFrame(int i) {
 	if (i < currFrameCount) {
-		return frames[i];
+        return frames.at(i);
+		//return frames[i];
 	}
 	else {
 		//returns last frame in array when called on int greater than number of frames (instead of returning null)
-		return frames[currFrameCount-1];
+		//return frames[currFrameCount-1];
+        return frames.at(currFrameCount-1);
 	}
 }
 
@@ -104,34 +107,41 @@ int Movement::getCurrFrameCount() {
 
 //TODO: Should this be a destructor? Is it even necessary?
 void Movement::freeFrames() {
-    for (int i = 0; i < currFrameCount; i++) {
-        frames[i].freeJoints();
+    while (frames.size() > 0) {
+        frames.front().freeJoints();
+        frames.pop_front();
     }
 }
 
-void Movement::logKeyframes(std::string fileName)
+void Movement::logFrames(std::string fileName)
 {
     FileWriter file(fileName, "joints");
 
-    if (keyframeStack.size() > 0) {
-		keyframeStack.front().writeFrame(&file);
-		keyframeStack.pop_front();
-        while (keyframeStack.size() > 0) {
+    if (frames.size() > 0) {
+		frames.front().writeFrame(&file);
+		frames.pop_front();
+        while (frames.size() > 0) {
             file.addComma();
-            keyframeStack.front().writeFrame(&file);
-			keyframeStack.pop_front();
+            frames.front().writeFrame(&file);
+			frames.pop_front();
         }
     }
 
     file.closeFile();
 }
 
-void Movement::popBackKeyframe() {
-    keyframeStack.pop_back();
+void Movement::popBackFrame() {
+    frames.pop_back();
+    currFrameCount--;
 }
 
-void Movement::pushBackKeyframe(BodyFrame frame) {
-    keyframeStack.push_back(frame);
+void Movement::pushBackFrame(BodyFrame frame) {
+    frames.push_back(frame);
+    currFrameCount++;
+}
+
+BodyFrame Movement::getBackFrame() {
+    return frames.back();
 }
 
 void Movement::transformPoints(double *xPos, double *yPos, double *zPos) {

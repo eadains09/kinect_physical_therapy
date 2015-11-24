@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <SDL.h>
 #include <string>
+#include <fstream>
+#include <iostream>
 
 //Button constants
 const int BUTTON_WIDTH = 40;
@@ -22,29 +24,34 @@ enum ButtonSprite
     BUTTON_SPRITE_RECORD = 1,
     BUTTON_SPRITE_STOP = 2,
     BUTTON_SPRITE_BACK = 3,
-    BUTTON_SPRITE_TOTAL = 4
+    BUTTON_SPRITE_PHYSICIAN = 4,
+    BUTTON_SPRITE_PATIENT = 5,
+    BUTTON_SPRITE_ADD = 6,
+    BUTTON_SPRITE_DELETE = 7,
+    BUTTON_SPRITE_SAVE = 8,
+    BUTTON_SPRITE_TOTAL = 9
 };
 
 class Button
 {
 public:
     //Initializes internal variables
-   // Button();
+    // Button();
     
     Button(ButtonSprite type, int x, int y, std::string image);
+    Button(ButtonSprite type, int w, int h, int x, int y, std::string image);
 
     void setType(ButtonSprite type);
-    
     //Sets top left position
     void setPosition( int x, int y );
-        
     //Handles mouse event
-    void handleEvent( SDL_Event* e );
-    
+    //void handleEvent( SDL_Event* e );
     //Shows button sprite
     //void render(LTexture gButtonSpriteSheetTexture, SDL_Renderer* renderer, SDL_Rect* gSpriteClips);
     void render(SDL_Renderer* renderer);
-    
+	ButtonSprite getType();
+	bool isInside(SDL_Event *e);
+
     void freeButton();
     
 private:
@@ -54,10 +61,14 @@ private:
     SDL_Rect destR;
     SDL_Surface* buttonSurface;
     SDL_Texture* buttonTexture;
+
+    std::ofstream log;
+
     
     //Button type sprite
     ButtonSprite mCurrentSprite;
-};
 
+
+};
 
 #endif /* defined(__Button_H__) */
