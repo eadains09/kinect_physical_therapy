@@ -58,7 +58,7 @@ void FileWriter::closeKeyframe() {
 }
 
 void FileWriter::closeFile() {
-	currFile << std::endl << "]" << std::endl << "}";
+	currFile << std::endl << "]" << std::endl << "}" << std::endl;
 	currFile.close();
 }
 
