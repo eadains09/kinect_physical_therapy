@@ -12,6 +12,7 @@
 #include <string>
 #include <deque>
 #include "BodyFrame.h"
+#include "FileReader.h"
 
 const int FRAME_TOTAL = 250;
 
@@ -31,8 +32,8 @@ public:
     Movement();
     void readPoints(std::string path); //Takes file path, reads joint positions out of it, creates joints array
     void readKeyframes(std::string path);
-    eJoint readJointPoints(FileReader file);
-    eJoint readJointQuats(FileReader file);
+    eJoint readJointPoints(FileReader *file, BodyFrame currFrame);
+    eJoint readJointQuats(FileReader *file, BodyFrame currFrame);
     //BodyFrame* getFrames();
 	BodyFrame getSingleFrame(int i);
     int getCurrFrameCount();

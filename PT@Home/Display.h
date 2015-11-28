@@ -55,8 +55,7 @@ private:
 	std::ofstream log;
 	std::ofstream buttonLog;
 
-
-	int playback = LIVE;
+	int playback;
 
 
 	bool init();  //Starts up SDL and creates window

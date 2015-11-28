@@ -14,6 +14,7 @@
 
 bool Display::run() {
 	HRESULT hr;
+	playback = RECORDED;
 
 	log.open("logData.txt");
 
@@ -254,7 +255,7 @@ bool Display::framesFromKinect(bool firstRun)
 			writer.logQuat(quat->X, quat->Y, quat->Z, quat->W);
 			delete quat;
 
-			writer.logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
+			writer.logPoint((joints[i].Position.X + 1) * 200, (joints[i].Position.Y -1) * -200, joints[i].Position.Z);
 			log << joints[i].Position.X << joints[i].Position.Y << joints[i].Position.Z << std::endl;
 			anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
 
@@ -391,8 +392,8 @@ bool Display::loadMedia() {
     bool success = true;
     
     //currMove.readPoints("movement1.dat");
-	//currMove.readPoints("whereData2.dat");
-	currMove.readPoints("testMovement1.dat");
+	currMove.readPoints("whereData.dat");
+	//currMove.readPoints("testMovement1.dat");
     
     //initialize buttons
     gButtons[0] = new Button(BUTTON_SPRITE_BACK, 10, 10, "art/back.bmp");

@@ -100,13 +100,21 @@ void Movement::readPoints(std::string path) {
 
             while (file.findJointStart()) {
                 /* Just change this part to switch to reading quaternions */
-                eJoint currJoint = readJointPoints(file);
-                //eJoint currJoint = readJointQuats(file);
-                currFrame.addJoint(currJoint);
+                eJoint currJoint = readJointPoints(&file, currFrame);
+                //eJoint currJoint = readJointQuats(&file, currFrame);
+				if (currJoint.getX() == 0 && currJoint.getY() == 0 && currJoint.getZ() == 0) {
+					continue;
+				}
+				currFrame.addJoint(currJoint);
+				
             }
-
-            frames.push_back(currFrame);
-            currFrameCount++;
+			if (currFrame.getCurrJointCount() <= 0) {
+				continue;
+			}
+			else {
+				frames.push_back(currFrame);
+				currFrameCount++;
+			}
         }
     }
 
@@ -126,8 +134,8 @@ void Movement::readKeyframes(std::string path) {
             file.findJointStart();
             while (file.findJointStart()) {
                 /* Just change this part to switch to reading quaternions */
-                eJoint currJoint = readJointPoints(file);
-                //eJoint currJoint = readJointQuats(file);
+                eJoint currJoint = readJointPoints(&file, currFrame);
+                //eJoint currJoint = readJointQuats(&file, currFrame);
                 currFrame.addJoint(currJoint);
             }
 
@@ -139,25 +147,26 @@ void Movement::readKeyframes(std::string path) {
     file.closeFile();
 }
 
-eJoint Movement::readJointPoints(FileReader file) {
+eJoint Movement::readJointPoints(FileReader *file, BodyFrame currFrame) {
     double xPos, yPos, zPos;
 
-    xPos = file.findDouble();
-    yPos = file.findDouble();
-    zPos = file.findDouble();
+    xPos = (*file).findDouble();
+    yPos = (*file).findDouble();
+    zPos = (*file).findDouble();
 
+	//transformPoints(&xPos, &yPos, &zPos);
     eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos, (int)zPos);
 
     return currJoint;
 }
 
-eJoint Movement::readJointQuats(FileReader file) {
+eJoint Movement::readJointQuats(FileReader *file, BodyFrame currFrame) {
     double xQuat, yQuat, zQuat, wQuat;
 
-    xQuat = file.findDouble();
-    yQuat = file.findDouble();
-    zQuat = file.findDouble();
-    wQuat = file.findDouble();
+    xQuat = (*file).findDouble();
+    yQuat = (*file).findDouble();
+    zQuat = (*file).findDouble();
+    wQuat = (*file).findDouble();
 
     eJoint currJoint(currFrame.getCurrJointCount(), xQuat, yQuat, zQuat, wQuat);
 
