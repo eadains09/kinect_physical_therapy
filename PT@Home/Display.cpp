@@ -157,9 +157,15 @@ void Display::deleteLastKeyframe() {
 	time_t currTime;
 
 	//pop most recent from stack
-	keyframes.popBackFrame();
-	prevKeyframe = keyframes.getBackFrame();
-
+	if (keyframes.getCurrFrameCount() > 0) {
+		keyframes.popBackFrame();
+	}
+	if (keyframes.getCurrFrameCount() > 0) {
+		prevKeyframe = keyframes.getBackFrame();
+	} else {
+		keyframeCaptured = false;
+	}
+	
 	time(&currTime);
 	prevTime = currTime;
 }
