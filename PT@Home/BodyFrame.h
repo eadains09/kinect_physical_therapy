@@ -6,28 +6,29 @@
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
-#ifndef PlayBodyPoints_BodyFrame_h
-#define PlayBodyPoints_BodyFrame_h
+#pragma once
 
 #include <stdio.h>
 #include "Joint.h"
+#include <quaternion.h>
 
 const int JOINT_TOTAL = 25;
 
 class BodyFrame {
     
 private:
-    eJoint joints[JOINT_TOTAL];
-    int currJointCount;
+
     
 public:
+	irr::core::vector3df **joints;
+//	eJoint joints[JOINT_TOTAL];
+	int currJointCount;
     BodyFrame();
-    bool addJoint(eJoint currJoint);
-    eJoint* sortJointsByParent(); //Sorts joints array by the parent of each joint: parent x must be defined above the joint with x as parent, returns sorted array
-    eJoint* getJoints(); //Returns joints as stored in file
+    bool addJoint(irr::core::vector3df *currJoint);
+    irr::core::vector3df** sortJointsByParent(); //Sorts joints array by the parent of each joint: parent x must be defined above the joint with x as parent, returns sorted array
+	irr::core::vector3df** getJoints(); //Returns joints as stored in file
     int getCurrJointCount();
-    void freeJoints();
+	virtual ~BodyFrame();
 };
 
-#endif
 

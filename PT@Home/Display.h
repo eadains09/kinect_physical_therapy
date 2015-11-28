@@ -5,9 +5,7 @@
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
-#ifndef Display_h
-#define Display_h
-//TODO change other ifdefs to drop PlayBodyPoints name
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -36,8 +34,8 @@ private:
 	SDL_Window* window = NULL;  //The window we'll be rendering to
 	SDL_Renderer* renderer = NULL;
 	//SDL_Point bodyPoints[JOINT_TOTAL];
-	BodyFrame displayBodies[TOTAL_BODIES];
-	Movement currMove;
+	BodyFrame **displayBodies;// [TOTAL_BODIES];
+	Movement *currMove;
     Button* gButtons[TOTAL_BUTTONS];
 
 
@@ -91,5 +89,3 @@ public:
 
 };
 int getParent(int);
-
-#endif

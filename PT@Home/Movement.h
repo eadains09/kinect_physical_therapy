@@ -6,8 +6,7 @@
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
-#ifndef __PlayBodyPoints__Movement__
-#define __PlayBodyPoints__Movement__
+#pragma once
 
 #include <stdio.h>
 #include <string>
@@ -18,8 +17,8 @@ const int FRAME_TOTAL = 500;
 class Movement {
 
 private:
-    BodyFrame frames[FRAME_TOTAL];
-//    BodyFrame *frames;
+//    BodyFrame frames[FRAME_TOTAL];
+    BodyFrame **frames;
     int currFrameCount;
     
     void transformPoints(double *xPos, double *yPos, double *zPos);
@@ -27,12 +26,12 @@ private:
 public:
     Movement();
     void readPoints(std::string path); //Takes file path, reads joint positions out of it, creates joints array
-    BodyFrame* getFrames();
-	BodyFrame getSingleFrame(int i);
+    BodyFrame** getFrames();
+	BodyFrame* getSingleFrame(int i);
     int getCurrFrameCount();
     void freeFrames();
 	void logMove(std::string fileName);
+	virtual ~Movement();
 
 };
 
-#endif /* defined(__PlayBodyPoints__Movement__) */

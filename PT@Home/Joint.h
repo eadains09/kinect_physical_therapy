@@ -6,9 +6,7 @@
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
-#ifndef PlayBodyPoints_Joint_h
-#define PlayBodyPoints_Joint_h
-
+#pragma once
 #include <stdio.h>
 #include <SDL.h>
 #include <Kinect.h>
@@ -80,5 +78,3 @@ public:
     void freeJoint();
 };
 
-
-#endif

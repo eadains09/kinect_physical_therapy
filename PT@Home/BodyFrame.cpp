@@ -10,9 +10,13 @@
 
 BodyFrame::BodyFrame() {
     currJointCount = 0;
+	joints = new irr::core::vector3df*[JOINT_TOTAL];
+
+	for (int i = 0; i < JOINT_TOTAL; i++)
+		joints[i] = NULL;//new irr::core::vector3df();
 }
 
-bool BodyFrame::addJoint(eJoint currJoint) {
+bool BodyFrame::addJoint(irr::core::vector3df *currJoint) {
     bool success = false;
     
     if (currJointCount < JOINT_TOTAL) {
@@ -24,13 +28,14 @@ bool BodyFrame::addJoint(eJoint currJoint) {
     return success;
 }
 
-eJoint* BodyFrame::sortJointsByParent() {
-    eJoint *sortedJoints[JOINT_TOTAL];
-    
-    return *sortedJoints;
+irr::core::vector3df** BodyFrame::sortJointsByParent() {
+    //eJoint *sortedJoints[JOINT_TOTAL];
+	irr::core::vector3df** sortedJoints = new irr::core::vector3df *[JOINT_TOTAL];
+
+    return sortedJoints;
 }
 
-eJoint* BodyFrame::getJoints() {
+irr::core::vector3df** BodyFrame::getJoints() {
     return joints;
 }
 
@@ -38,8 +43,11 @@ int BodyFrame::getCurrJointCount() {
     return currJointCount;
 }
 
-void BodyFrame::freeJoints() {
-    for (int i = 0; i < currJointCount; i++) {
-        joints[i].freeJoint();
-    }
+
+BodyFrame::~BodyFrame()
+{
+//	for (int i = 0; i < currJointCount; i++) 
+//		delete joints[i];
+
+//	delete [] joints;
 }

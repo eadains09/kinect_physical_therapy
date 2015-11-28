@@ -1,0 +1,5 @@
+*.ilk
+PT@Home/Debug/main.obj
+*.obj
+PT@Home/Debug/PT@Home.log
+PT@Home/PT@Home.vcxproj

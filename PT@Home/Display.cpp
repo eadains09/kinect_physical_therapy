@@ -13,56 +13,50 @@
 
 int getParent(int type) {
 	switch (type) {
-	case JointType_SpineBase:// SPINE_BASE:
-		return JointType_SpineMid;// SPINE_MID;
-	case JointType_SpineMid:// SPINE_MID:
-		return JointType_SpineMid;// JOINT_DEFAULT;
-	case JointType_Neck:// NECK:
-		return JointType_SpineShoulder;// SPINE_SHOULDER;
-	case JointType_Head:// HEAD:
-		return JointType_Neck;// NECK;
-	case JointType_ShoulderLeft:// SHOULDER_LEFT:
-		return JointType_SpineShoulder;// SPINE_SHOULDER;
-	case JointType_ElbowLeft:// ELBOW_LEFT:
-		return JointType_ShoulderLeft;// SHOULDER_LEFT;
-	case JointType_WristLeft:// WRIST_LEFT:
-		return JointType_ElbowLeft;// ELBOW_LEFT;
-	case JointType_HandLeft:// HAND_LEFT:
-		return JointType_WristLeft;// WRIST_LEFT;
-	case JointType_HandTipLeft:// HAND_TIP_LEFT:
-		return JointType_HandLeft;// HAND_LEFT;
-	case JointType_ThumbLeft:// THUMB_LEFT:
-		return JointType_HandLeft;// HAND_LEFT;
-	case JointType_ShoulderRight:// SHOULDER_RIGHT:
-		return JointType_SpineShoulder; //SPINE_SHOULDER;
-	case JointType_ElbowRight:// ELBOW_RIGHT:
-		return JointType_ShoulderRight;// SHOULDER_RIGHT;
-	case JointType_WristRight:// WRIST_RIGHT:
-		return JointType_ElbowRight;// ELBOW_RIGHT;
-	case JointType_HandRight:// HAND_RIGHT:
-		return JointType_WristRight;// WRIST_RIGHT;
-	case JointType_HandTipRight:// HAND_TIP_RIGHT:
-		return JointType_HandRight;// HAND_RIGHT;
-	case JointType_ThumbRight:// THUMB_RIGHT:
-		return JointType_HandRight;// HAND_RIGHT;
-	case JointType_HipLeft:// HIP_LEFT:
-		return JointType_SpineBase;// SPINE_BASE;
-	case JointType_KneeLeft:// KNEE_LEFT:
-		return JointType_HipLeft;// HIP_LEFT;
-	case JointType_AnkleLeft:// ANKLE_LEFT:
-		return JointType_KneeLeft;// KNEE_LEFT;
-	case JointType_FootLeft:// FOOT_LEFT:
-		return JointType_AnkleLeft;// ANKLE_LEFT;
-	case JointType_HipRight:// HIP_RIGHT:
-		return JointType_SpineBase;// SPINE_BASE;
-	case JointType_KneeRight:// KNEE_RIGHT:
-		return JointType_HipRight;// HIP_RIGHT;
-	case JointType_AnkleRight:// ANKLE_RIGHT:
-		return JointType_KneeRight;// KNEE_RIGHT;
-	case JointType_FootRight:// FOOT_RIGHT:
-		return JointType_AnkleRight;// ANKLE_RIGHT;
-	case JointType_SpineShoulder:// SPINE_SHOULDER:
-		return JointType_SpineMid;// SPINE_MID;
+	case JointType_SpineShoulder:
+	case JointType_SpineBase:
+	case JointType_SpineMid:
+		return JointType_SpineMid;
+	case JointType_Neck:
+	case JointType_ShoulderLeft:
+	case JointType_ShoulderRight:
+		return JointType_SpineShoulder;
+	case JointType_HipLeft:
+	case JointType_HipRight:
+		return JointType_SpineBase;
+	case JointType_HandTipLeft:
+	case JointType_ThumbLeft:
+		return JointType_HandLeft;
+	case JointType_HandTipRight:
+	case JointType_ThumbRight:
+		return JointType_HandRight;
+	case JointType_Head:
+		return JointType_Neck;
+	case JointType_ElbowLeft:
+		return JointType_ShoulderLeft;
+	case JointType_WristLeft:
+		return JointType_ElbowLeft;
+	case JointType_HandLeft:
+		return JointType_WristLeft;
+	case JointType_ElbowRight:
+		return JointType_ShoulderRight;
+	case JointType_WristRight:
+		return JointType_ElbowRight;
+	case JointType_HandRight:
+		return JointType_WristRight;
+	case JointType_KneeLeft:
+		return JointType_HipLeft;
+	case JointType_AnkleLeft:
+		return JointType_KneeLeft;
+	case JointType_FootLeft:
+		return JointType_AnkleLeft;
+	case JointType_KneeRight:
+		return JointType_HipRight;
+	case JointType_AnkleRight:
+		return JointType_KneeRight;
+	case JointType_FootRight:
+		return JointType_AnkleRight;
+
 	default:
 		return type;
 	}
@@ -143,8 +137,8 @@ bool Display::framesFromKinect(bool firstRun)
 	}
 
 	IBodyFrame* pBodyFrame = NULL;
-	m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
-	if (!pBodyFrame)
+	hr = m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
+	if (!pBodyFrame || !SUCCEEDED(hr))
 		return false;
 
 	if (firstRun)
@@ -167,6 +161,7 @@ bool Display::framesFromKinect(bool firstRun)
 	hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
 
 	BodyFrame *anorexia = new BodyFrame();
+	QuatFrame *cleverPun = new QuatFrame();
 
 	Joint *joints = new Joint[JointType_Count];
 	for (int j = 0; j < _countof(ppBodies); j++)
@@ -208,14 +203,29 @@ bool Display::framesFromKinect(bool firstRun)
 				quat = new irr::core::quaternion(0, pitch, yaw);
 			}
 			logQuat(quat->X, quat->Y, quat->Z, quat->W);
+			if (cleverPun->addQuatJoint(*quat, i))
+				log << "addQuatJoint() says we succesfully initialized the QuatFrame" << std::endl;
+			//cleverPun->addQuatJoint(*new irr::core::quaternion(0, 0, 0, 0), i);
 			delete quat;
 
 			logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
 			log << joints[i].Position.X << joints[i].Position.Y << joints[i].Position.Z << std::endl;
-			anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
+			//TODO i is not a valid x value, either make sure that it never gets used that way or remove it
+			irr::core::vector3df *finish = new irr::core::vector3df((int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200), 0);
+			
+			if (i == JointType_SpineMid)
+				cleverPun->addMidSpine(*new irr::core::vector3df(0, 0, 0));
+				//cleverPun->addMidSpine(*finish);
+
+			//anorexia->addJoint(finish);
 
 		}
-		displayBodies[bodyCount-1] = *anorexia;
+		//QuatFrame *demo = new QuatFrame(*anorexia);
+		cleverPun->initBodyFrame(*anorexia);
+		for (int k = 0; k < JOINT_TOTAL; k++)
+			log << anorexia->getJoints()[k]->X << "," << anorexia->getJoints()[k]->Y << "," << anorexia->getJoints()[k]->Z << std::endl;
+
+		displayBodies[bodyCount-1] = anorexia;
 	}
 	SafeRelease(pBodyFrame);
 	closePointBodyFrame();
@@ -229,104 +239,6 @@ bool Display::framesFromKinect(bool firstRun)
 	return true;
 
 }
-
-bool Display::framesFromQuaternions(bool firstRun)
-{
-	HRESULT hr;
-	if (!m_pBodyFrameReader)
-	{
-		return false;
-	}
-
-	IBodyFrame* pBodyFrame = NULL;
-	m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
-	if (!pBodyFrame)
-		return false;
-
-	if (firstRun)
-	{
-		firstPointBodyFrame();
-		firstQuatBodyFrame();
-	}
-	else
-	{
-		openPointBodyFrame();
-		openQuatBodyFrame();
-	}
-
-	INT64 nTime = 0;
-
-	hr = pBodyFrame->get_RelativeTime(&nTime);
-
-	IBody* ppBodies[BODY_COUNT] = { 0 };
-
-	hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
-
-	BodyFrame *anorexia = new BodyFrame();
-
-	Joint *joints = new Joint[JointType_Count];
-	for (int j = 0; j < _countof(ppBodies); j++)
-	{
-
-		BOOLEAN bTracked = false;
-		hr = ppBodies[j]->get_IsTracked(&bTracked);
-
-		if (!bTracked)
-		{
-			continue;
-		}
-
-
-		ppBodies[j]->GetJoints(JointType_Count, joints);
-
-		for (int i = 0; i < JointType_Count; i++)
-		{
-			if (i)
-			{
-				subsequentPoint();
-				subsequentQuat();
-			}
-			irr::core::quaternion *quat;
-			if (getParent(i) == i)
-			{
-				quat = new irr::core::quaternion(0, 0, 0, 0);
-			}
-			else
-			{
-				float x = joints[i].Position.X - joints[getParent(i)].Position.X;
-				float y = joints[i].Position.Y - joints[getParent(i)].Position.Y;
-				float z = joints[i].Position.Z - joints[getParent(i)].Position.Z;
-				float yaw = atan2(x, z) *180.0 / 3.141592653;
-				float padj = sqrt(pow(x, 2) + pow(z, 2));
-				float pitch = atan2(padj, y) *180.0 / 3.141592653;
-
-
-				quat = new irr::core::quaternion(0, pitch, yaw);
-			}
-			logQuat(quat->X, quat->Y, quat->Z, quat->W);
-			delete quat;
-
-			logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
-			anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
-
-		}
-		displayBodies[bodyCount - 1] = *anorexia;
-	}
-	SafeRelease(pBodyFrame);
-	closePointBodyFrame();
-	closeQuatBodyFrame();
-
-	for (int i = 0; i < _countof(ppBodies); ++i)
-	{
-		SafeRelease(ppBodies[i]);
-	}
-
-	return true;
-
-}
-
-
-
 
 
 bool Display::renderFrame() {
@@ -343,18 +255,22 @@ bool Display::renderFrame() {
     
     //render bodies
 	for (int j = 0; j < bodyCount; j++) {
-		QuatFrame *proof = new QuatFrame(displayBodies[j]);
-		proof->initBodyFrame(&displayBodies[j]);
+		if (displayBodies[j] == NULL)
+			continue;
 
-		eJoint *joints = displayBodies[j].getJoints();
+		QuatFrame *proof = new QuatFrame(*displayBodies[j]);
+		proof->initBodyFrame(*displayBodies[j]);
+
+		irr::core::vector3df **joints = displayBodies[j]->getJoints();
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j%2], 0xFF);
 
-		for (int i = 0; i < displayBodies[j].getCurrJointCount(); i++) {
-			log << joints[i].getX() << " " << joints[i].getY() << endl;
-			JointType parent = joints[i].getParent();
+		for (int i = 0; i < displayBodies[j]->getCurrJointCount(); i++) {
+			//log << joints[i]->X << " " << joints[i]->Y << endl;
+			int parent = getParent(i);
 
-			if (parent != joints[i].getType()) {
-				SDL_RenderDrawLine(renderer, joints[i].getX(), joints[i].getY(), joints[parent].getX(), joints[parent].getY());
+			if (parent != i) 
+			{
+				SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[parent]->X, joints[parent]->Y);
 			}
 		}
 	}
@@ -364,30 +280,13 @@ bool Display::renderFrame() {
     return true;
 }
 
-/*
-bool Display::getFramesFromFile(string filename) {
-    currMove.readPoints(filename);
-
-    BodyFrame *frames = currMove.getFrames();
-    for (int i = 0; i < currMove.getCurrFrameCount(); i++) {
-		displayBodies[0] = frames[i];
-		renderFrame();
-
-        //Wait briefly
-        SDL_Delay(50);
-        log << "Rendering points " << i << endl;
-    }
-
-    return true;
-}
-*/
 
 bool Display::getSingleFrameFromFile() {
     //check if getCurrFrameCount is 0, and figure out what needs to be done to display a blank if it is 0
-	if (frameNumber >= currMove.getCurrFrameCount()) {
-		frameNumber = frameNumber % currMove.getCurrFrameCount();
+	if (frameNumber >= currMove->getCurrFrameCount()) {
+		frameNumber = frameNumber % currMove->getCurrFrameCount();
 	}
-	displayBodies[0] = currMove.getSingleFrame(frameNumber);
+	displayBodies[0] = currMove->getSingleFrame(frameNumber);
 
 	return true;
 }
@@ -398,6 +297,9 @@ bool Display::init() {
 	HRESULT hr;
 	IBodyFrameSource* pBodyFrameSource = NULL;
 	frameNumber = 0;
+	displayBodies = new BodyFrame*[TOTAL_BODIES];
+	for (int i = 0; i < TOTAL_BODIES; i++)
+		displayBodies[i] = NULL;
 
 	GetDefaultKinectSensor(&m_pKinectSensor);
 	if (live == 0 || live == 2)
@@ -444,9 +346,10 @@ bool Display::init() {
 
 bool Display::loadMedia() {
     bool success = true;
+	currMove = new Movement();
     
     //currMove.readPoints("movement1.dat");
-	currMove.readPoints("whereData.dat");
+	currMove->readPoints("whereData.dat");
     
     //initialize buttons
     gButtons[0] = new Button(BUTTON_SPRITE_BACK, 0, 0, "back.bmp");
@@ -458,11 +361,12 @@ bool Display::loadMedia() {
 
 void Display::close() {
     //This may not be necessary:
-	if(live == 1 || live == 2)
-		currMove.freeFrames();
+	if (live == 1 || live == 2)
+		delete currMove;
+//		currMove.freeFrames();
     
     for (int i = 0; i < TOTAL_BUTTONS; i++) {
-        (*gButtons[i]).freeButton();
+        gButtons[i]->freeButton();
     }
     
     SDL_DestroyRenderer(renderer);

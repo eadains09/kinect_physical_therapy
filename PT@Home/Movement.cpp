@@ -16,6 +16,12 @@ using namespace std;
 
 Movement::Movement() {
     currFrameCount = 0;
+	//TODO(distant and not entirely necessary) it seems like it might
+	//be nice to have a second constructor that takes frame_total as an
+	//argument 
+	frames = new BodyFrame*[FRAME_TOTAL];
+	for (int i = 0; i < FRAME_TOTAL; i++)
+		frames[i] = NULL;
 }
 
 //Change this to return a success boolean
@@ -42,7 +48,7 @@ void Movement::readPoints(std::string path) {
             if (currLine.compare("[") == 0) {
                 
                 //Declare a bodyFrame, add to frames array
-                BodyFrame currFrame;
+				BodyFrame *currFrame = NULL;// = new BodyFrame();
                 
                 //Read in each joint's points, looping until all 25 joints have been read in.
                 for (int i = 0; i < JOINT_TOTAL; i++) {
@@ -57,6 +63,8 @@ void Movement::readPoints(std::string path) {
 						//is invalid and we skip to the next one
 						if (start == -1 || end == -1 ||start >= end-1)
 							break;
+						if (currFrame == NULL)
+							currFrame = new BodyFrame();
                         jointLine = jointLine.substr(start, end-start);
                         jointLine.erase(jointLine.find(",", start), 1);
                         jointLine.erase(jointLine.find(",", start), 1);
@@ -70,12 +78,16 @@ void Movement::readPoints(std::string path) {
                         transformPoints(&xPos, &yPos, &zPos);
                     
                         //Declare a joint using count for type and points and add to joints array of current bodyFrame
-                        eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos);
-                        currFrame.addJoint(currJoint);
+                        //eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos);
+						//TODO here and elsewhere get rid of joint type(already encoded as array index)
+						//and instead pass z=0, then proper x and y
+						//irr::core::vector3df *currJoint = new irr::core::vector3df(currFrame->getCurrJointCount(), (int)xPos, (int)yPos);
+						irr::core::vector3df *currJoint = new irr::core::vector3df((int)xPos, (int)yPos, 0);
+                        currFrame->addJoint(currJoint);
                     }
                 }
-                frames[currFrameCount] = currFrame;
-                currFrameCount++;
+				if (currFrame != NULL)
+	                frames[currFrameCount++] = currFrame;
             }
         }
     } else {
@@ -85,11 +97,11 @@ void Movement::readPoints(std::string path) {
     jointFile.close();
 }
 
-BodyFrame* Movement::getFrames() {
+BodyFrame** Movement::getFrames() {
     return frames;
 }
 
-BodyFrame Movement::getSingleFrame(int i) {
+BodyFrame *Movement::getSingleFrame(int i) {
 	if (i < currFrameCount) {
 		return frames[i];
 	}
@@ -106,8 +118,14 @@ int Movement::getCurrFrameCount() {
 //TODO: Should this be a destructor? Is it even necessary?
 void Movement::freeFrames() {
     for (int i = 0; i < currFrameCount; i++) {
-        frames[i].freeJoints();
+		delete frames[i];
     }
+}
+
+Movement::~Movement()
+{
+	freeFrames();
+	delete[] frames;
 }
 
 void Movement::logMove(std::string fileName)
