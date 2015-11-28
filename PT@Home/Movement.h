@@ -30,6 +30,9 @@ private:
 public:
     Movement();
     void readPoints(std::string path); //Takes file path, reads joint positions out of it, creates joints array
+    void readKeyframes(std::string path);
+    eJoint readJointPoints(FileReader file);
+    eJoint readJointQuats(FileReader file);
     //BodyFrame* getFrames();
 	BodyFrame getSingleFrame(int i);
     int getCurrFrameCount();

@@ -53,8 +53,8 @@ void BodyFrame::freeJoints() {
 }
 
 void BodyFrame::writeFrame(FileWriter *currFile) {
-    (*currFile).openBodyFrame();
     (*currFile).logTimestamp(timestamp);
+    (*currFile).openBodyFrame();
     if (currJointCount > 0) {
         (*currFile).logDataPoint(joints[0].getX(), joints[0].getY(), joints[0].getZ());
         for (int i = 1; i < currJointCount; i++) {
@@ -63,4 +63,5 @@ void BodyFrame::writeFrame(FileWriter *currFile) {
         }
     }
     (*currFile).closeBodyFrame();
+    (*currFile).closeKeyframe();
 }

@@ -9,6 +9,8 @@
 #include <iostream>
 #include <stdlib.h>
 #include "Movement.h"
+#include "FileReader.h"
+#include "FileWriter.h"
 
 
 using namespace std;
@@ -18,14 +20,14 @@ Movement::Movement() {
 }
 
 //TODO Change this to return a success boolean?
-void Movement::readPoints(std::string path) {
-    ifstream jointFile;
+/*void Movement::readPoints(std::string path) {
+    //ifstream jointFile;
     string currLine;
     string jointLine;
     string::size_type start, end;
     double xPos, yPos, zPos;
     char * pEnd;
-    
+
     //Open file
     jointFile.open(path);
     
@@ -83,7 +85,85 @@ void Movement::readPoints(std::string path) {
     }
     
     jointFile.close();
+
+}*/
+
+void Movement::readPoints(std::string path) {
+    FileReader file(path);
+    
+    if(file.isOpen()) {
+        file.findFileStart();
+        file.findJointStart();
+
+        while (file.findJointStart()) {
+            BodyFrame currFrame;
+
+            while (file.findJointStart()) {
+                /* Just change this part to switch to reading quaternions */
+                eJoint currJoint = readJointPoints(file);
+                //eJoint currJoint = readJointQuats(file);
+                currFrame.addJoint(currJoint);
+            }
+
+            frames.push_back(currFrame);
+            currFrameCount++;
+        }
+    }
+
+    file.closeFile();
 }
+
+void Movement::readKeyframes(std::string path) {
+    FileReader file(path);
+    
+    if(file.isOpen()) {
+        file.findFileStart();
+
+        while (file.findKeyframeStart()) {
+            BodyFrame currFrame;
+
+            currFrame.setTimestamp(file.findTimestamp());
+            file.findJointStart();
+            while (file.findJointStart()) {
+                /* Just change this part to switch to reading quaternions */
+                eJoint currJoint = readJointPoints(file);
+                //eJoint currJoint = readJointQuats(file);
+                currFrame.addJoint(currJoint);
+            }
+
+            frames.push_back(currFrame);
+            currFrameCount++;
+        }
+    }
+
+    file.closeFile();
+}
+
+eJoint Movement::readJointPoints(FileReader file) {
+    double xPos, yPos, zPos;
+
+    xPos = file.findDouble();
+    yPos = file.findDouble();
+    zPos = file.findDouble();
+
+    eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos, (int)zPos);
+
+    return currJoint;
+}
+
+eJoint Movement::readJointQuats(FileReader file) {
+    double xQuat, yQuat, zQuat, wQuat;
+
+    xQuat = file.findDouble();
+    yQuat = file.findDouble();
+    zQuat = file.findDouble();
+    wQuat = file.findDouble();
+
+    eJoint currJoint(currFrame.getCurrJointCount(), xQuat, yQuat, zQuat, wQuat);
+
+    return currJoint;
+}
+
 /*
 deque<BodyFrame> Movement::getFrames() {
     return frames;
@@ -92,11 +172,9 @@ deque<BodyFrame> Movement::getFrames() {
 BodyFrame Movement::getSingleFrame(int i) {
 	if (i < currFrameCount) {
         return frames.at(i);
-		//return frames[i];
 	}
 	else {
 		//returns last frame in array when called on int greater than number of frames (instead of returning null)
-		//return frames[currFrameCount-1];
         return frames.at(currFrameCount-1);
 	}
 }
@@ -115,7 +193,7 @@ void Movement::freeFrames() {
 
 void Movement::logFrames(std::string fileName)
 {
-    FileWriter file(fileName, "joints");
+    FileWriter file(fileName, "keyframes");
 
     if (frames.size() > 0) {
 		frames.front().writeFrame(&file);

@@ -19,7 +19,7 @@ void FileWriter::openBodyFrame() {
 
 void FileWriter::logTimestamp(double timestamp) {
 	//write timestamp
-	//currFile << "[" << timestamp << "]" << std::endl;
+	currFile << "{" << "\"timestamp\": " << timestamp << ", \"joints\": " ;
 }
 
 
@@ -51,6 +51,10 @@ void FileWriter::logDataPoint(float x, float y, float z)
 
 void FileWriter::closeBodyFrame() {
 	currFile << std::endl << "]";
+}
+
+void FileWriter::closeKeyframe() {
+	currFile << std::endl << "}";
 }
 
 void FileWriter::closeFile() {

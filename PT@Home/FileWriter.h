@@ -2,8 +2,8 @@
 //  FileWriter.h
 //
 
-#ifndef _FILEWRITER_H_
-#define _FILEWRITER_H_
+#ifndef _FILE_WRITER_H_
+#define _FILE_WRITER_H_
 
 #include <fstream>
 #include <iostream>
@@ -32,6 +32,7 @@ public:
 	void logDataQuat(float x, float y, float z, float w);
 	void logDataPoint(float x, float y, float z);
 	void closeBodyFrame();
+	void closeKeyframe();
 	void closeFile();
 	void addComma();
 
@@ -57,4 +58,4 @@ public:
 
 };
 
-#endif /* _FILEWRITER_H_ */
+#endif /* _FILE_WRITER_H_ */

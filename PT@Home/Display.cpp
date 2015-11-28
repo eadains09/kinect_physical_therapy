@@ -154,9 +154,14 @@ void Display::flashScreen() {
 }
 
 void Display::deleteLastKeyframe() {
+	time_t currTime;
+
 	//pop most recent from stack
 	keyframes.popBackFrame();
 	prevKeyframe = keyframes.getBackFrame();
+
+	time(&currTime);
+	prevTime = currTime;
 }
 
 void Display::saveKeyframes() {
