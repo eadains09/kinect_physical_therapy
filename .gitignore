@@ -3,3 +3,13 @@ PT@Home/Debug/main.obj
 *.obj
 PT@Home/Debug/PT@Home.log
 PT@Home/PT@Home.vcxproj
+*.tlog
+*.pdb
+PT@Home/Release/PT@Home.ipdb
+*.iobj
+PT@Home/Release/PT@Home.exe
+*.res
+PT@Home/PT@Home.vcxproj
+PT@Home/PT@Home.vcxproj
+*.vcxproj
+*.tlog

@@ -260,6 +260,7 @@ bool Display::renderFrame() {
 
 		QuatFrame *proof = new QuatFrame(*displayBodies[j]);
 		proof->initBodyFrame(*displayBodies[j]);
+		delete proof;
 
 		irr::core::vector3df **joints = displayBodies[j]->getJoints();
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j%2], 0xFF);
