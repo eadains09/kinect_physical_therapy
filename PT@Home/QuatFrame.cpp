@@ -1,3 +1,7 @@
+//
+//  QuatFrame.cpp
+//
+
 #include "QuatFrame.h"
 #include "Display.h"
 
@@ -6,7 +10,7 @@ irr::f32 QuatFrame::getBoneLength(int i)
 	switch (i) {
 	case JointType_SpineBase:// to spine_mid
 		return 1;
-	case JointType_SpineMid:// should never get called
+	case JointType_SpineMid:// should never get called... maybe
 		return 1;
 	case JointType_Neck:// to spine shoulder
 		return .5;
@@ -54,6 +58,8 @@ irr::f32 QuatFrame::getBoneLength(int i)
 		return .5;
 	case JointType_SpineShoulder:// to spine mid
 		return 1;
+	default://make stupid warning go away
+		return 1;
 	}
 }
 
@@ -63,6 +69,7 @@ QuatFrame::QuatFrame()
 	jointQuats = new irr::core::quaternion*[JOINT_TOTAL];
 	bones = new irr::core::vector3df*[JOINT_TOTAL];
 	currJointCount = 0;
+	currQuatCount = 0;
 
 	for (int i = 0; i < JOINT_TOTAL; i++)
 	{
@@ -77,18 +84,18 @@ QuatFrame::QuatFrame(BodyFrame base)
 	jointQuats = new irr::core::quaternion*[JOINT_TOTAL];
 	bones = new irr::core::vector3df*[JOINT_TOTAL];
 	currJointCount = 0;
+	currQuatCount = 0;
+
 	irr::core::vector3df **points = base.getJoints();
 	for (int i = 0; i < JOINT_TOTAL; i++)
-	{
-		this->addJoint(*points[i]);
-	}
+		addJoint(*points[i]);
 }
 
 QuatFrame *QuatFrame::slerp(QuatFrame next, irr::f32 time)
 {
 	QuatFrame *inter = new QuatFrame();
 	for (int i = 0; i < JOINT_TOTAL; i++)
-		inter->addQuatJoint(this->jointQuats[i]->slerp(*this->jointQuats[i], *next.jointQuats[i], time), i);
+		inter->addQuatJoint(this->jointQuats[i]->slerp(*this->jointQuats[i], *next.jointQuats[i], time));
 
 	irr::core::vector3df interSpine = this->joints[JointType_SpineMid]->getInterpolated(*next.joints[JointType_SpineMid], time);
 
@@ -117,24 +124,28 @@ bool QuatFrame::addJoint(irr::core::vector3df joint)
 	return true;
 }
 
-bool QuatFrame::addQuatJoint(irr::core::quaternion joint, int index)
+bool QuatFrame::addQuatJoint(irr::core::quaternion joint)
 {
 	bool success = true;
-	this->jointQuats[index] = new irr::core::quaternion(joint);
+	this->jointQuats[currQuatCount] = new irr::core::quaternion(joint);
 	for (int i = 0; i < JOINT_TOTAL; i++)
 		if (jointQuats[i] == NULL)
 			success = false;
 
-	this->jointQuats[index]->normalize();
+	this->jointQuats[currJointCount]->normalize();
 
-	if (success && joints[JointType_SpineMid])
-		currJointCount = JOINT_TOTAL;
 	return isReady();
 }
 
 bool QuatFrame::isReady()
 {
-	return (currJointCount == JOINT_TOTAL);
+	//math and addition logic could be generalized more so that joints and quaternions
+	//can be interleaved any which way and added in any order and as long as we have
+	//enough information we can proceed. However this requires a good deal of math
+	//to deal with deriving things from things and crazily convoluted compresssed logic 
+	//and those things are super not happening right now.
+
+	return joints[JointType_SpineMid] && (currJointCount == JOINT_TOTAL || currQuatCount == JOINT_TOTAL);
 }
 
 void QuatFrame::initBodyFrame(BodyFrame frame)
@@ -204,10 +215,7 @@ irr::core::vector3df *QuatFrame::getPoint(int i)
 
 irr::core::vector3df *QuatFrame::getBone(int i)
 {
-	//first "bone" is the vector from origin to mid-spine
-	//meaning that the quaternion for midspine, rather than
-	//(0,0,0,0) is actually the rotation of that vector
-	//TODO implement in getPoint
+	//TODO body is rotated about midSpine vector, make that not happen anymore
 	if (i == JointType_SpineMid)
 	{
 		bones[JointType_SpineMid] = new irr::core::vector3df(*joints[JointType_SpineMid]);
@@ -250,9 +258,31 @@ void QuatFrame::init()
 		jointQuats[i] = quat;
 
 	}
-
-
 }
+
+void QuatFrame::setTimestamp(double ts) {
+	timestamp = ts;
+}
+
+double QuatFrame::getTimestamp() {
+	return timestamp;
+}
+
+
+void QuatFrame::writeFrame(FileWriter *currFile) {
+	currFile->logTimestampMidspine(timestamp, *joints[JointType_SpineMid]);
+	currFile->openBodyFrame();
+	if (isReady()) {
+		currFile->logDataPoint(joints[0]->X, joints[0]->Y, joints[0]->Z);
+		for (int i = 1; i < currJointCount; i++) {
+			currFile->addComma();
+			currFile->logDataPoint(joints[i]->X, joints[i]->Y, joints[i]->Z);
+		}
+	}
+	currFile->closeBodyFrame();
+	currFile->closeKeyframe();
+}
+
 
 QuatFrame::~QuatFrame()
 {

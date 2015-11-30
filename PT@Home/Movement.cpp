@@ -1,6 +1,5 @@
 //
 //  Movement.cpp
-//  PlayBodyPoints
 //
 //  Created by Erika Dains on 10/13/15.
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
@@ -10,6 +9,9 @@
 #include <iostream>
 #include <stdlib.h>
 #include "Movement.h"
+#include "FileReader.h"
+#include "FileWriter.h"
+#include "QuatFrame.h"
 
 
 using namespace std;
@@ -19,20 +21,22 @@ Movement::Movement() {
 	//TODO(distant and not entirely necessary) it seems like it might
 	//be nice to have a second constructor that takes frame_total as an
 	//argument 
-	frames = new BodyFrame*[FRAME_TOTAL];
-	for (int i = 0; i < FRAME_TOTAL; i++)
-		frames[i] = NULL;
+	//frames = new BodyFrame*[FRAME_TOTAL];
+	frames = new deque<BodyFrame>(FRAME_TOTAL);
+	deque<BodyFrame> qframes(FRAME_TOTAL);
+	//for (int i = 0; i < FRAME_TOTAL; i++)
+//		frames[i] = NULL;
 }
 
-//Change this to return a success boolean
-void Movement::readPoints(std::string path) {
-    ifstream jointFile;
+//TODO Change this to return a success boolean?
+/*void Movement::readPoints(std::string path) {
+    //ifstream jointFile;
     string currLine;
     string jointLine;
     string::size_type start, end;
     double xPos, yPos, zPos;
     char * pEnd;
-    
+
     //Open file
     jointFile.open(path);
     
@@ -75,7 +79,7 @@ void Movement::readPoints(std::string path) {
                         zPos = strtod(pEnd, NULL);
                     
                         //Account for Kinect offset
-                        transformPoints(&xPos, &yPos, &zPos);
+                        //transformPoints(&xPos, &yPos, &zPos);
                     
                         //Declare a joint using count for type and points and add to joints array of current bodyFrame
                         //eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos);
@@ -86,8 +90,14 @@ void Movement::readPoints(std::string path) {
                         currFrame->addJoint(currJoint);
                     }
                 }
+<<<<<<< HEAD
 				if (currFrame != NULL)
 	                frames[currFrameCount++] = currFrame;
+=======
+                //frames[currFrameCount] = currFrame;
+                frames.push_back(currFrame);
+                currFrameCount++;
+>>>>>>> master
             }
         }
     } else {
@@ -95,19 +105,124 @@ void Movement::readPoints(std::string path) {
     }
     
     jointFile.close();
+
+}*/
+
+void Movement::readQuatFrame(std::string path) {
+    FileReader file(path);
+    
+    if(file.isOpen()) {
+        file.findFileStart();
+
+
+
+
+
+//        file.findJointStart();
+
+        while (file.findKeyframeStart()) {
+            QuatFrame currFrame;
+
+
+
+            while (file.findJointStart()) {
+                // Just change this part to switch to reading quaternions
+                irr::core::vector3df currJoint = readJointPoints(&file);
+                //eJoint currJoint = readJointQuats(&file, currFrame);
+				if (currJoint.X == 0 && currJoint.Y == 0 && currJoint.Z == 0) {
+					continue;
+				}
+				currFrame.addJoint(currJoint);
+				
+            }
+			if (!currFrame.isReady()) {
+				continue;
+			}
+			else {
+				qframes.push_back(currFrame);
+				currFrameCount++;
+			}
+        }
+    }
+
+    file.closeFile();
 }
 
-BodyFrame** Movement::getFrames() {
-    return frames;
+deque<BodyFrame> Movement::getFrames() {
+    return *frames;
 }
 
-BodyFrame *Movement::getSingleFrame(int i) {
+//TODO check w/ erika
+void Movement::readKeyframes(std::string path) {
+    FileReader file(path);
+    
+    if(file.isOpen()) {
+        file.findFileStart();
+
+        while (file.findKeyframeStart()) {
+            QuatFrame currFrame;
+			//TODO
+			//FOR SURE MAKE SURE OF ORDERING of frame struct
+			//as stored in file
+            currFrame.setTimestamp(file.findTimestamp());
+
+			if (!file.findJointStart())
+				continue;
+
+			currFrame.addMidSpine(readJointPoints(&file));
+
+			//I noticed this in front, and was a bit confused by it
+      //      file.findJointStart();
+            while (file.findJointStart())
+				currFrame.addQuatJoint(readJointQuat(&file));
+
+            qframes.push_back(currFrame);
+            currFrameCount++;
+        }
+    }
+
+    file.closeFile();
+}
+
+irr::core::vector3df Movement::readJointPoints(FileReader *file) {
+    double xPos, yPos, zPos;
+
+    xPos = (*file).findDouble();
+    yPos = (*file).findDouble();
+    zPos = (*file).findDouble();
+
+	//transformPoints(&xPos, &yPos, &zPos);
+//    eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos, (int)zPos);
+	irr::core::vector3df currJoint(xPos, yPos, zPos);
+
+    return currJoint;
+}
+
+irr::core::quaternion Movement::readJointQuat(FileReader *file) {
+    double xQuat, yQuat, zQuat, wQuat;
+
+    xQuat = (*file).findDouble();
+    yQuat = (*file).findDouble();
+    zQuat = (*file).findDouble();
+    wQuat = (*file).findDouble();
+
+    //eJoint currJoint(currFrame.getCurrJointCount(), xQuat, yQuat, zQuat, wQuat);
+	irr::core::quaternion currJoint(xQuat, yQuat, zQuat, wQuat);
+
+    return currJoint;
+}
+
+//TODO
+//I am really not crazy about this memory leak waiting to happen
+//fix
+BodyFrame Movement::getSingleFrame(int i) {
+
 	if (i < currFrameCount) {
-		return frames[i];
+        return frames->at(i);
 	}
 	else {
 		//returns last frame in array when called on int greater than number of frames (instead of returning null)
-		return frames[currFrameCount-1];
+        return frames->at(currFrameCount-1);
 	}
 }
 
@@ -115,24 +230,54 @@ int Movement::getCurrFrameCount() {
     return currFrameCount;
 }
 
-//TODO: Should this be a destructor? Is it even necessary?
-void Movement::freeFrames() {
-    for (int i = 0; i < currFrameCount; i++) {
-		delete frames[i];
-    }
-}
 
 Movement::~Movement()
 {
-	freeFrames();
-	delete[] frames;
+//	freeFrames();
+	delete frames;
 }
 
 void Movement::logMove(std::string fileName)
 {
-	ofstream jointFile;
-	jointFile.open(fileName);
-	//TODO
+    while (frames->size() > 0) {
+		//TODO I think there's a fancy deque foreach destructor
+		//that one is supposed to use, look up and implement
+        //frames->front().freeJoints();
+        frames->pop_front();
+    }
+}
+
+/*neat fact to bear in mind: we will never, under any circumstances,
+need to log raw points*/
+void Movement::logFrames(std::string fileName)
+{
+    FileWriter file(fileName, "keyframes");
+
+    if (qframes.size() > 0) {
+		qframes.front().writeFrame(&file);
+		qframes.pop_front();
+        while (frames->size() > 0) {
+            file.addComma();
+            qframes.front().writeFrame(&file);
+			qframes.pop_front();
+        }
+    }
+
+    file.closeFile();
+}
+
+void Movement::popBackFrame() {
+    frames->pop_back();
+    currFrameCount--;
+}
+
+void Movement::pushBackFrame(BodyFrame frame) {
+    frames->push_back(frame);
+    currFrameCount++;
+}
+
+BodyFrame Movement::getBackFrame() {
+    return frames->back();
 }
 
 void Movement::transformPoints(double *xPos, double *yPos, double *zPos) {

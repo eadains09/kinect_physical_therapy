@@ -1,6 +1,5 @@
 //
 //  Movement.h
-//  PlayBodyPoints
 //
 //  Created by Erika Dains on 10/13/15.
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
@@ -10,28 +9,50 @@
 
 #include <stdio.h>
 #include <string>
+#include <deque>
 #include "BodyFrame.h"
+#include "FileReader.h"
+#include "QuatFrame.h"
 
-const int FRAME_TOTAL = 500;
+const int FRAME_TOTAL = 250;
+
+//using namespace std;
 
 class Movement {
 
 private:
-//    BodyFrame frames[FRAME_TOTAL];
-    BodyFrame **frames;
+	//TODO
+	//if this could just be a nice deque<BodyFrame> and
+	//save all pointer headaches that would be really swell
+	//once merge is sufficiently complete to determine whether
+	//or not that's feasible, do, and then do
+    deque<BodyFrame> *frames;
+	deque<QuatFrame> qframes;
+    //deque<BodyFrame> keyframeStack;
     int currFrameCount;
+	void logMove(std::string fileName);
     
+	//initbodyframe does this at the end, so this function
+	//should only be used for the raw points from the kinect
+	//if at all
     void transformPoints(double *xPos, double *yPos, double *zPos);
 
 public:
     Movement();
-    void readPoints(std::string path); //Takes file path, reads joint positions out of it, creates joints array
-    BodyFrame** getFrames();
-	BodyFrame* getSingleFrame(int i);
+    //void readPoints(std::string path); //Takes file path, reads joint positions out of it, creates joints array
+
+	void readQuatFrame(std::string path);
+    void readKeyframes(std::string path);
+    irr::core::vector3df readJointPoints(FileReader *file);
+    irr::core::quaternion readJointQuat(FileReader *file);
+    //BodyFrame* getFrames();
+	BodyFrame getSingleFrame(int i);
     int getCurrFrameCount();
-    void freeFrames();
-	void logMove(std::string fileName);
+ //   void freeFrames();
+	void logFrames(std::string fileName);
+    void popBackFrame();
+    void pushBackFrame(BodyFrame frame);
+	deque<BodyFrame> getFrames();
+    BodyFrame getBackFrame();
 	virtual ~Movement();
-
 };
-

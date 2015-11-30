@@ -26,18 +26,30 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\PT%40Home\BodyFrame.h" />
+    <ClInclude Include="..\PT%40Home\Button.h" />
     <ClInclude Include="..\PT%40Home\Display.h" />
+    <ClInclude Include="..\PT%40Home\DisplayBase.h" />
+    <ClInclude Include="..\PT%40Home\DisplayMain.h" />
+    <ClInclude Include="..\PT%40Home\FileReader.h" />
+    <ClInclude Include="..\PT%40Home\FileWriter.h" />
     <ClInclude Include="..\PT%40Home\Joint.h" />
     <ClInclude Include="..\PT%40Home\Movement.h" />
+    <ClInclude Include="..\PT%40Home\QuatFrame.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\PT%40Home\BodyFrame.cpp" />
+    <ClCompile Include="..\PT%40Home\Button.cpp" />
     <ClCompile Include="..\PT%40Home\Display.cpp" />
+    <ClCompile Include="..\PT%40Home\DisplayBase.cpp" />
+    <ClCompile Include="..\PT%40Home\DisplayMain.cpp" />
+    <ClCompile Include="..\PT%40Home\FileReader.cpp" />
+    <ClCompile Include="..\PT%40Home\FileWriter.cpp" />
     <ClCompile Include="..\PT%40Home\Joint.cpp" />
     <ClCompile Include="..\PT%40Home\main.cpp" />
     <ClCompile Include="..\PT%40Home\Movement.cpp" />
+    <ClCompile Include="..\PT%40Home\QuatFrame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\Desktop\SDL2-2.0.3\lib\x86\SDL2.dll" />
@@ -97,8 +109,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Joshua\Desktop\SDL2-2.0.3\include;$(KINECTSDK20_DIR)\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Joshua\Desktop\SDL2-2.0.3\lib\x86;$(KINECTSDK20_DIR)\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Joshua\Desktop\irrlicht-1.8.3\include;C:\Users\Joshua\Desktop\SDL2-2.0.3\include;$(KINECTSDK20_DIR)\inc;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Joshua\Desktop\irrlicht-1.8.3\lib\Win32-visualstudio;C:\Users\Joshua\Desktop\SDL2-2.0.3\lib\x86;$(KINECTSDK20_DIR)\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -107,8 +119,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\Joshua\Desktop\SDL2-2.0.3\include;$(KINECTSDK20_DIR)\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Joshua\Desktop\SDL2-2.0.3\lib\x86;$(KINECTSDK20_DIR)\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Joshua\Desktop\irrlicht-1.8.3\include;C:\Users\Joshua\Desktop\SDL2-2.0.3\include;$(KINECTSDK20_DIR)\inc;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Joshua\Desktop\irrlicht-1.8.3\lib\Win32-visualstudio;C:\Users\Joshua\Desktop\SDL2-2.0.3\lib\x86;$(KINECTSDK20_DIR)\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -136,7 +148,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EntryPointSymbol>
       </EntryPointSymbol>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Irrlicht.lib;SDL2.lib;SDL2main.lib;kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -173,7 +185,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EntryPointSymbol>
       </EntryPointSymbol>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Irrlicht.lib;SDL2.lib;SDL2main.lib;kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

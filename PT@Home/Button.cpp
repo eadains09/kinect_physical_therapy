@@ -6,8 +6,11 @@
 //
 
 #include "Button.h"
+#include "stdafx.h"
 #include <stdio.h>
 #include <iostream>
+#include "Display.h"
+
 
 /*Button::Button()
 {
@@ -43,9 +46,29 @@ Button::Button(ButtonSprite type, int x, int y, std::string image) {
     buttonSurface = SDL_LoadBMP(image.c_str());
 }
 
+Button::Button(ButtonSprite type, int w, int h, int x, int y, std::string image) {
+    mCurrentSprite = type;
+    
+    srcR.x = 0;
+    srcR.y = 0;
+    srcR.w = w;
+    srcR.h = h;
+    
+    destR.x = x;
+    destR.y = y;
+    destR.w = w;
+    destR.h = h;
+    
+    buttonSurface = SDL_LoadBMP(image.c_str());
+}
+
 void Button::setType(ButtonSprite type)
 {
     mCurrentSprite = type;
+}
+
+ButtonSprite Button::getType() {
+	return mCurrentSprite;
 }
 
 void Button::setPosition( int x, int y )
@@ -54,55 +77,46 @@ void Button::setPosition( int x, int y )
     destR.y = y;
 }
 
-void Button::handleEvent( SDL_Event* e )
-{
-    //If mouse event happened
-    if(e->type == SDL_MOUSEBUTTONDOWN)
+bool Button::isInside(SDL_Event *e) {
+    //Get mouse position
+    int x, y;
+    SDL_GetMouseState( &x, &y );
+        
+    //Check if mouse is in button
+    bool inside = true;
+        
+    //Mouse is left of the button
+    //if( x < mPosition.x )
+    if (x < destR.x)
     {
-        //Get mouse position
-        int x, y;
-        SDL_GetMouseState( &x, &y );
-        
-        //Check if mouse is in button
-        bool inside = true;
-        
-        //Mouse is left of the button
-        //if( x < mPosition.x )
-        if (x < destR.x)
-        {
-            inside = false;
-        }
-        //Mouse is right of the button
-        //else if( x > mPosition.x + BUTTON_WIDTH )
-        else if (x > destR.x + BUTTON_WIDTH)
-        {
-            inside = false;
-        }
-        //Mouse above the button
-        //else if( y < mPosition.y )
-        else if (y < destR.y)
-        {
-            inside = false;
-        }
-        //Mouse below the button
-        //else if( y > mPosition.y + BUTTON_HEIGHT )
-        else if (y > destR.y + BUTTON_HEIGHT)
-        {
-            inside = false;
-        }
-        
-        //Mouse is inside button
-        if( inside )
-        {
-            std::cout << mCurrentSprite << " button clicked" << std::endl;
-            //do something in response to which button it is
-        }
+        inside = false;
     }
+    //Mouse is right of the button
+    //else if( x > mPosition.x + BUTTON_WIDTH )
+    else if (x > destR.x + destR.w)
+    {
+        inside = false;
+    }
+    //Mouse above the button
+    //else if( y < mPosition.y )
+    else if (y < destR.y)
+    {
+        inside = false;
+    }
+    //Mouse below the button
+    //else if( y > mPosition.y + BUTTON_HEIGHT )
+    else if (y > destR.y + destR.h)
+    {
+        inside = false;
+    }
+
+    return inside;
 }
 
 void Button::render(SDL_Renderer* renderer) {
     buttonTexture = SDL_CreateTextureFromSurface(renderer, buttonSurface);
     SDL_RenderCopy(renderer, buttonTexture, NULL, &destR);
+	SDL_DestroyTexture(buttonTexture);
 }
 
 void Button::freeButton() {

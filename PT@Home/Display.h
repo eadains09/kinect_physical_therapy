@@ -7,72 +7,77 @@
 
 #pragma once
 
+
 #include <fstream>
 #include <iostream>
+#include <Kinect.h>
 #include <SDL.h>
 #include <stdio.h>
 #include <string>
-#include "Movement.h"
-#include <Kinect.h>
-#include "Button.h"
 #include <quaternion.h>
+#include "Button.h"
+#include "Movement.h"
+#include "FileWriter.h"
 
 
-using namespace std;
+//using namespace std;
 
 const int TOTAL_BODIES = 2;
-const int TOTAL_BUTTONS = 2;
+const int TOTAL_BUTTONS = 4;
+
+enum playbackType {
+	LIVE = 0,
+	RECORDED = 1,
+	LIVE_RECORD = 2
+};
 
 class Display {
 
 private:
 	//Screen dimension constants
-	const int SCREEN_WIDTH = 640;
-	const int SCREEN_HEIGHT = 480;
+	const int SCREEN_WIDTH = 800;
+	const int SCREEN_HEIGHT = 600;
+	int saveCount;
 	int frameNumber; //Which frame to read from file
 	int bodyCount; //Number of bodies being displayed, right now only options are 1 or 2
 	SDL_Window* window = NULL;  //The window we'll be rendering to
 	SDL_Renderer* renderer = NULL;
+
 	//SDL_Point bodyPoints[JOINT_TOTAL];
-	BodyFrame **displayBodies;// [TOTAL_BODIES];
+	BodyFrame *displayBodies;// [TOTAL_BODIES];
 	Movement *currMove;
+
+	//BodyFrame displayBodies[TOTAL_BODIES];
+
+	bool keyframeCaptured;
+	BodyFrame prevKeyframe;
+	//Movement currMove;
+	Movement keyframes;
+	time_t prevTime = NULL;
+
     Button* gButtons[TOTAL_BUTTONS];
+	
+	FileWriter writer;
+	std::ofstream log;
+	std::ofstream buttonLog;
 
-
-	std::ofstream log, moveData, whereData;
-
-	//whether we will be displaying data live from kinect or recorded movement
-	// 0 = just live playback
-	// 1 = just recorded playback
-	// 2 = live and recorded playback
-	// ?3 = 2 recorded playbacks? - dont know if implementation will be necessary 
-	int live = 1;
+	int playback;
 
 
 	bool init();  //Starts up SDL and creates window
 	bool loadMedia();
-	//bool getFramesFromFile(string filename);
 	bool getSingleFrameFromFile();
 	void close();  //Frees media and shuts down SDL
-	void logPoint(float x, float y, float z);
-	void openPointLog();
-	void closePointLog();
-	void openPointBodyFrame();
-	void firstPointBodyFrame();
-	void closePointBodyFrame();
-	void subsequentPoint();
 	bool framesFromKinect(bool firstRun);
+	void handleKeyPresses(SDL_Event e);
+	void handleButtonEvent(SDL_Event* e, Button *currButton);
+	void captureKeyframe();
+	void deleteLastKeyframe();
+	void flashScreen();
+	void saveKeyframes();
+	void renderBody(BodyFrame currBody);
 
-	bool framesFromQuaternions(bool firstRun);
 
-
-	void logQuat(float x, float y, float z, float w);
-	void openQuatLog();
-	void closeQuatLog();
-	void openQuatBodyFrame();
-	void firstQuatBodyFrame();
-	void closeQuatBodyFrame();
-	void subsequentQuat();
 
 	// Current Kinect
 	IKinectSensor*          m_pKinectSensor;
@@ -83,7 +88,6 @@ private:
 
 
 public:
-	//bool renderFrame(BodyFrame currFrame);
 	bool renderFrame();
 	bool run();
 

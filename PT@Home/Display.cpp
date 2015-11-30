@@ -1,3 +1,6 @@
+/*******
+* 01
+********/
 //
 //  Display.cpp
 //
@@ -7,6 +10,7 @@
 
 #include "Display.h"
 #include "stdafx.h"
+#include <time.h>
 #include <quaternion.h>
 #include "QuatFrame.h"
 
@@ -63,9 +67,9 @@ int getParent(int type) {
 
 }
 
-
 bool Display::run() {
 	HRESULT hr;
+	playback = LIVE;
 
 	log.open("logData.txt");
 
@@ -92,23 +96,31 @@ bool Display::run() {
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_QUIT) {
 				quit = true;
-			}
-            
-            for (int i = 0; i < TOTAL_BUTTONS; i++) {
-                (*gButtons[i]).handleEvent(&e);
+			} else if (e.type == SDL_KEYDOWN) {
+				handleKeyPresses(e);
+			} else {
+            	for (int i = 0; i < TOTAL_BUTTONS; i++) {
+                	handleButtonEvent(&e, gButtons[i]);
+            	}
             }
 		}
 
-		if (live == 0) {
+		if (playback == LIVE) {
 			bodyCount = 1;
 			if (framesFromKinect(firstRun))
 				firstRun = false;
 		}
-		else if (live == 1) {
+		else if (playback == RECORDED) {
 			bodyCount = 1;
 			getSingleFrameFromFile();
 		}
 		else {
+			//so this is the bit where we'll have to 
+			//compare, and thus is the only place in which
+			//it necessary to convert live kinect frames
+			//to quaternions, I would suggest a new function
+			//for that
+
 			//simultaneous playback
 			bodyCount = 2;
 
@@ -128,6 +140,106 @@ bool Display::run() {
 		return true;
 }
 
+void Display::handleKeyPresses(SDL_Event e) {
+	switch (e.key.keysym.sym) {
+		case SDLK_SPACE:
+			captureKeyframe();
+		break;
+		case SDLK_BACKSPACE:
+			deleteLastKeyframe();
+		break;
+		case SDLK_s:
+			//save current contents of stack to file
+			saveKeyframes();
+		break;
+	}
+}
+
+void Display::handleButtonEvent(SDL_Event* e, Button *currButton)
+{
+	//If mouse event happened
+	if (e->type == SDL_MOUSEBUTTONDOWN)
+	{
+		//Mouse is inside button
+		if ((*currButton).isInside(e))
+		{
+			switch ((*currButton).getType()) {
+				case BUTTON_SPRITE_ADD:
+					captureKeyframe();
+					break;
+				case BUTTON_SPRITE_DELETE:
+					deleteLastKeyframe();
+					break;
+				case BUTTON_SPRITE_SAVE:
+					saveKeyframes();
+					break;
+				default:
+					break;
+			}
+			buttonLog.open("buttonLogData.txt", std::ofstream::app);
+
+			buttonLog << (*currButton).getType() << " button clicked" << std::endl;
+			//do something in response to which button it is
+
+			buttonLog.close();
+		}
+	}
+}
+
+//TODO so around here is where we want to do the quaternion math
+//on the captured keyframe
+void Display::captureKeyframe() {
+	time_t currTime;
+	double seconds;
+
+	keyframeCaptured = true;
+
+	time(&currTime);
+	if (prevTime != NULL) {
+		seconds = difftime(currTime, prevTime);
+	} else {
+		seconds = 0;
+	}
+	prevTime = currTime;
+
+	framesFromKinect(false);
+	prevKeyframe = displayBodies[bodyCount-1];
+	prevKeyframe.setTimestamp(seconds);
+	keyframes.pushBackFrame(prevKeyframe);
+	flashScreen();
+}
+
+void Display::flashScreen() {
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderClear(renderer);
+    SDL_Delay(50);
+}
+
+void Display::deleteLastKeyframe() {
+	time_t currTime;
+
+	//pop most recent from stack
+	if (keyframes.getCurrFrameCount() > 0) {
+		keyframes.popBackFrame();
+	}
+	if (keyframes.getCurrFrameCount() > 0) {
+		prevKeyframe = keyframes.getBackFrame();
+	} else {
+		keyframeCaptured = false;
+	}
+	
+	time(&currTime);
+	prevTime = currTime;
+}
+
+void Display::saveKeyframes() {
+	saveCount++;
+	string filename = "testMovement" + to_string(saveCount);
+	keyframes.logFrames(filename);
+	keyframeCaptured = false;
+}
+
+
 bool Display::framesFromKinect(bool firstRun)
 {
 	HRESULT hr;
@@ -141,16 +253,16 @@ bool Display::framesFromKinect(bool firstRun)
 	if (!pBodyFrame || !SUCCEEDED(hr))
 		return false;
 
-	if (firstRun)
+	/*if (firstRun)
 	{
-		firstPointBodyFrame();
-		firstQuatBodyFrame();
+		writer.firstPointBodyFrame();
+		writer.firstQuatBodyFrame();
 	}
 	else
 	{
-		openPointBodyFrame();
-		openQuatBodyFrame();
-	}
+		writer.openPointBodyFrame();
+		writer.openQuatBodyFrame();
+	}*/
 
 	INT64 nTime = 0;
 
@@ -161,75 +273,40 @@ bool Display::framesFromKinect(bool firstRun)
 	hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
 
 	BodyFrame *anorexia = new BodyFrame();
-	QuatFrame *cleverPun = new QuatFrame();
 
 	Joint *joints = new Joint[JointType_Count];
+
 	for (int j = 0; j < _countof(ppBodies); j++)
 	{
-
-		BOOLEAN bTracked = false;
-		hr = ppBodies[j]->get_IsTracked(&bTracked);
-
-		if (!bTracked)
-		{
-			continue;
-		}
-
-
+		//For frames from kinect before keyframe selection I think it makes
+		//most sense to just keep them points, then do all the quat math
+		//on the keyframes we've captured
 		ppBodies[j]->GetJoints(JointType_Count, joints);
 
 		for (int i = 0; i < JointType_Count; i++)
 		{
-			if (i)
-			{
-				subsequentPoint();
-				subsequentQuat();
-			}
-			irr::core::quaternion *quat;
-			if (getParent(i) == i)
-			{
-				quat = new irr::core::quaternion(0, 0, 0, 0);
-			}
-			else
-			{
-				float x = joints[i].Position.X - joints[getParent(i)].Position.X;
-				float y = joints[i].Position.Y - joints[getParent(i)].Position.Y;
-				float z = joints[i].Position.Z - joints[getParent(i)].Position.Z;
-				float yaw = atan2(x, z) *180.0 / 3.141592653;
-				float padj = sqrt(pow(x, 2) + pow(z, 2));
-				float pitch = atan2(padj, y) *180.0 / 3.141592653;
-
-
-				quat = new irr::core::quaternion(0, pitch, yaw);
-			}
-			logQuat(quat->X, quat->Y, quat->Z, quat->W);
-			if (cleverPun->addQuatJoint(*quat, i))
-				log << "addQuatJoint() says we succesfully initialized the QuatFrame" << std::endl;
-			//cleverPun->addQuatJoint(*new irr::core::quaternion(0, 0, 0, 0), i);
-			delete quat;
-
-			logPoint(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
-			log << joints[i].Position.X << joints[i].Position.Y << joints[i].Position.Z << std::endl;
-			//TODO i is not a valid x value, either make sure that it never gets used that way or remove it
-			irr::core::vector3df *finish = new irr::core::vector3df((int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200), 0);
+			//DO NOT DELETE UNTIL ERIKA HAS BEEN CONSULTED
+			//????
+//			if (i)
+//			{
+//				writer.subsequentPoint();
+//				writer.subsequentQuat();
+//			}
 			
-			if (i == JointType_SpineMid)
-				cleverPun->addMidSpine(*new irr::core::vector3df(0, 0, 0));
-				//cleverPun->addMidSpine(*finish);
+			//writer.logQuat(quat->X, quat->Y, quat->Z, quat->W);
 
-			//anorexia->addJoint(finish);
+			//writer.logPoint((joints[i].Position.X + 1) * 200, (joints[i].Position.Y -1) * -200, joints[i].Position.Z);
+			irr::core::vector3df *joint = new irr::core::vector3df(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
+			anorexia->addJoint(joint);
+		//	anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
 
 		}
-		//QuatFrame *demo = new QuatFrame(*anorexia);
-		cleverPun->initBodyFrame(*anorexia);
-		for (int k = 0; k < JOINT_TOTAL; k++)
-			log << anorexia->getJoints()[k]->X << "," << anorexia->getJoints()[k]->Y << "," << anorexia->getJoints()[k]->Z << std::endl;
-
-		displayBodies[bodyCount-1] = anorexia;
+		//TODO deal with properly writing out quaternions and midSpine
+		displayBodies[bodyCount-1] = *anorexia;
 	}
 	SafeRelease(pBodyFrame);
-	closePointBodyFrame();
-	closeQuatBodyFrame();
+	/*writer.closePointBodyFrame();
+	writer.closeQuatBodyFrame();*/
 
 	for (int i = 0; i < _countof(ppBodies); ++i)
 	{
@@ -242,6 +319,7 @@ bool Display::framesFromKinect(bool firstRun)
 
 
 bool Display::renderFrame() {
+	int j;
     int colorArray[2] = {0x00, 0xFF};
 
     //Clear screen
@@ -255,25 +333,22 @@ bool Display::renderFrame() {
     
     //render bodies
 	for (int j = 0; j < bodyCount; j++) {
-		if (displayBodies[j] == NULL)
+		if (displayBodies[j].getCurrJointCount() != JOINT_TOTAL)
 			continue;
 
-		QuatFrame *proof = new QuatFrame(*displayBodies[j]);
-		proof->initBodyFrame(*displayBodies[j]);
-		delete proof;
+	//	QuatFrame *proof = new QuatFrame(*displayBodies[j]);
+	//	proof->initBodyFrame(*displayBodies[j]);
+	//	delete proof;
 
-		irr::core::vector3df **joints = displayBodies[j]->getJoints();
+		irr::core::vector3df **joints = displayBodies[j].getJoints();
+
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j%2], 0xFF);
+		renderBody(displayBodies[j]);
+	}
 
-		for (int i = 0; i < displayBodies[j]->getCurrJointCount(); i++) {
-			//log << joints[i]->X << " " << joints[i]->Y << endl;
-			int parent = getParent(i);
-
-			if (parent != i) 
-			{
-				SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[parent]->X, joints[parent]->Y);
-			}
-		}
+	if (keyframeCaptured) {
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j % 2], 0xFF);
+		renderBody(prevKeyframe);
 	}
 
     SDL_RenderPresent(renderer);
@@ -282,12 +357,30 @@ bool Display::renderFrame() {
 }
 
 
+void Display::renderBody(BodyFrame currBody) {
+	irr::core::vector3df **joints = currBody.getJoints();
+
+	for (int i = 0; i < currBody.getCurrJointCount(); i++) 
+			if (getParent(i) != i)
+				SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
+}
+
 bool Display::getSingleFrameFromFile() {
-    //check if getCurrFrameCount is 0, and figure out what needs to be done to display a blank if it is 0
-	if (frameNumber >= currMove->getCurrFrameCount()) {
-		frameNumber = frameNumber % currMove->getCurrFrameCount();
+    // If loaded file was empty, getCurrFrameCount will be 0
+    // In that case, subtract one from bodyCount so that only 
+    // the kinect body or no body will be rendered
+	if (currMove->getCurrFrameCount() <= 0) {
+		bodyCount--;
 	}
-	displayBodies[0] = currMove->getSingleFrame(frameNumber);
+	else {
+		if (frameNumber >= currMove->getCurrFrameCount()) {
+			frameNumber = frameNumber % currMove->getCurrFrameCount();
+		}
+		//TODO 
+		//we will now be reading in a keyquatframe instead of a bodyframe
+		//let's make that happen
+		displayBodies[0] = currMove->getSingleFrame(frameNumber);
+	}
 
 	return true;
 }
@@ -295,15 +388,19 @@ bool Display::getSingleFrameFromFile() {
 
 bool Display::init() {
     bool success = true;
+    saveCount = 0;
 	HRESULT hr;
 	IBodyFrameSource* pBodyFrameSource = NULL;
 	frameNumber = 0;
-	displayBodies = new BodyFrame*[TOTAL_BODIES];
+
+	displayBodies = new BodyFrame[TOTAL_BODIES];
 	for (int i = 0; i < TOTAL_BODIES; i++)
-		displayBodies[i] = NULL;
+		displayBodies[i] = BodyFrame();
+
+	keyframeCaptured = false;
 
 	GetDefaultKinectSensor(&m_pKinectSensor);
-	if (live == 0 || live == 2)
+	if (playback == LIVE || playback == LIVE_RECORD)
 	{
 		if (!m_pKinectSensor ||
 			!SUCCEEDED(m_pKinectSensor->Open()) ||
@@ -314,11 +411,10 @@ bool Display::init() {
 			log << "Could not find a connected kinect\n" << std::endl;
 			return false;
 		}
-		log << &pBodyFrameSource << std::endl;
 		SafeRelease(pBodyFrameSource);
 
-		openPointLog();
-		openQuatLog();
+	/*	writer.openPointLog();
+		writer.openQuatLog();*/
 	}
 
     //Initialize SDL
@@ -327,7 +423,7 @@ bool Display::init() {
         success = false;
     } else {
         //Create window
-        window = SDL_CreateWindow("Kinect Display", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+        window = SDL_CreateWindow("Kinect Physical Therapy", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
         if (window == NULL) {
             printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
             success = false;
@@ -349,22 +445,23 @@ bool Display::loadMedia() {
     bool success = true;
 	currMove = new Movement();
     
-    //currMove.readPoints("movement1.dat");
-	currMove->readPoints("whereData.dat");
+    //currMove->readPoints("movement1.dat");
+	//currMove->readPoints("whereData.dat");
+	currMove->readKeyframes("pleasework.dat");
     
     //initialize buttons
-    gButtons[0] = new Button(BUTTON_SPRITE_BACK, 0, 0, "back.bmp");
-    gButtons[1] = new Button(BUTTON_SPRITE_RECORD, SCREEN_WIDTH-BUTTON_WIDTH, 0, "play.bmp");
+    gButtons[0] = new Button(BUTTON_SPRITE_BACK, 10, 10, "art/back.bmp");
+    gButtons[1] = new Button(BUTTON_SPRITE_ADD, (SCREEN_WIDTH-BUTTON_WIDTH*3)-30, 10, "art/add.bmp");
+    gButtons[2] = new Button(BUTTON_SPRITE_DELETE, (SCREEN_WIDTH-BUTTON_WIDTH*2)-20, 10, "art/delete.bmp");
+    gButtons[3] = new Button(BUTTON_SPRITE_SAVE, (SCREEN_WIDTH-BUTTON_WIDTH)-10, 10, "art/save.bmp");
 
-    
     return success;
 }
 
 void Display::close() {
-    //This may not be necessary:
-	if (live == 1 || live == 2)
+	if(playback == RECORDED || playback == LIVE_RECORD)
 		delete currMove;
-//		currMove.freeFrames();
+
     
     for (int i = 0; i < TOTAL_BUTTONS; i++) {
         gButtons[i]->freeButton();
@@ -380,109 +477,12 @@ void Display::close() {
     //Quit SDL subsystems
     SDL_Quit();
 
+// TODO Should we be closing log file also?
 	//TODO this should be closed in response to user event, not the program closing
-	if (live == 0 || live == 2)
-	{
-		closePointLog();
-		closeQuatLog();
-	}
+	//if (playback == LIVE || playback == LIVE_RECORD)
+	//{
+	//	writer.closePointLog();
+	//	writer.closeQuatLog();
+	//}
     
-}
-
-
-void Display::subsequentPoint()
-{
-	whereData << "," << std::endl;
-}
-
-void Display::firstPointBodyFrame()
-{
-	whereData << "[" << std::endl;
-}
-
-
-void Display::openPointBodyFrame()
-{
-	whereData << "," << std::endl << "[" << std::endl;
-}
-
-void Display::closePointBodyFrame()
-{
-	whereData << std::endl << "]";
-}
-
-
-
-void Display::logPoint(float x, float y, float z)
-{
-	whereData
-		<< "["
-		<< x
-		<< ", "
-		<< y
-		<< ", "
-		<< z
-		<< "]";
-}
-
-void Display::openPointLog()
-{
-	whereData.open("whereData.dat");
-	whereData << "{" << std::endl << "\"joints\": [" << std::endl;
-}
-
-void Display::closePointLog()
-{
-	whereData << std::endl << "]" << std::endl << "}";
-	whereData.close();
-}
-
-
-void Display::subsequentQuat()
-{
-	moveData << "," << std::endl;
-}
-
-void Display::firstQuatBodyFrame()
-{
-	moveData << "[" << std::endl;
-}
-
-
-void Display::openQuatBodyFrame()
-{
-	moveData << "," << std::endl << "[" << std::endl;
-}
-
-void Display::closeQuatBodyFrame()
-{
-	moveData << std::endl << "]";
-}
-
-
-
-void Display::logQuat(float x, float y, float z, float w)
-{
-	moveData
-		<< "["
-		<< x
-		<< ", "
-		<< y
-		<< ", "
-		<< z
-		<< ", "
-		<< w
-		<< "]";
-}
-
-void Display::openQuatLog()
-{
-	moveData.open("moveData.dat");
-	moveData << "{" << std::endl << "\"jointQuats\": [" << std::endl;
-}
-
-void Display::closeQuatLog()
-{
-	moveData << std::endl << "]" << std::endl << "}";
-	moveData.close();
 }
