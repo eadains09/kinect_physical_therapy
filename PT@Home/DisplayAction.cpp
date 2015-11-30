@@ -99,22 +99,23 @@ void ActionDisplay::run() {
 }
 
 bool ActionDisplay::renderScreen() {
-
-	if (playback == LIVE) {
-		frameFromKinect();
-	}
-	else if (playback == RECORDED) {
-		getSingleFrameFromFile();
-	}
-	else {
-		//simultaneous playback
-		getSingleFrameFromFile();
-		frameFromKinect();
+	if (playing) {
+		if (playback == LIVE) {
+			frameFromKinect();
+		}
+		else if (playback == RECORDED) {
+			getSingleFrameFromFile();
+		}
+		else {
+			//simultaneous playback
+			getSingleFrameFromFile();
+			frameFromKinect();
+		}
+		frameNumber++;
 	}
 
 	renderFrame();
 	SDL_Delay(50);
-	frameNumber++;
 
 	return true;
 }
