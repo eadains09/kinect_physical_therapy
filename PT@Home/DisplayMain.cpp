@@ -2,15 +2,15 @@
 //  MainDisplay.cpp
 //
 
-#include "MainDisplay.h"
+#include "DisplayMain.h"
 
 
-MainDisplay::MainDisplay() : DisplayBase() {
+DisplayMain::DisplayMain() : DisplayBase() {
 	headerSurface = NULL;
 	headerTexture = NULL;
 }
 
-bool MainDisplay::run() {
+bool DisplayMain::run() {
 
 	if (!init()) {
 		printf("Failed to initialize!\n");
@@ -51,7 +51,7 @@ bool MainDisplay::run() {
 	return true;
 }
 
-bool MainDisplay::init() {
+bool DisplayMain::init() {
 	bool success;
 
 	success = DisplayBase::init();
@@ -59,13 +59,13 @@ bool MainDisplay::init() {
 	return success;
 }
     
-bool MainDisplay::renderScreen() {
+bool DisplayMain::renderScreen() {
 	renderFrame();
 
 	return true;
 }
 
-bool MainDisplay::renderFrame() {
+bool DisplayMain::renderFrame() {
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
 
@@ -80,7 +80,7 @@ bool MainDisplay::renderFrame() {
 	return true;
 }
 
-bool MainDisplay::loadMedia() {
+bool DisplayMain::loadMedia() {
 	bool success = true;
 
 	headerSurface = SDL_LoadBMP("art/MainDisplay/title.bmp");
@@ -94,14 +94,14 @@ bool MainDisplay::loadMedia() {
 	return success;
 }
 
-bool MainDisplay::loadButtons() {
+bool DisplayMain::loadButtons() {
 	gButtons.push_back(new Button(BUTTON_SPRITE_PHYSICIAN, 300, 100, 66, SCREEN_HEIGHT/2, "art/MainDisplay/physician.bmp"));
 	gButtons.push_back(new Button(BUTTON_SPRITE_PATIENT, 300, 100, SCREEN_WIDTH - 366, SCREEN_HEIGHT/2, "art/MainDisplay/patient.bmp"));
 
 	return true;
 }
 
-void MainDisplay::handleKeyPresses(SDL_Event e) {
+void DisplayMain::handleKeyPresses(SDL_Event e) {
 	switch (e.key.keysym.sym) {
 		case SDLK_d:
 			//Load Physician screen
@@ -113,7 +113,7 @@ void MainDisplay::handleKeyPresses(SDL_Event e) {
 	}
 }
 
-void MainDisplay::close() {
+void DisplayMain::close() {
 	SDL_FreeSurface(headerSurface);
     SDL_DestroyTexture(headerTexture);
 

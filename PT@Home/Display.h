@@ -5,8 +5,8 @@
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
-#ifndef _DISPLAY_H_
-#define _DISPLAY_H_
+#pragma once
+
 
 #include <fstream>
 #include <iostream>
@@ -20,7 +20,7 @@
 #include "FileWriter.h"
 
 
-using namespace std;
+//using namespace std;
 
 const int TOTAL_BODIES = 2;
 const int TOTAL_BUTTONS = 4;
@@ -42,13 +42,19 @@ private:
 	int bodyCount; //Number of bodies being displayed, right now only options are 1 or 2
 	SDL_Window* window = NULL;  //The window we'll be rendering to
 	SDL_Renderer* renderer = NULL;
-	BodyFrame displayBodies[TOTAL_BODIES];
+
+	//SDL_Point bodyPoints[JOINT_TOTAL];
+	BodyFrame *displayBodies;// [TOTAL_BODIES];
+	Movement *currMove;
+
+	//BodyFrame displayBodies[TOTAL_BODIES];
 
 	bool keyframeCaptured;
 	BodyFrame prevKeyframe;
-	Movement currMove;
+	//Movement currMove;
 	Movement keyframes;
 	time_t prevTime = NULL;
+
     Button* gButtons[TOTAL_BUTTONS];
 	
 	FileWriter writer;
@@ -87,5 +93,3 @@ public:
 
 };
 int getParent(int);
-
-#endif /* _DISPLAY_H_ */

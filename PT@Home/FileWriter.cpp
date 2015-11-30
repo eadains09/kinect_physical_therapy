@@ -17,9 +17,15 @@ void FileWriter::openBodyFrame() {
 	currFile << "[" << std::endl;
 }
 
-void FileWriter::logTimestamp(double timestamp) {
+void FileWriter::logTimestampMidspine(double timestamp, irr::core::vector3df midspine) {
 	//write timestamp
-	currFile << "{" << "\"timestamp\": " << timestamp << ", \"joints\": " ;
+	currFile << "{"
+		<< "\"timestamp\": "
+		<< timestamp
+		<< "\"midspine\": ";
+	logDataPoint(midspine.X, midspine.Y, midspine.Z);
+
+	currFile << ", \"joints\": " ;
 }
 
 

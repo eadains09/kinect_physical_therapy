@@ -7,7 +7,7 @@
 
 #include "DisplayBase.h"
 
-class MainDisplay : public DisplayBase {
+class DisplayMain : public DisplayBase {
 private:
 	SDL_Surface* headerSurface;
 	SDL_Texture* headerTexture;
@@ -27,7 +27,7 @@ private:
     virtual void close();
 
 public:
-	MainDisplay();
+	DisplayMain();
 	bool run();
 
 };
