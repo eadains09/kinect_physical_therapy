@@ -7,7 +7,8 @@
 
 #include "stdafx.h"
 #include "Display.h"
-#include "MainDisplay.h"
+//#include "DisplayMain.h"
+#include "Controller.h"
 
 using namespace std;
 

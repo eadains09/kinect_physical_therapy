@@ -2,7 +2,8 @@
 //  MainDisplay.cpp
 //
 
-#include "MainDisplay.h"
+#include "DisplayMain.h"
+#include "DisplayPhysicianMenu.h"
 
 
 MainDisplay::MainDisplay() : DisplayBase() {
@@ -15,7 +16,7 @@ MainDisplay::MainDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r) : Displa
 	headerTexture = NULL;
 }
 
-bool MainDisplay::run() {
+void MainDisplay::run() {
 
 	// if (!init()) {
 	// 	printf("Failed to initialize!\n");
@@ -25,7 +26,7 @@ bool MainDisplay::run() {
 	//Load media
 	if (!loadMedia()) {
 		printf("Failed to load media!\n");
-		return false;
+		//return false;
 	}
 
 	//runLoop();
@@ -51,9 +52,10 @@ bool MainDisplay::run() {
 
 	}
 
-	close();
+	//close();
+	(*control).closeDisplay();
 
-	return true;
+	//return true;
 }
 
 bool MainDisplay::init() {
@@ -121,7 +123,7 @@ void MainDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 			switch ((*currButton).getType()) {
 				case BUTTON_SPRITE_PHYSICIAN:
 					newDisplay = new PhysicianMenuDisplay(control, window, renderer);
-					control.switchDisplays(&newDisplay);
+					(*control).switchDisplays(newDisplay);
 					break;
 
 				case BUTTON_SPRITE_PATIENT:

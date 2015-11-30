@@ -13,7 +13,7 @@ private:
 	SDL_Texture* headerTexture;
 	SDL_Rect headerDestR;
 
-	std::ofstream log;
+	std::ofstream log, buttonLog;
 
 	virtual bool init(); // Must call parent constructor
     
@@ -29,6 +29,6 @@ public:
 	PhysicianMenuDisplay();
 	PhysicianMenuDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r);
 
-	bool run();
+	virtual void run();
 };
 #endif /* _PHYSICIAN_MENU_DISPLAY_H_*/

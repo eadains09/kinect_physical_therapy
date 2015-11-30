@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "Button.h"
-
+#include "Controller.h"
 
 class DisplayBase {
 protected:
@@ -31,16 +31,18 @@ protected:
     virtual void handleKeyPresses(SDL_Event e) = 0;
     virtual void handleButtonEvent(SDL_Event* e, Button *currButton) = 0;
 
-    virtual void close() = 0;
 
     void renderButtons();
     void flashScreen();
-    void closeSDL();
     void closeButtons();
 
 public:
 	DisplayBase();
-    DisplayBase(SDL_Window *w, SDL_Renderer *r);
+    DisplayBase(Controller *c, SDL_Window *w, SDL_Renderer *r);
+	void closeSDL();
+	virtual void close() = 0;
+	virtual void run() = 0;
+
 	//Does render frame need to go here?
 
 

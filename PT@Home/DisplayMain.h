@@ -6,6 +6,7 @@
 #define _MAIN_DISPLAY_H_
 
 #include "DisplayBase.h"
+#include "Controller.h"
 
 class MainDisplay : public DisplayBase {
 private:
@@ -13,7 +14,7 @@ private:
 	SDL_Texture* headerTexture;
 	SDL_Rect headerDestR;
 
-	std::ofstream log;
+	std::ofstream log, buttonLog;
 
 
 
@@ -31,7 +32,7 @@ private:
 public:
 	MainDisplay();
 	MainDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r);
-	bool run();
+	virtual void run();
 
 };
 

@@ -3,6 +3,8 @@
 //
 
 #include "Controller.h"
+#include "DisplayMain.h"
+#include <stdio.h>
 
 Controller::Controller() {
 	if (!init()) {
@@ -16,19 +18,19 @@ Controller::Controller() {
 }
 
 void Controller::runDisplay() {
-	view.run();
+	(*view).run();
 }
 
 void Controller::switchDisplays(DisplayBase* newDisplay) {
-	view.close();
+	(*view).close();
 	view = newDisplay;
-	view.run();
+	(*view).run();
 
 }
 
 void Controller::closeDisplay() {
-	view.close();
-	view.closeSDL();
+	(*view).close();
+	(*view).closeSDL();
 }
 
 bool Controller::init() {

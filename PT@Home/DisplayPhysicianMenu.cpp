@@ -2,7 +2,7 @@
 // PhysicianMenuDisplay.cpp
 //
 
-#include "PhysicianMenuDisplay.h"
+#include "DisplayPhysicianMenu.h"
 
 PhysicianMenuDisplay::PhysicianMenuDisplay() : DisplayBase() {
 	headerSurface = NULL;
@@ -14,7 +14,7 @@ PhysicianMenuDisplay::PhysicianMenuDisplay(Controller *c, SDL_Window *w, SDL_Ren
 	headerTexture = NULL;
 }
 
-bool PhysicianMenuDisplay::run() {
+void PhysicianMenuDisplay::run() {
 	// if (!init()) {
 	// 	printf("Failed to initialize!\n");
 	// 	return false;
@@ -23,7 +23,7 @@ bool PhysicianMenuDisplay::run() {
 	//Load media
 	if (!loadMedia()) {
 		printf("Failed to load media!\n");
-		return false;
+		//return false;
 	}
 
 	//runLoop();
@@ -50,9 +50,11 @@ bool PhysicianMenuDisplay::run() {
 
 	}
 
-	close();
+	(*control).closeDisplay();
 
-	return true;
+	//close();
+
+//	return true;
 }
 
 bool PhysicianMenuDisplay::init() {
