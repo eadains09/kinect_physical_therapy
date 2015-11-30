@@ -7,7 +7,7 @@
 #include "DisplayPatientMenu.h"
 
 
-MainDisplay::MainDisplay() : DisplayBase() {
+DisplayMain::DisplayMain() : DisplayBase() {
 	headerSurface = NULL;
 	headerTexture = NULL;
 }
@@ -49,13 +49,13 @@ void MainDisplay::run() {
 	}
 }
     
-bool MainDisplay::renderScreen() {
+bool DisplayMain::renderScreen() {
 	renderFrame();
 
 	return true;
 }
 
-bool MainDisplay::renderFrame() {
+bool DisplayMain::renderFrame() {
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
 
@@ -70,7 +70,7 @@ bool MainDisplay::renderFrame() {
 	return true;
 }
 
-bool MainDisplay::loadMedia() {
+bool DisplayMain::loadMedia() {
 	bool success = true;
 
 	headerSurface = SDL_LoadBMP("art/MainDisplay/title.bmp");
@@ -84,7 +84,7 @@ bool MainDisplay::loadMedia() {
 	return success;
 }
 
-bool MainDisplay::loadButtons() {
+bool DisplayMain::loadButtons() {
 	gButtons.push_back(new Button(BUTTON_SPRITE_PHYSICIAN, 300, 100, 66, SCREEN_HEIGHT/2, "art/MainDisplay/physician.bmp"));
 	gButtons.push_back(new Button(BUTTON_SPRITE_PATIENT, 300, 100, SCREEN_WIDTH - 366, SCREEN_HEIGHT/2, "art/MainDisplay/patient.bmp"));
 

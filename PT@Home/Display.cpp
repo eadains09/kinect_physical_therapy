@@ -1,3 +1,6 @@
+/*******
+* 01
+********/
 //
 //  Display.cpp
 //
@@ -12,9 +15,61 @@
 #include "QuatFrame.h"
 
 
+int getParent(int type) {
+	switch (type) {
+	case JointType_SpineShoulder:
+	case JointType_SpineBase:
+	case JointType_SpineMid:
+		return JointType_SpineMid;
+	case JointType_Neck:
+	case JointType_ShoulderLeft:
+	case JointType_ShoulderRight:
+		return JointType_SpineShoulder;
+	case JointType_HipLeft:
+	case JointType_HipRight:
+		return JointType_SpineBase;
+	case JointType_HandTipLeft:
+	case JointType_ThumbLeft:
+		return JointType_HandLeft;
+	case JointType_HandTipRight:
+	case JointType_ThumbRight:
+		return JointType_HandRight;
+	case JointType_Head:
+		return JointType_Neck;
+	case JointType_ElbowLeft:
+		return JointType_ShoulderLeft;
+	case JointType_WristLeft:
+		return JointType_ElbowLeft;
+	case JointType_HandLeft:
+		return JointType_WristLeft;
+	case JointType_ElbowRight:
+		return JointType_ShoulderRight;
+	case JointType_WristRight:
+		return JointType_ElbowRight;
+	case JointType_HandRight:
+		return JointType_WristRight;
+	case JointType_KneeLeft:
+		return JointType_HipLeft;
+	case JointType_AnkleLeft:
+		return JointType_KneeLeft;
+	case JointType_FootLeft:
+		return JointType_AnkleLeft;
+	case JointType_KneeRight:
+		return JointType_HipRight;
+	case JointType_AnkleRight:
+		return JointType_KneeRight;
+	case JointType_FootRight:
+		return JointType_AnkleRight;
+
+	default:
+		return type;
+	}
+
+}
+
 bool Display::run() {
 	HRESULT hr;
-	playback = RECORDED;
+	playback = LIVE;
 
 	log.open("logData.txt");
 
@@ -60,6 +115,12 @@ bool Display::run() {
 			getSingleFrameFromFile();
 		}
 		else {
+			//so this is the bit where we'll have to 
+			//compare, and thus is the only place in which
+			//it necessary to convert live kinect frames
+			//to quaternions, I would suggest a new function
+			//for that
+
 			//simultaneous playback
 			bodyCount = 2;
 
@@ -84,11 +145,9 @@ void Display::handleKeyPresses(SDL_Event e) {
 		case SDLK_SPACE:
 			captureKeyframe();
 		break;
-
 		case SDLK_BACKSPACE:
 			deleteLastKeyframe();
 		break;
-
 		case SDLK_s:
 			//save current contents of stack to file
 			saveKeyframes();
@@ -108,13 +167,14 @@ void Display::handleButtonEvent(SDL_Event* e, Button *currButton)
 				case BUTTON_SPRITE_ADD:
 					captureKeyframe();
 					break;
-
 				case BUTTON_SPRITE_DELETE:
 					deleteLastKeyframe();
 					break;
-
 				case BUTTON_SPRITE_SAVE:
 					saveKeyframes();
+					break;
+				default:
+					break;
 			}
 			buttonLog.open("buttonLogData.txt", std::ofstream::app);
 
@@ -126,7 +186,8 @@ void Display::handleButtonEvent(SDL_Event* e, Button *currButton)
 	}
 }
 
-
+//TODO so around here is where we want to do the quaternion math
+//on the captured keyframe
 void Display::captureKeyframe() {
 	time_t currTime;
 	double seconds;
@@ -188,11 +249,11 @@ bool Display::framesFromKinect(bool firstRun)
 	}
 
 	IBodyFrame* pBodyFrame = NULL;
-	m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
-	if (!pBodyFrame)
+	hr = m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
+	if (!pBodyFrame || !SUCCEEDED(hr))
 		return false;
 
-	if (firstRun)
+	/*if (firstRun)
 	{
 		writer.firstPointBodyFrame();
 		writer.firstQuatBodyFrame();
@@ -201,7 +262,7 @@ bool Display::framesFromKinect(bool firstRun)
 	{
 		writer.openPointBodyFrame();
 		writer.openQuatBodyFrame();
-	}
+	}*/
 
 	INT64 nTime = 0;
 
@@ -214,57 +275,38 @@ bool Display::framesFromKinect(bool firstRun)
 	BodyFrame *anorexia = new BodyFrame();
 
 	Joint *joints = new Joint[JointType_Count];
+
 	for (int j = 0; j < _countof(ppBodies); j++)
 	{
-
-		BOOLEAN bTracked = false;
-		hr = ppBodies[j]->get_IsTracked(&bTracked);
-
-		if (!bTracked)
-		{
-			continue;
-		}
-
-
+		//For frames from kinect before keyframe selection I think it makes
+		//most sense to just keep them points, then do all the quat math
+		//on the keyframes we've captured
 		ppBodies[j]->GetJoints(JointType_Count, joints);
 
 		for (int i = 0; i < JointType_Count; i++)
 		{
-			if (i)
-			{
-				writer.subsequentPoint();
-				writer.subsequentQuat();
-			}
-			irr::core::quaternion *quat;
-			if (getParent(i) == i)
-			{
-				quat = new irr::core::quaternion(0, 0, 0, 0);
-			}
-			else
-			{
-				float x = joints[i].Position.X - joints[getParent(i)].Position.X;
-				float y = joints[i].Position.Y - joints[getParent(i)].Position.Y;
-				float z = joints[i].Position.Z - joints[getParent(i)].Position.Z;
-				float yaw = atan2(x, z) *180.0 / 3.141592653;
-				float padj = sqrt(pow(x, 2) + pow(z, 2));
-				float pitch = atan2(padj, y) *180.0 / 3.141592653;
+			//DO NOT DELETE UNTIL ERIKA HAS BEEN CONSULTED
+			//????
+//			if (i)
+//			{
+//				writer.subsequentPoint();
+//				writer.subsequentQuat();
+//			}
+			
+			//writer.logQuat(quat->X, quat->Y, quat->Z, quat->W);
 
-
-				quat = new irr::core::quaternion(0, pitch, yaw);
-			}
-			writer.logQuat(quat->X, quat->Y, quat->Z, quat->W);
-			delete quat;
-
-			writer.logPoint((joints[i].Position.X + 1) * 200, (joints[i].Position.Y -1) * -200, joints[i].Position.Z);
-			log << joints[i].Position.X << joints[i].Position.Y << joints[i].Position.Z << std::endl;
-			anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
+			//writer.logPoint((joints[i].Position.X + 1) * 200, (joints[i].Position.Y -1) * -200, joints[i].Position.Z);
+			irr::core::vector3df *joint = new irr::core::vector3df(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
+			anorexia->addJoint(joint);
+		//	anorexia->addJoint(*(new eJoint(i, (int)((joints[i].Position.X + 1) * 200), (int)((joints[i].Position.Y - 1)*-200))));
 
 		}
+		//TODO deal with properly writing out quaternions and midSpine
 		displayBodies[bodyCount-1] = *anorexia;
 	}
 	SafeRelease(pBodyFrame);
-	writer.closePointBodyFrame();
-	writer.closeQuatBodyFrame();
+	/*writer.closePointBodyFrame();
+	writer.closeQuatBodyFrame();*/
 
 	for (int i = 0; i < _countof(ppBodies); ++i)
 	{
@@ -274,6 +316,7 @@ bool Display::framesFromKinect(bool firstRun)
 	return true;
 
 }
+
 
 bool Display::renderFrame() {
 	int j;
@@ -289,16 +332,22 @@ bool Display::renderFrame() {
     }
     
     //render bodies
-	for (j = 0; j < bodyCount; j++) {
-		QuatFrame *proof = new QuatFrame(displayBodies[j]);
-		proof->initBodyFrame(&displayBodies[j]);
+	for (int j = 0; j < bodyCount; j++) {
+		if (displayBodies[j].getCurrJointCount() != JOINT_TOTAL)
+			continue;
+
+	//	QuatFrame *proof = new QuatFrame(*displayBodies[j]);
+	//	proof->initBodyFrame(*displayBodies[j]);
+	//	delete proof;
+
+		irr::core::vector3df **joints = displayBodies[j].getJoints();
 
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j%2], 0xFF);
 		renderBody(displayBodies[j]);
 	}
 
 	if (keyframeCaptured) {
-		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j%2], 0xFF);
+		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[j % 2], 0xFF);
 		renderBody(prevKeyframe);
 	}
 
@@ -307,32 +356,32 @@ bool Display::renderFrame() {
     return true;
 }
 
+
 void Display::renderBody(BodyFrame currBody) {
-	eJoint *joints = currBody.getJoints();
+	irr::core::vector3df **joints = currBody.getJoints();
 
-	for (int i = 0; i < currBody.getCurrJointCount(); i++) {
-			log << joints[i].getX() << " " << joints[i].getY() << endl;
-			JointType parent = joints[i].getParent();
-
-			if (parent != joints[i].getType()) {
-				SDL_RenderDrawLine(renderer, joints[i].getX(), joints[i].getY(), joints[parent].getX(), joints[parent].getY());
-			}
-		}
+	for (int i = 0; i < currBody.getCurrJointCount(); i++) 
+			if (getParent(i) != i)
+				SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
 }
 
 bool Display::getSingleFrameFromFile() {
     // If loaded file was empty, getCurrFrameCount will be 0
     // In that case, subtract one from bodyCount so that only 
     // the kinect body or no body will be rendered
-	if (currMove.getCurrFrameCount() <= 0) {
+	if (currMove->getCurrFrameCount() <= 0) {
 		bodyCount--;
 	}
 	else {
-		if (frameNumber >= currMove.getCurrFrameCount()) {
-			frameNumber = frameNumber % currMove.getCurrFrameCount();
+		if (frameNumber >= currMove->getCurrFrameCount()) {
+			frameNumber = frameNumber % currMove->getCurrFrameCount();
 		}
-		displayBodies[0] = currMove.getSingleFrame(frameNumber);
+		//TODO 
+		//we will now be reading in a keyquatframe instead of a bodyframe
+		//let's make that happen
+		displayBodies[0] = currMove->getSingleFrame(frameNumber);
 	}
+
 	return true;
 }
 
@@ -343,6 +392,11 @@ bool Display::init() {
 	HRESULT hr;
 	IBodyFrameSource* pBodyFrameSource = NULL;
 	frameNumber = 0;
+
+	displayBodies = new BodyFrame[TOTAL_BODIES];
+	for (int i = 0; i < TOTAL_BODIES; i++)
+		displayBodies[i] = BodyFrame();
+
 	keyframeCaptured = false;
 
 	GetDefaultKinectSensor(&m_pKinectSensor);
@@ -357,11 +411,10 @@ bool Display::init() {
 			log << "Could not find a connected kinect\n" << std::endl;
 			return false;
 		}
-		log << &pBodyFrameSource << std::endl;
 		SafeRelease(pBodyFrameSource);
 
-		writer.openPointLog();
-		writer.openQuatLog();
+	/*	writer.openPointLog();
+		writer.openQuatLog();*/
 	}
 
     //Initialize SDL
@@ -390,10 +443,11 @@ bool Display::init() {
 
 bool Display::loadMedia() {
     bool success = true;
+	currMove = new Movement();
     
-    //currMove.readPoints("movement1.dat");
-	currMove.readPoints("whereData.dat");
-	//currMove.readPoints("testMovement1.dat");
+    //currMove->readPoints("movement1.dat");
+	//currMove->readPoints("whereData.dat");
+	currMove->readKeyframes("pleasework.dat");
     
     //initialize buttons
     gButtons[0] = new Button(BUTTON_SPRITE_BACK, 10, 10, "art/back.bmp");
@@ -405,12 +459,12 @@ bool Display::loadMedia() {
 }
 
 void Display::close() {
-    //This may not be necessary:
 	if(playback == RECORDED || playback == LIVE_RECORD)
-		currMove.freeFrames();
+		delete currMove;
+
     
     for (int i = 0; i < TOTAL_BUTTONS; i++) {
-        (*gButtons[i]).freeButton();
+        gButtons[i]->freeButton();
     }
     
     SDL_DestroyRenderer(renderer);
@@ -425,68 +479,10 @@ void Display::close() {
 
 // TODO Should we be closing log file also?
 	//TODO this should be closed in response to user event, not the program closing
-	if (playback == LIVE || playback == LIVE_RECORD)
-	{
-		writer.closePointLog();
-		writer.closeQuatLog();
-	}
+	//if (playback == LIVE || playback == LIVE_RECORD)
+	//{
+	//	writer.closePointLog();
+	//	writer.closeQuatLog();
+	//}
     
-}
-
-int getParent(int type) {
-	switch (type) {
-	case JointType_SpineBase:// SPINE_BASE:
-		return JointType_SpineMid;// SPINE_MID;
-	case JointType_SpineMid:// SPINE_MID:
-		return JointType_SpineMid;// JOINT_DEFAULT;
-	case JointType_Neck:// NECK:
-		return JointType_SpineShoulder;// SPINE_SHOULDER;
-	case JointType_Head:// HEAD:
-		return JointType_Neck;// NECK;
-	case JointType_ShoulderLeft:// SHOULDER_LEFT:
-		return JointType_SpineShoulder;// SPINE_SHOULDER;
-	case JointType_ElbowLeft:// ELBOW_LEFT:
-		return JointType_ShoulderLeft;// SHOULDER_LEFT;
-	case JointType_WristLeft:// WRIST_LEFT:
-		return JointType_ElbowLeft;// ELBOW_LEFT;
-	case JointType_HandLeft:// HAND_LEFT:
-		return JointType_WristLeft;// WRIST_LEFT;
-	case JointType_HandTipLeft:// HAND_TIP_LEFT:
-		return JointType_HandLeft;// HAND_LEFT;
-	case JointType_ThumbLeft:// THUMB_LEFT:
-		return JointType_HandLeft;// HAND_LEFT;
-	case JointType_ShoulderRight:// SHOULDER_RIGHT:
-		return JointType_SpineShoulder; //SPINE_SHOULDER;
-	case JointType_ElbowRight:// ELBOW_RIGHT:
-		return JointType_ShoulderRight;// SHOULDER_RIGHT;
-	case JointType_WristRight:// WRIST_RIGHT:
-		return JointType_ElbowRight;// ELBOW_RIGHT;
-	case JointType_HandRight:// HAND_RIGHT:
-		return JointType_WristRight;// WRIST_RIGHT;
-	case JointType_HandTipRight:// HAND_TIP_RIGHT:
-		return JointType_HandRight;// HAND_RIGHT;
-	case JointType_ThumbRight:// THUMB_RIGHT:
-		return JointType_HandRight;// HAND_RIGHT;
-	case JointType_HipLeft:// HIP_LEFT:
-		return JointType_SpineBase;// SPINE_BASE;
-	case JointType_KneeLeft:// KNEE_LEFT:
-		return JointType_HipLeft;// HIP_LEFT;
-	case JointType_AnkleLeft:// ANKLE_LEFT:
-		return JointType_KneeLeft;// KNEE_LEFT;
-	case JointType_FootLeft:// FOOT_LEFT:
-		return JointType_AnkleLeft;// ANKLE_LEFT;
-	case JointType_HipRight:// HIP_RIGHT:
-		return JointType_SpineBase;// SPINE_BASE;
-	case JointType_KneeRight:// KNEE_RIGHT:
-		return JointType_HipRight;// HIP_RIGHT;
-	case JointType_AnkleRight:// ANKLE_RIGHT:
-		return JointType_KneeRight;// KNEE_RIGHT;
-	case JointType_FootRight:// FOOT_RIGHT:
-		return JointType_AnkleRight;// ANKLE_RIGHT;
-	case JointType_SpineShoulder:// SPINE_SHOULDER:
-		return JointType_SpineMid;// SPINE_MID;
-	default:
-		return type;
-	}
-
 }

@@ -8,7 +8,7 @@
 #include "DisplayBase.h"
 #include "Controller.h"
 
-class MainDisplay : public DisplayBase {
+class DisplayMain : public DisplayBase {
 private:
 	SDL_Surface* headerSurface;
 	SDL_Texture* headerTexture;
@@ -33,7 +33,6 @@ public:
 	MainDisplay();
 	MainDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r);
 	virtual void run();
-
 };
 
 #endif /* _MAIN_DISPLAY_H_ */

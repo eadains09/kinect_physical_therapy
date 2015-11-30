@@ -5,11 +5,11 @@
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
-#ifndef _BODYFRAME_H_
-#define _BODYFRAME_H_
+#pragma once
 
 #include <stdio.h>
 #include "Joint.h"
+#include <quaternion.h>
 #include "FileWriter.h"
 
 const int JOINT_TOTAL = 25;
@@ -17,21 +17,18 @@ const int JOINT_TOTAL = 25;
 class BodyFrame {
     
 private:
-    eJoint joints[JOINT_TOTAL];
     double timestamp;
-    int currJointCount;
+	int currJointCount;
     
 public:
+	irr::core::vector3df **joints;
     BodyFrame();
-    bool addJoint(eJoint currJoint);
-    eJoint* sortJointsByParent(); //Sorts joints array by the parent of each joint: parent x must be defined above the joint with x as parent, returns sorted array
-    eJoint* getJoints(); //Returns joints as stored in file
+//	BodyFrame(BodyFrame& source);
+    bool addJoint(irr::core::vector3df *currJoint);
+	irr::core::vector3df** getJoints(); //Returns joints as stored in file
     int getCurrJointCount();
+	virtual ~BodyFrame();
     void setTimestamp(double ts);
     double getTimestamp();
-    void freeJoints();
-    void writeFrame(FileWriter *currFile);
+//    void writeFrame(FileWriter *currFile);
 };
-
-#endif /* _BODYFRAME_H_ */
-

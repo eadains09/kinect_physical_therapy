@@ -9,6 +9,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include <quaternion.h>
+//#include "QuatFrame.h"
 
 
 using namespace std;
@@ -28,7 +30,7 @@ public:
 	FileWriter();
 	FileWriter(string fileName, string header);
 	void openBodyFrame();
-	void logTimestamp(double timestamp);
+	void logTimestampMidspine(double timestamp, irr::core::vector3df midspine);
 	void logDataQuat(float x, float y, float z, float w);
 	void logDataPoint(float x, float y, float z);
 	void closeBodyFrame();
