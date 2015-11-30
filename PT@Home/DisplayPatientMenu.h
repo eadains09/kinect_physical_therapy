@@ -21,7 +21,7 @@ private:
     virtual bool loadButtons();
     virtual void handleKeyPresses(SDL_Event e);
     virtual void handleButtonEvent(SDL_Event* e, Button *currButton);
-    void loadActionDisplay(int x);
+    void loadActionDisplay();
     void loadPrevDisplay();
    // void loadNewDisplay();
     virtual void close();

@@ -45,7 +45,7 @@ DisplayBase::DisplayBase(Controller *c, SDL_Window *w, SDL_Renderer *r) {
 // }
 
 void DisplayBase::loadNewDisplay() {
-    control.switchDisplays(&newDisplay);
+    (*control).switchDisplays(newDisplay);
     quit = true;
 }
 

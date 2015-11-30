@@ -10,7 +10,7 @@
 #include <time.h>
 #include <quaternion.h>
 #include "QuatFrame.h"
-
+/*
 
 bool Display::run() {
 	HRESULT hr;
@@ -490,3 +490,4 @@ int getParent(int type) {
 	}
 
 }
+*/

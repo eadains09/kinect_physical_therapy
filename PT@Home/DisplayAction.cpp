@@ -2,7 +2,17 @@
 // DisplayAction.cpp
 //
 
+#include <Kinect.h>
+#include <quaternion.h>
+#include <time.h>
 #include "DisplayAction.h"
+#include "DisplayMain.h"
+#include "DisplayPatientMenu.h"
+#include "DisplayPhysicianMenu.h"
+#include "stdafx.h"
+#include "QuatFrame.h"
+
+int ActionDisplay::saveCount = 0;
 
 ActionDisplay::ActionDisplay() : DisplayBase() {
 	frameNumber = 0;
@@ -51,17 +61,19 @@ bool ActionDisplay::init() {
 		log << &pBodyFrameSource << std::endl;
 		SafeRelease(pBodyFrameSource);
 	}
+
+	return success;
 }
 
 void ActionDisplay::run() {
 	if (!init()) {
 		printf("Failed to initialize Kinect!\n");
-		exit();
+		exit(0);
 	}
 
 	if(!loadMedia()) {
 		printf("Failed to load media!\n");
-		exit();
+		exit(0);
 	}
 
 	quit = false;
@@ -74,7 +86,7 @@ void ActionDisplay::run() {
 			} else if (e.type == SDL_KEYDOWN) {
 				handleKeyPresses(e);
 			} else {
-            	for (int i = 0; i < TOTAL_BUTTONS; i++) {
+            	for (int i = 0; i < gButtons.size(); i++) {
 					handleButtonEvent(&e, gButtons.at(i));
             	}
             }
@@ -103,6 +115,8 @@ bool ActionDisplay::renderScreen() {
 	renderFrame();
 	SDL_Delay(50);
 	frameNumber++;
+
+	return true;
 }
 
 bool ActionDisplay::renderFrame() {
@@ -340,11 +354,10 @@ void ActionDisplay::captureKeyframe() {
 	}
 	prevTime = currTime;
 
-	framesFromKinect(false);
+	frameFromKinect();
 	prevKeyframe = displayBodies[bodyCount-1];
 	prevKeyframe.setTimestamp(seconds);
 	keyframes.pushBackFrame(prevKeyframe);
-	flashScreen();
 }
 
 void ActionDisplay::deleteLastKeyframe() {
@@ -391,14 +404,14 @@ void ActionDisplay::togglePlaying() {
 	playing = !playing;
 
 	for (int i = 0; i < gButtons.size(); i++) {
-		Button* currButton = *gButtons.at(i);
+		Button* currButton = gButtons.at(i);
 		if ((*currButton).getType() == BUTTON_SPRITE_PLAY) {
 			(*currButton).freeButton();
-			(*gButtons.at(i)).erase(i);
+			gButtons.erase(gButtons.begin() + i);
 			gButtons.push_back(new Button(BUTTON_SPRITE_PAUSE, (SCREEN_WIDTH-BUTTON_WIDTH)-10, 10, "art/PlaybackButtons/pause.bmp"));
 		} else if ((*currButton).getType() == BUTTON_SPRITE_PAUSE) {
 			(*currButton).freeButton();
-			(*gButtons.at(i)).erase(i);
+			gButtons.erase(gButtons.begin() + i);
 			gButtons.push_back(new Button(BUTTON_SPRITE_PLAY, (SCREEN_WIDTH-BUTTON_WIDTH)-10, 10, "art/PlaybackButtons/play.bmp"));
 		}
 	}

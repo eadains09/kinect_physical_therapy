@@ -5,6 +5,11 @@
 #ifndef _DISPLAY_ACTION_H_
 #define _DISPLAY_ACTION_H_
 
+#include "BodyFrame.h"
+#include "DisplayBase.h"
+#include "FileWriter.h"
+#include "Movement.h"
+
 const int TOTAL_BODIES = 2;
 
 enum PlaybackType {
@@ -55,7 +60,6 @@ private:
     void renderBody(BodyFrame currBody);
     bool frameFromKinect();
     bool getSingleFrameFromFile();
-    void togglePlaying();
 
     void captureKeyframe();
     void deleteLastKeyframe();
@@ -68,13 +72,12 @@ private:
 
 public:
 	ActionDisplay();
-	ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r);
+	ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, PlaybackType p, DisplayType d);
 	
 	virtual void run();
 	virtual void close();
 };
 
-int ActionDisplay::saveCount = 0;
 int getParent(int);
 
 #endif /* _DISPLAY_ACTION_H_ */

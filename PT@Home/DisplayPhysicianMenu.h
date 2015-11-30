@@ -6,6 +6,7 @@
 #define _PHYSICIAN_MENU_DISPLAY_H_
 
 #include "DisplayBase.h"
+#include "DisplayAction.h"
 
 class PhysicianMenuDisplay : public DisplayBase {
 private:
@@ -21,7 +22,7 @@ private:
     virtual bool loadButtons();
     virtual void handleKeyPresses(SDL_Event e);
     virtual void handleButtonEvent(SDL_Event* e, Button *currButton);
-    void loadActionDisplay(int x);
+    void loadActionDisplay(PlaybackType playType);
     void loadPrevDisplay();
     // void loadNewDisplay();
 

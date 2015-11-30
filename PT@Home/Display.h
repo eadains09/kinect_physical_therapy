@@ -19,7 +19,7 @@
 #include "Movement.h"
 #include "FileWriter.h"
 
-
+/*
 using namespace std;
 
 const int TOTAL_BODIES = 2;
@@ -71,6 +71,7 @@ private:
 	void saveKeyframes();
 	void renderBody(BodyFrame currBody);
 
+	int getParent(int);
 
 
 	// Current Kinect
@@ -86,6 +87,5 @@ public:
 	bool run();
 
 };
-int getParent(int);
-
+*/
 #endif /* _DISPLAY_H_ */

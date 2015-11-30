@@ -9,6 +9,9 @@
 #include "Button.h"
 #include "Controller.h"
 
+const static int SCREEN_WIDTH = 800;
+const static int SCREEN_HEIGHT = 600;
+
 enum DisplayType {
     DISPLAY_MAIN = 0,
     PHYSICIAN_MENU = 1,
@@ -18,10 +21,6 @@ enum DisplayType {
 
 class DisplayBase {
 protected:
-	const int SCREEN_WIDTH = 800;
-	const int SCREEN_HEIGHT = 600;
-	
-	// TODO I think these should be static
 	SDL_Window* window;  //The window we'll be rendering to
 	SDL_Renderer* renderer;
     Controller* control;

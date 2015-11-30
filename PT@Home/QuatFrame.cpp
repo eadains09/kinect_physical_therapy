@@ -4,7 +4,7 @@
 
 #include "QuatFrame.h"
 #include "Display.h"
-
+#include "DisplayAction.h"
 
 
 QuatFrame::QuatFrame()

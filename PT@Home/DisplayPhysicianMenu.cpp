@@ -3,6 +3,7 @@
 //
 
 #include "DisplayPhysicianMenu.h"
+#include "DisplayMain.h"
 
 PhysicianMenuDisplay::PhysicianMenuDisplay() : DisplayBase() {
 	headerSurface = NULL;
@@ -18,7 +19,7 @@ void PhysicianMenuDisplay::run() {
 	//Load media
 	if (!loadMedia()) {
 		printf("Failed to load media!\n");
-		exit();
+		exit(0);
 	}
 
 	//Main loop flag
@@ -92,12 +93,12 @@ void PhysicianMenuDisplay::handleKeyPresses(SDL_Event e) {
 	switch (e.key.keysym.sym) {
 		case SDLK_k:
 			//Load Keyframe screen
-			loadActionDisplay(1);
+			loadActionDisplay(LIVE);
 			break;
 
 		case SDLK_p:
 			//Load Playback screen
-			loadActionDisplay(2);
+			loadActionDisplay(RECORDED);
 			break;
 
 		case SDLK_BACKSPACE:
@@ -119,11 +120,11 @@ void PhysicianMenuDisplay::handleButtonEvent(SDL_Event* e, Button *currButton) {
 
 			switch ((*currButton).getType()) {
 				case BUTTON_SPRITE_KEYFRAME:
-					loadActionDisplay(1);
+					loadActionDisplay(LIVE);
 					break;
 
 				case BUTTON_SPRITE_PLAYBACK:
-					loadActionDisplay(2);
+					loadActionDisplay(RECORDED);
 					break;
 
 				case BUTTON_SPRITE_BACK:
@@ -134,9 +135,9 @@ void PhysicianMenuDisplay::handleButtonEvent(SDL_Event* e, Button *currButton) {
 	}
 }
 
-void PhysicianMenuDisplay::loadActionDisplay(int x) {
-	// newDisplay = new PhysicianMenuDisplay(control, window, renderer);
-	// loadNewDisplay();
+void PhysicianMenuDisplay::loadActionDisplay(PlaybackType playType) {
+	newDisplay = new ActionDisplay(control, window, renderer, playType, PHYSICIAN_MENU);
+	loadNewDisplay();
 }
 
 void PhysicianMenuDisplay::loadPrevDisplay() {

@@ -4,6 +4,7 @@
 
 #include "DisplayMain.h"
 #include "DisplayPhysicianMenu.h"
+#include "DisplayPatientMenu.h"
 
 
 MainDisplay::MainDisplay() : DisplayBase() {
@@ -20,7 +21,7 @@ void MainDisplay::run() {
 	//Load media
 	if (!loadMedia()) {
 		printf("Failed to load media!\n");
-		exit();
+		exit(0);
 	}
 
 	//Main loop flag
