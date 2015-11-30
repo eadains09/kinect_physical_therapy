@@ -134,6 +134,7 @@ void PhysicianMenuDisplay::handleButtonEvent(SDL_Event* e, Button *currButton) {
 				case BUTTON_SPRITE_KEYFRAME:
 					// newDisplay = new PhysicianMenuDisplay(control, window, renderer);
 					// control.switchDisplays(&newDisplay);
+					// quit = true;
 					break;
 
 				case BUTTON_SPRITE_PLAYBACK:

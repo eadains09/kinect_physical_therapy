@@ -126,10 +126,14 @@ void MainDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 				case BUTTON_SPRITE_PHYSICIAN:
 					newDisplay = new PhysicianMenuDisplay(control, window, renderer);
 					(*control).switchDisplays(newDisplay);
-					quit = true;
+					quit = true; // Necessary for when control waterfalls back up the chain of displays loading, which will only happen when program is closing
 					break;
 
 				case BUTTON_SPRITE_PATIENT:
+					//newDisplay = new PhysicianMenuDisplay(control, window, renderer);
+					//(*control).switchDisplays(newDisplay);
+					//quit = true; // Necessary for when control waterfalls back up the chain of displays loading, which will only happen when program is closing
+
 					break;
 			}
 		}
