@@ -26,18 +26,38 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\PT%40Home\BodyFrame.h" />
+    <ClInclude Include="..\PT%40Home\Button.h" />
+    <ClInclude Include="..\PT%40Home\Controller.h" />
     <ClInclude Include="..\PT%40Home\Display.h" />
+    <ClInclude Include="..\PT%40Home\DisplayAction.h" />
+    <ClInclude Include="..\PT%40Home\DisplayBase.h" />
+    <ClInclude Include="..\PT%40Home\DisplayMain.h" />
+    <ClInclude Include="..\PT%40Home\DisplayPatientMenu.h" />
+    <ClInclude Include="..\PT%40Home\DisplayPhysicianMenu.h" />
+    <ClInclude Include="..\PT%40Home\FileReader.h" />
+    <ClInclude Include="..\PT%40Home\FileWriter.h" />
     <ClInclude Include="..\PT%40Home\Joint.h" />
     <ClInclude Include="..\PT%40Home\Movement.h" />
+    <ClInclude Include="..\PT%40Home\QuatFrame.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\PT%40Home\BodyFrame.cpp" />
+    <ClCompile Include="..\PT%40Home\Button.cpp" />
+    <ClCompile Include="..\PT%40Home\Controller.cpp" />
     <ClCompile Include="..\PT%40Home\Display.cpp" />
+    <ClCompile Include="..\PT%40Home\DisplayAction.cpp" />
+    <ClCompile Include="..\PT%40Home\DisplayBase.cpp" />
+    <ClCompile Include="..\PT%40Home\DisplayMain.cpp" />
+    <ClCompile Include="..\PT%40Home\DisplayPatientMenu.cpp" />
+    <ClCompile Include="..\PT%40Home\DisplayPhysicianMenu.cpp" />
+    <ClCompile Include="..\PT%40Home\FileReader.cpp" />
+    <ClCompile Include="..\PT%40Home\FileWriter.cpp" />
     <ClCompile Include="..\PT%40Home\Joint.cpp" />
     <ClCompile Include="..\PT%40Home\main.cpp" />
     <ClCompile Include="..\PT%40Home\Movement.cpp" />
+    <ClCompile Include="..\PT%40Home\QuatFrame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\Desktop\SDL2-2.0.3\lib\x86\SDL2.dll" />
@@ -97,8 +117,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Joshua\Desktop\SDL2-2.0.3\include;$(KINECTSDK20_DIR)\inc;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Joshua\Desktop\SDL2-2.0.3\lib\x86;$(KINECTSDK20_DIR)\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\visualstudio_dev_lib\irrlicht-1.8.3\include;C:\visualstudio_dev_lib\SDL2-2.0.3\include;$(KINECTSDK20_DIR)\inc;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\visualstudio_dev_lib\irrlicht-1.8.3\lib\Win32-visualstudio;C:\visualstudio_dev_lib\SDL2-2.0.3\lib\x86;$(KINECTSDK20_DIR)\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
