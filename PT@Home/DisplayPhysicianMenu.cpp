@@ -1,22 +1,20 @@
 //
-//  MainDisplay.cpp
+// PhysicianMenuDisplay.cpp
 //
 
-#include "MainDisplay.h"
+#include "PhysicianMenuDisplay.h"
 
-
-MainDisplay::MainDisplay() : DisplayBase() {
+PhysicianMenuDisplay::PhysicianMenuDisplay() : DisplayBase() {
 	headerSurface = NULL;
 	headerTexture = NULL;
 }
 
-MainDisplay::MainDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r) : DisplayBase(c, w, r) {
+PhysicianMenuDisplay::PhysicianMenuDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r) : DisplayBase(c, w, r) {
 	headerSurface = NULL;
 	headerTexture = NULL;
 }
 
-bool MainDisplay::run() {
-
+bool PhysicianMenuDisplay::run() {
 	// if (!init()) {
 	// 	printf("Failed to initialize!\n");
 	// 	return false;
@@ -42,7 +40,8 @@ bool MainDisplay::run() {
 				handleKeyPresses(e);
 			} else {
 				for (int i = 0; i < gButtons.size(); i++) {
-                	handleButtonEvent(&e, gButtons.at(i));
+					handleButtonEvent(&e, gButtons.at(i));
+
 				}
 			}
 		}
@@ -56,21 +55,21 @@ bool MainDisplay::run() {
 	return true;
 }
 
-bool MainDisplay::init() {
+bool PhysicianMenuDisplay::init() {
 	bool success;
 
 	success = DisplayBase::init();
 
 	return success;
 }
-    
-bool MainDisplay::renderScreen() {
+
+bool PhysicianMenuDisplay::renderScreen() {
 	renderFrame();
 
 	return true;
 }
 
-bool MainDisplay::renderFrame() {
+bool PhysicianMenuDisplay::renderFrame() {
 	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
 
@@ -85,10 +84,10 @@ bool MainDisplay::renderFrame() {
 	return true;
 }
 
-bool MainDisplay::loadMedia() {
+bool PhysicianMenuDisplay::loadMedia() {
 	bool success = true;
 
-	headerSurface = SDL_LoadBMP("art/MainDisplay/title.bmp");
+	headerSurface = SDL_LoadBMP("art/PhysicianMenu/PhysicianMenuHeader.bmp");
 	headerDestR.x = (SCREEN_WIDTH/2) - 150;
     headerDestR.y = 100;
     headerDestR.w = 300;
@@ -99,15 +98,26 @@ bool MainDisplay::loadMedia() {
 	return success;
 }
 
-bool MainDisplay::loadButtons() {
-	gButtons.push_back(new Button(BUTTON_SPRITE_PHYSICIAN, 300, 100, 66, SCREEN_HEIGHT/2, "art/MainDisplay/physician.bmp"));
-	gButtons.push_back(new Button(BUTTON_SPRITE_PATIENT, 300, 100, SCREEN_WIDTH - 366, SCREEN_HEIGHT/2, "art/MainDisplay/patient.bmp"));
+bool PhysicianMenuDisplay::loadButtons() {
+	gButtons.push_back(new Button(BUTTON_SPRITE_PHYSICIAN, 300, 100, 66, SCREEN_HEIGHT/2, "art/PhysicianMenu/CaptureKeyframes.bmp"));
+	gButtons.push_back(new Button(BUTTON_SPRITE_PATIENT, 300, 100, SCREEN_WIDTH - 366, SCREEN_HEIGHT/2, "art/PhysicianMenu/PlaybackMovement.bmp"));
 
 	return true;
 }
 
-void MainDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
-{
+void PhysicianMenuDisplay::handleKeyPresses(SDL_Event e) {
+	switch (e.key.keysym.sym) {
+		case SDLK_k:
+			//Load Keyframe screen
+		break;
+
+		case SDLK_p:
+			//Load Playback screen
+		break;
+	}
+}
+
+void PhysicianMenuDisplay::handleButtonEvent(SDL_Event* e, Button *currButton) {
 	//If mouse event happened
 	if (e->type == SDL_MOUSEBUTTONDOWN)
 	{
@@ -115,39 +125,27 @@ void MainDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 		if ((*currButton).isInside(e))
 		{
 			buttonLog.open("buttonLogData.txt", std::ofstream::app);
-			buttonLog << "Main Display: " << (*currButton).getType() << " button clicked" << std::endl;
+			buttonLog << "Physician Menu: " << (*currButton).getType() << " button clicked" << std::endl;
 			buttonLog.close();
 
 			switch ((*currButton).getType()) {
-				case BUTTON_SPRITE_PHYSICIAN:
-					newDisplay = new PhysicianMenuDisplay(control, window, renderer);
-					control.switchDisplays(&newDisplay);
+				case BUTTON_SPRITE_KEYFRAME:
+					// newDisplay = new PhysicianMenuDisplay(control, window, renderer);
+					// control.switchDisplays(&newDisplay);
 					break;
 
-				case BUTTON_SPRITE_PATIENT:
+				case BUTTON_SPRITE_PLAYBACK:
 					break;
 			}
 		}
 	}
 }
 
-void MainDisplay::handleKeyPresses(SDL_Event e) {
-	switch (e.key.keysym.sym) {
-		case SDLK_d:
-			//Load Physician screen
-		break;
 
-		case SDLK_p:
-			//Load Patient screen
-		break;
-	}
-}
-
-void MainDisplay::close() {
+void PhysicianMenuDisplay::close() {
 	SDL_FreeSurface(headerSurface);
     SDL_DestroyTexture(headerTexture);
 
     closeButtons();
-    //closeSDL();
 }
 

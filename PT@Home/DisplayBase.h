@@ -17,6 +17,8 @@ protected:
 	// TODO I think these should be static
 	SDL_Window* window;  //The window we'll be rendering to
 	SDL_Renderer* renderer;
+    Controller* control;
+    DisplayBase* newDisplay;
 	
     std::vector<Button*> gButtons;
 
@@ -27,6 +29,8 @@ protected:
     virtual bool loadMedia() = 0;
     virtual bool loadButtons() = 0;
     virtual void handleKeyPresses(SDL_Event e) = 0;
+    virtual void handleButtonEvent(SDL_Event* e, Button *currButton) = 0;
+
     virtual void close() = 0;
 
     void renderButtons();
@@ -36,6 +40,7 @@ protected:
 
 public:
 	DisplayBase();
+    DisplayBase(SDL_Window *w, SDL_Renderer *r);
 	//Does render frame need to go here?
 
 

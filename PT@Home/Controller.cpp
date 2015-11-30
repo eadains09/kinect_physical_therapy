@@ -1,22 +1,37 @@
 //
-//  DisplayBase.cpp
+// Controller.cpp
 //
 
-#include "DisplayBase.h"
+#include "Controller.h"
 
-DisplayBase::DisplayBase() {
-	window = NULL;
-	renderer = NULL;
+Controller::Controller() {
+	if (!init()) {
+		printf("Failed to initialize!\n");
+		window = NULL;
+		renderer = NULL;
+		view = NULL;
+	} else {
+		view = new MainDisplay(this, window, renderer);
+	}
 }
 
-DisplayBase::DisplayBase(Controller *c, SDL_Window *w, SDL_Renderer *r) {
-    window = w;
-    renderer = r;
-    control = c;
+void Controller::runDisplay() {
+	view.run();
 }
 
+void Controller::switchDisplays(DisplayBase* newDisplay) {
+	view.close();
+	view = newDisplay;
+	view.run();
 
-bool DisplayBase::init() {
+}
+
+void Controller::closeDisplay() {
+	view.close();
+	view.closeSDL();
+}
+
+bool Controller::init() {
 	bool success = true;
 
 	//Initialize SDL
@@ -43,37 +58,3 @@ bool DisplayBase::init() {
     
     return success;
 }
-
-void DisplayBase::renderButtons() {
-    for (int i = 0; i < gButtons.size(); i++) {
-        (*gButtons.at(i)).render(renderer);
-    }
-}
-
-void DisplayBase::flashScreen() {
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-    SDL_RenderClear(renderer);
-    SDL_Delay(10);
-}
-
-void DisplayBase::closeSDL() {
-	closeButtons();
-    
-    SDL_DestroyRenderer(renderer);
-    
-    //Destroy window
-    SDL_DestroyWindow(window);
-    window = NULL;
-    renderer = NULL;
-    
-    //Quit SDL subsystems
-    SDL_Quit();
-}
-
-void DisplayBase::closeButtons() {
-	for (int i = 0; i < gButtons.size(); i++) {
-        (*gButtons.at(i)).freeButton();
-    }
-}
-
-

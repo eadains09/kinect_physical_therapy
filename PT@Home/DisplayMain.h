@@ -24,10 +24,13 @@ private:
     virtual bool loadMedia();    
     virtual bool loadButtons();
     virtual void handleKeyPresses(SDL_Event e);
+    virtual void handleButtonEvent(SDL_Event* e, Button *currButton);
+
     virtual void close();
 
 public:
 	MainDisplay();
+	MainDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r);
 	bool run();
 
 };

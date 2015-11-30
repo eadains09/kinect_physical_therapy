@@ -15,8 +15,6 @@ private:
 
 	std::ofstream log;
 
-
-
 	virtual bool init(); // Must call parent constructor
     
     virtual bool renderScreen();
@@ -24,10 +22,13 @@ private:
     virtual bool loadMedia();    
     virtual bool loadButtons();
     virtual void handleKeyPresses(SDL_Event e);
+    virtual void handleButtonEvent(SDL_Event* e, Button *currButton);
     virtual void close();
 
 public:
 	PhysicianMenuDisplay();
+	PhysicianMenuDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r);
+
 	bool run();
 };
 #endif /* _PHYSICIAN_MENU_DISPLAY_H_*/
