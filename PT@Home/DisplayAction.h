@@ -24,8 +24,9 @@ private:
 	int frameNumber; //Which frame to read from file
 	int bodyCount; //Number of bodies being displayed, right now only options are 1 or 2
 	bool playing;
-	Movement moveFromFile;
-	BodyFrame displayBodies[TOTAL_BODIES];
+	Movement *moveFromFile;
+	BodyFrame *displayBodies;
+	//BodyFrame displayBodies[TOTAL_BODIES];
 	PlaybackType playback;
 
 	// navigation variable

@@ -118,7 +118,7 @@ void Movement::readQuatFrame(std::string path) {
 
 
 
-//        file.findJointStart();
+       file.findJointStart();
 
         while (file.findKeyframeStart()) {
             QuatFrame currFrame;

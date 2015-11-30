@@ -71,7 +71,7 @@ void DisplayBase::closeSDL() {
 
 void DisplayBase::closeButtons() {
 	for (int i = 0; i < gButtons.size(); i++) {
-        (*gButtons.at(i)).freeButton();
+        (gButtons.at(i))->freeButton();
     }
 }
 
