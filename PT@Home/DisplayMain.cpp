@@ -17,19 +17,12 @@ MainDisplay::MainDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r) : Displa
 }
 
 void MainDisplay::run() {
-
-	// if (!init()) {
-	// 	printf("Failed to initialize!\n");
-	// 	return false;
-	// }
-
 	//Load media
 	if (!loadMedia()) {
 		printf("Failed to load media!\n");
-		//return false;
+		exit();
 	}
 
-	//runLoop();
 	//Main loop flag
 	quit = false;
 	//Event Handler
@@ -53,19 +46,6 @@ void MainDisplay::run() {
 			renderScreen();
 		}
 	}
-
-	//close();
-	//(*control).closeDisplay();
-
-	//return true;
-}
-
-bool MainDisplay::init() {
-	bool success;
-
-	success = DisplayBase::init();
-
-	return success;
 }
     
 bool MainDisplay::renderScreen() {
@@ -124,16 +104,11 @@ void MainDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 
 			switch ((*currButton).getType()) {
 				case BUTTON_SPRITE_PHYSICIAN:
-					newDisplay = new PhysicianMenuDisplay(control, window, renderer);
-					(*control).switchDisplays(newDisplay);
-					quit = true; // Necessary for when control waterfalls back up the chain of displays loading, which will only happen when program is closing
+					loadPhysicianScreen();
 					break;
 
 				case BUTTON_SPRITE_PATIENT:
-					//newDisplay = new PhysicianMenuDisplay(control, window, renderer);
-					//(*control).switchDisplays(newDisplay);
-					//quit = true; // Necessary for when control waterfalls back up the chain of displays loading, which will only happen when program is closing
-
+					loadPatientScreen();
 					break;
 			}
 		}
@@ -143,13 +118,28 @@ void MainDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 void MainDisplay::handleKeyPresses(SDL_Event e) {
 	switch (e.key.keysym.sym) {
 		case SDLK_d:
-			//Load Physician screen
-		break;
+			loadPhysicianScreen();
+			break;
 
 		case SDLK_p:
-			//Load Patient screen
-		break;
+			loadPatientScreen();
+			break;
 	}
+}
+
+void MainDisplay::loadPhysicianScreen() {
+	newDisplay = new PhysicianMenuDisplay(control, window, renderer);
+	loadNewDisplay();
+}
+
+void MainDisplay::loadPatientScreen() {
+	newDisplay = new PatientMenuDisplay(control, window, renderer);
+	loadNewDisplay();
+}
+
+void MainDisplay::loadNewDisplay() {
+	(*control).switchDisplays(newDisplay);
+	quit = true; // Necessary for when control waterfalls back up the chain of displays loading, which will only happen when program is closing
 }
 
 void MainDisplay::close() {

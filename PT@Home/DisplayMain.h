@@ -15,10 +15,6 @@ private:
 	SDL_Rect headerDestR;
 
 	std::ofstream log, buttonLog;
-
-
-
-	virtual bool init(); // Must call parent constructor
     
     virtual bool renderScreen();
     virtual bool renderFrame();
@@ -26,6 +22,10 @@ private:
     virtual bool loadButtons();
     virtual void handleKeyPresses(SDL_Event e);
     virtual void handleButtonEvent(SDL_Event* e, Button *currButton);
+    void loadPhysicianScreen();
+    void loadPatientScreen();
+    void loadNewDisplay();
+
 
     virtual void close();
 

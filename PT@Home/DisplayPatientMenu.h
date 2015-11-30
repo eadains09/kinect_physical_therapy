@@ -1,13 +1,13 @@
 //
-//  PhysicianMenuDisplay.h
+//  PatientMenuDisplay.h
 //
 
-#ifndef _PHYSICIAN_MENU_DISPLAY_H_
-#define _PHYSICIAN_MENU_DISPLAY_H_
+#ifndef _PATIENT_MENU_DISPLAY_H_
+#define _PATIENT_MENU_DISPLAY_H_
 
 #include "DisplayBase.h"
 
-class PhysicianMenuDisplay : public DisplayBase {
+class PatientMenuDisplay : public DisplayBase {
 private:
 	SDL_Surface* headerSurface;
 	SDL_Texture* headerTexture;
@@ -23,15 +23,13 @@ private:
     virtual void handleButtonEvent(SDL_Event* e, Button *currButton);
     void loadActionDisplay(int x);
     void loadPrevDisplay();
-    // void loadNewDisplay();
-
-
+   // void loadNewDisplay();
     virtual void close();
 
 public:
-	PhysicianMenuDisplay();
-	PhysicianMenuDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r);
+	PatientMenuDisplay();
+	PatientMenuDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r);
 
 	virtual void run();
 };
-#endif /* _PHYSICIAN_MENU_DISPLAY_H_*/
+#endif /* _PATIENT_MENU_DISPLAY_H_*/

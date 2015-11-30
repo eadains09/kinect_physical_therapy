@@ -8,7 +8,6 @@
 
 Controller::Controller() {
 	if (!init()) {
-		printf("Failed to initialize!\n");
 		window = NULL;
 		renderer = NULL;
 		view = NULL;

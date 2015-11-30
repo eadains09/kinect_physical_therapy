@@ -22,7 +22,7 @@ enum ButtonSprite
 {
     BUTTON_SPRITE_PLAY = 0,
     BUTTON_SPRITE_RECORD = 1,
-    BUTTON_SPRITE_STOP = 2,
+    BUTTON_SPRITE_PAUSE = 2,
     BUTTON_SPRITE_BACK = 3,
     BUTTON_SPRITE_PHYSICIAN = 4,
     BUTTON_SPRITE_PATIENT = 5,
@@ -44,14 +44,11 @@ public:
     Button(ButtonSprite type, int w, int h, int x, int y, std::string image);
 
     void setType(ButtonSprite type);
+    ButtonSprite getType();
+
     //Sets top left position
     void setPosition( int x, int y );
-    //Handles mouse event
-    //void handleEvent( SDL_Event* e );
-    //Shows button sprite
-    //void render(LTexture gButtonSpriteSheetTexture, SDL_Renderer* renderer, SDL_Rect* gSpriteClips);
     void render(SDL_Renderer* renderer);
-	ButtonSprite getType();
 	bool isInside(SDL_Event *e);
 
     void freeButton();
