@@ -23,10 +23,11 @@ int APIENTRY wWinMain(
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	// Display currDisplay;
-	// currDisplay.run();
+	 //Display currDisplay;
+	 //currDisplay.run();
 	Controller control;
 	control.runDisplay();
+	control.closeDisplay();
 
 	return 0;
 }

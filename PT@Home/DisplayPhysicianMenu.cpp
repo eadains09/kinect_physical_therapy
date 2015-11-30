@@ -28,7 +28,7 @@ void PhysicianMenuDisplay::run() {
 
 	//runLoop();
 	//Main loop flag
-	bool quit = false;
+	quit = false;
 	//Event Handler
 	SDL_Event e;
 
@@ -50,7 +50,7 @@ void PhysicianMenuDisplay::run() {
 
 	}
 
-	(*control).closeDisplay();
+	//(*control).closeDisplay();
 
 	//close();
 

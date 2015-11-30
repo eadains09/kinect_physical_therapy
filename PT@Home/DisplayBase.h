@@ -19,7 +19,8 @@ protected:
 	SDL_Renderer* renderer;
     Controller* control;
     DisplayBase* newDisplay;
-	
+	bool quit;
+
     std::vector<Button*> gButtons;
 
     virtual bool init(); // Init's SDL window and renderer only - should be called by inheriting classes

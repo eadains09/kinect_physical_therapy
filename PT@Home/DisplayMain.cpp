@@ -31,7 +31,7 @@ void MainDisplay::run() {
 
 	//runLoop();
 	//Main loop flag
-	bool quit = false;
+	quit = false;
 	//Event Handler
 	SDL_Event e;
 
@@ -47,13 +47,15 @@ void MainDisplay::run() {
 				}
 			}
 		}
-
-		renderScreen();
-
+		// Extra quit check necessary because quitting in a different display waterfalls up the path
+		// yet the controller will have already closed the textures/buttons/etc of the previous displays
+		if (!quit) {
+			renderScreen();
+		}
 	}
 
 	//close();
-	(*control).closeDisplay();
+	//(*control).closeDisplay();
 
 	//return true;
 }
@@ -124,6 +126,7 @@ void MainDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 				case BUTTON_SPRITE_PHYSICIAN:
 					newDisplay = new PhysicianMenuDisplay(control, window, renderer);
 					(*control).switchDisplays(newDisplay);
+					quit = true;
 					break;
 
 				case BUTTON_SPRITE_PATIENT:

@@ -120,8 +120,8 @@ void Button::render(SDL_Renderer* renderer) {
 }
 
 void Button::freeButton() {
-	if (buttonSurface != NULL) {
+	//if (buttonSurface != NULL) {
 		SDL_FreeSurface(buttonSurface);
-	}
+	//}
     SDL_DestroyTexture(buttonTexture);
 }

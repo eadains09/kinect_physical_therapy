@@ -57,7 +57,7 @@ void DisplayBase::flashScreen() {
 }
 
 void DisplayBase::closeSDL() {
-	closeButtons();
+	//closeButtons();
     
     SDL_DestroyRenderer(renderer);
     
