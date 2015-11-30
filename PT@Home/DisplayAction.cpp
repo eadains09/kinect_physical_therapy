@@ -99,7 +99,6 @@ void ActionDisplay::run() {
 }
 
 bool ActionDisplay::renderScreen() {
-
 	if (playing) {
 		if (playback == LIVE) {
 			frameFromKinect();
