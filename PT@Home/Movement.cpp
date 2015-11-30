@@ -11,12 +11,21 @@
 #include "Movement.h"
 #include "FileReader.h"
 #include "FileWriter.h"
+#include "QuatFrame.h"
 
 
 using namespace std;
 
 Movement::Movement() {
     currFrameCount = 0;
+	//TODO(distant and not entirely necessary) it seems like it might
+	//be nice to have a second constructor that takes frame_total as an
+	//argument 
+	//frames = new BodyFrame*[FRAME_TOTAL];
+	frames = new deque<BodyFrame>(FRAME_TOTAL);
+	deque<BodyFrame> qframes(FRAME_TOTAL);
+	//for (int i = 0; i < FRAME_TOTAL; i++)
+//		frames[i] = NULL;
 }
 
 //TODO Change this to return a success boolean?
@@ -43,7 +52,7 @@ Movement::Movement() {
             if (currLine.compare("[") == 0) {
                 
                 //Declare a bodyFrame, add to frames array
-                BodyFrame currFrame;
+				BodyFrame *currFrame = NULL;// = new BodyFrame();
                 
                 //Read in each joint's points, looping until all 25 joints have been read in.
                 for (int i = 0; i < JOINT_TOTAL; i++) {
@@ -58,6 +67,8 @@ Movement::Movement() {
 						//is invalid and we skip to the next one
 						if (start == -1 || end == -1 ||start >= end-1)
 							break;
+						if (currFrame == NULL)
+							currFrame = new BodyFrame();
                         jointLine = jointLine.substr(start, end-start);
                         jointLine.erase(jointLine.find(",", start), 1);
                         jointLine.erase(jointLine.find(",", start), 1);
@@ -71,13 +82,22 @@ Movement::Movement() {
                         //transformPoints(&xPos, &yPos, &zPos);
                     
                         //Declare a joint using count for type and points and add to joints array of current bodyFrame
-                        eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos);
-                        currFrame.addJoint(currJoint);
+                        //eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos);
+						//TODO here and elsewhere get rid of joint type(already encoded as array index)
+						//and instead pass z=0, then proper x and y
+						//irr::core::vector3df *currJoint = new irr::core::vector3df(currFrame->getCurrJointCount(), (int)xPos, (int)yPos);
+						irr::core::vector3df *currJoint = new irr::core::vector3df((int)xPos, (int)yPos, 0);
+                        currFrame->addJoint(currJoint);
                     }
                 }
+<<<<<<< HEAD
+				if (currFrame != NULL)
+	                frames[currFrameCount++] = currFrame;
+=======
                 //frames[currFrameCount] = currFrame;
                 frames.push_back(currFrame);
                 currFrameCount++;
+>>>>>>> master
             }
         }
     } else {
@@ -88,31 +108,38 @@ Movement::Movement() {
 
 }*/
 
-void Movement::readPoints(std::string path) {
+void Movement::readQuatFrame(std::string path) {
     FileReader file(path);
     
     if(file.isOpen()) {
         file.findFileStart();
-        file.findJointStart();
 
-        while (file.findJointStart()) {
-            BodyFrame currFrame;
+
+
+
+
+       file.findJointStart();
+
+        while (file.findKeyframeStart()) {
+            QuatFrame currFrame;
+
+
 
             while (file.findJointStart()) {
-                /* Just change this part to switch to reading quaternions */
-                eJoint currJoint = readJointPoints(&file, currFrame);
+                // Just change this part to switch to reading quaternions
+                irr::core::vector3df currJoint = readJointPoints(&file);
                 //eJoint currJoint = readJointQuats(&file, currFrame);
-				if (currJoint.getX() == 0 && currJoint.getY() == 0 && currJoint.getZ() == 0) {
+				if (currJoint.X == 0 && currJoint.Y == 0 && currJoint.Z == 0) {
 					continue;
 				}
 				currFrame.addJoint(currJoint);
 				
             }
-			if (currFrame.getCurrJointCount() <= 0) {
+			if (!currFrame.isReady()) {
 				continue;
 			}
 			else {
-				frames.push_back(currFrame);
+				qframes.push_back(currFrame);
 				currFrameCount++;
 			}
         }
@@ -121,6 +148,11 @@ void Movement::readPoints(std::string path) {
     file.closeFile();
 }
 
+deque<BodyFrame> Movement::getFrames() {
+    return *frames;
+}
+
+//TODO check w/ erika
 void Movement::readKeyframes(std::string path) {
     FileReader file(path);
     
@@ -128,18 +160,23 @@ void Movement::readKeyframes(std::string path) {
         file.findFileStart();
 
         while (file.findKeyframeStart()) {
-            BodyFrame currFrame;
-
+            QuatFrame currFrame;
+			//TODO
+			//FOR SURE MAKE SURE OF ORDERING of frame struct
+			//as stored in file
             currFrame.setTimestamp(file.findTimestamp());
-            file.findJointStart();
-            while (file.findJointStart()) {
-                /* Just change this part to switch to reading quaternions */
-                eJoint currJoint = readJointPoints(&file, currFrame);
-                //eJoint currJoint = readJointQuats(&file, currFrame);
-                currFrame.addJoint(currJoint);
-            }
 
-            frames.push_back(currFrame);
+			if (!file.findJointStart())
+				continue;
+
+			currFrame.addMidSpine(readJointPoints(&file));
+
+			//I noticed this in front, and was a bit confused by it
+      //      file.findJointStart();
+            while (file.findJointStart())
+				currFrame.addQuatJoint(readJointQuat(&file));
+
+            qframes.push_back(currFrame);
             currFrameCount++;
         }
     }
@@ -147,7 +184,7 @@ void Movement::readKeyframes(std::string path) {
     file.closeFile();
 }
 
-eJoint Movement::readJointPoints(FileReader *file, BodyFrame currFrame) {
+irr::core::vector3df Movement::readJointPoints(FileReader *file) {
     double xPos, yPos, zPos;
 
     xPos = (*file).findDouble();
@@ -155,12 +192,13 @@ eJoint Movement::readJointPoints(FileReader *file, BodyFrame currFrame) {
     zPos = (*file).findDouble();
 
 	//transformPoints(&xPos, &yPos, &zPos);
-    eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos, (int)zPos);
+//    eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos, (int)zPos);
+	irr::core::vector3df currJoint(xPos, yPos, zPos);
 
     return currJoint;
 }
 
-eJoint Movement::readJointQuats(FileReader *file, BodyFrame currFrame) {
+irr::core::quaternion Movement::readJointQuat(FileReader *file) {
     double xQuat, yQuat, zQuat, wQuat;
 
     xQuat = (*file).findDouble();
@@ -168,23 +206,23 @@ eJoint Movement::readJointQuats(FileReader *file, BodyFrame currFrame) {
     zQuat = (*file).findDouble();
     wQuat = (*file).findDouble();
 
-    eJoint currJoint(currFrame.getCurrJointCount(), xQuat, yQuat, zQuat, wQuat);
+    //eJoint currJoint(currFrame.getCurrJointCount(), xQuat, yQuat, zQuat, wQuat);
+	irr::core::quaternion currJoint(xQuat, yQuat, zQuat, wQuat);
 
     return currJoint;
 }
 
-/*
-deque<BodyFrame> Movement::getFrames() {
-    return frames;
-}
-*/
+//TODO
+//I am really not crazy about this memory leak waiting to happen
+//fix
 BodyFrame Movement::getSingleFrame(int i) {
+
 	if (i < currFrameCount) {
-        return frames.at(i);
+        return frames->at(i);
 	}
 	else {
 		//returns last frame in array when called on int greater than number of frames (instead of returning null)
-        return frames.at(currFrameCount-1);
+        return frames->at(currFrameCount-1);
 	}
 }
 
@@ -192,25 +230,36 @@ int Movement::getCurrFrameCount() {
     return currFrameCount;
 }
 
-//TODO: Should this be a destructor? Is it even necessary?
-void Movement::freeFrames() {
-    while (frames.size() > 0) {
-        frames.front().freeJoints();
-        frames.pop_front();
+
+Movement::~Movement()
+{
+//	freeFrames();
+	delete frames;
+}
+
+void Movement::logMove(std::string fileName)
+{
+    while (frames->size() > 0) {
+		//TODO I think there's a fancy deque foreach destructor
+		//that one is supposed to use, look up and implement
+        //frames->front().freeJoints();
+        frames->pop_front();
     }
 }
 
+/*neat fact to bear in mind: we will never, under any circumstances,
+need to log raw points*/
 void Movement::logFrames(std::string fileName)
 {
     FileWriter file(fileName, "keyframes");
 
-    if (frames.size() > 0) {
-		frames.front().writeFrame(&file);
-		frames.pop_front();
-        while (frames.size() > 0) {
+    if (qframes.size() > 0) {
+		qframes.front().writeFrame(&file);
+		qframes.pop_front();
+        while (frames->size() > 0) {
             file.addComma();
-            frames.front().writeFrame(&file);
-			frames.pop_front();
+            qframes.front().writeFrame(&file);
+			qframes.pop_front();
         }
     }
 
@@ -218,17 +267,17 @@ void Movement::logFrames(std::string fileName)
 }
 
 void Movement::popBackFrame() {
-    frames.pop_back();
+    frames->pop_back();
     currFrameCount--;
 }
 
 void Movement::pushBackFrame(BodyFrame frame) {
-    frames.push_back(frame);
+    frames->push_back(frame);
     currFrameCount++;
 }
 
 BodyFrame Movement::getBackFrame() {
-    return frames.back();
+    return frames->back();
 }
 
 void Movement::transformPoints(double *xPos, double *yPos, double *zPos) {

@@ -5,8 +5,7 @@
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
-#ifndef _JOINT_H__
-#define _JOINT_H__
+#pragma once
 
 #include <stdio.h>
 #include <SDL.h>
@@ -49,6 +48,3 @@ public:
     double getWQuat();
     void freeJoint();
 };
-
-
-#endif /* _JOINT_H__ */
