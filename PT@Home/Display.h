@@ -19,7 +19,7 @@
 #include "Movement.h"
 #include "FileWriter.h"
 
-/*
+
 using namespace std;
 
 const int TOTAL_BODIES = 2;
@@ -87,5 +87,5 @@ public:
 	bool run();
 
 };
-*/
+
 #endif /* _DISPLAY_H_ */
