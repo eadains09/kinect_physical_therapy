@@ -172,7 +172,7 @@ void Movement::readKeyframes(std::string path) {
 			currFrame.addMidSpine(readJointPoints(&file));
 
 			//I noticed this in front, and was a bit confused by it
-      //      file.findJointStart();
+            file.findJointStart();
             while (file.findJointStart())
 				currFrame.addQuatJoint(readJointQuat(&file));
 

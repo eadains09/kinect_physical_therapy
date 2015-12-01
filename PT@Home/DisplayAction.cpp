@@ -177,7 +177,7 @@ void ActionDisplay::renderBody(BodyFrame currBody) {
 
 	for (int i = 0; i < currBody.getCurrJointCount(); i++) {
 		if (getParent(i) != i)
-				SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
+			SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
 	}
 }
 
