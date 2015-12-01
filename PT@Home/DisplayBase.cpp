@@ -50,7 +50,7 @@ void DisplayBase::loadNewDisplay() {
 }
 
 void DisplayBase::renderButtons() {
-    for (int i = 0; i < gButtons.size(); i++) {
+    for (size_t i = 0; i < gButtons.size(); i++) {
         (*gButtons.at(i)).render(renderer);
     }
 }
@@ -70,7 +70,7 @@ void DisplayBase::closeSDL() {
 }
 
 void DisplayBase::closeButtons() {
-	for (int i = 0; i < gButtons.size(); i++) {
+	for (size_t i = 0; i < gButtons.size(); i++) {
         (gButtons.at(i))->freeButton();
     }
 }

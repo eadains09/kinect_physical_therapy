@@ -34,7 +34,7 @@ void PhysicianMenuDisplay::run() {
 			} else if (e.type == SDL_KEYDOWN) {
 				handleKeyPresses(e);
 			} else {
-				for (int i = 0; i < gButtons.size(); i++) {
+				for (size_t i = 0; i < gButtons.size(); i++) {
 					handleButtonEvent(&e, gButtons.at(i));
 				}
 			}
@@ -141,7 +141,7 @@ void PhysicianMenuDisplay::loadActionDisplay(PlaybackType playType) {
 }
 
 void PhysicianMenuDisplay::loadPrevDisplay() {
-	newDisplay = new MainDisplay(control, window, renderer);
+	newDisplay = new DisplayMain(control, window, renderer);
 	loadNewDisplay();
 }
 

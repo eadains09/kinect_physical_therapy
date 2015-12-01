@@ -12,7 +12,7 @@ Controller::Controller() {
 		renderer = NULL;
 		view = NULL;
 	} else {
-		view = new MainDisplay(this, window, renderer);
+		view = new DisplayMain(this, window, renderer);
 	}
 }
 

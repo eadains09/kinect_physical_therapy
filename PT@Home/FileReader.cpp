@@ -45,7 +45,7 @@ bool FileReader::findKeyframeStart() {
 }
 
 double FileReader::findTimestamp() {
-	char c;
+	//char c;
 	std::string str;
 	double timestamp;
 

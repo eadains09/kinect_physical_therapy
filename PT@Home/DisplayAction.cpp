@@ -96,7 +96,7 @@ void ActionDisplay::run() {
 			} else if (e.type == SDL_KEYDOWN) {
 				handleKeyPresses(e);
 			} else {
-            	for (int i = 0; i < gButtons.size(); i++) {
+            	for (size_t i = 0; i < gButtons.size(); i++) {
 					handleButtonEvent(&e, gButtons.at(i));
             	}
             }
@@ -383,7 +383,7 @@ void ActionDisplay::loadPrevDisplay() {
 	} else if (prevScreen == PHYSICIAN_MENU) {
 		newDisplay = new PhysicianMenuDisplay(control, window, renderer);
 	} else {
-		newDisplay = new MainDisplay(control, window, renderer);
+		newDisplay = new DisplayMain(control, window, renderer);
 	}
 	loadNewDisplay();
 }
@@ -391,7 +391,7 @@ void ActionDisplay::loadPrevDisplay() {
 void ActionDisplay::togglePlaying() {
 	playing = !playing;
 
-	for (int i = 0; i < gButtons.size(); i++) {
+	for (size_t i = 0; i < gButtons.size(); i++) {
 		Button* currButton = gButtons.at(i);
 		if ((*currButton).getType() == BUTTON_SPRITE_PLAY) {
 			(*currButton).freeButton();
@@ -412,8 +412,9 @@ bool ActionDisplay::loadMedia() {
     
     if (playback == RECORDED || playback == LIVE_RECORD) {
     	//moveFromFile->readPoints("movement1.dat");
-		moveFromFile->readPoints("whereData.dat");
+		//moveFromFile->readPoints("whereData.dat");
 		//moveFromFile->readPoints("testMovement1.dat");
+		moveFromFile->readQuatFrame("testMovement1.dat");
     }
 
     loadButtons();

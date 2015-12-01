@@ -30,8 +30,8 @@ private:
     virtual void close();
 
 public:
-	MainDisplay();
-	MainDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r);
+	DisplayMain();
+	DisplayMain(Controller *c, SDL_Window *w, SDL_Renderer *r);
 	virtual void run();
 };
 

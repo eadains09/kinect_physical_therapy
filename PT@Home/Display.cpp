@@ -1,13 +1,10 @@
-/*******
-* 01
-********/
 //
 //  Display.cpp
 //
 //  Created by Erika Dains on 10/23/15.
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
-
+/*
 #include "Display.h"
 #include "stdafx.h"
 #include <time.h>
@@ -253,16 +250,6 @@ bool Display::framesFromKinect(bool firstRun)
 	if (!pBodyFrame || !SUCCEEDED(hr))
 		return false;
 
-	/*if (firstRun)
-	{
-		writer.firstPointBodyFrame();
-		writer.firstQuatBodyFrame();
-	}
-	else
-	{
-		writer.openPointBodyFrame();
-		writer.openQuatBodyFrame();
-	}*/
 
 	INT64 nTime = 0;
 
@@ -305,8 +292,6 @@ bool Display::framesFromKinect(bool firstRun)
 		displayBodies[bodyCount-1] = *anorexia;
 	}
 	SafeRelease(pBodyFrame);
-	/*writer.closePointBodyFrame();
-	writer.closeQuatBodyFrame();*/
 
 	for (int i = 0; i < _countof(ppBodies); ++i)
 	{
@@ -412,9 +397,6 @@ bool Display::init() {
 			return false;
 		}
 		SafeRelease(pBodyFrameSource);
-
-	/*	writer.openPointLog();
-		writer.openQuatLog();*/
 	}
 
     //Initialize SDL
@@ -486,3 +468,4 @@ void Display::close() {
 	//}
     
 }
+*/

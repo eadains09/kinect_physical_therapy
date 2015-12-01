@@ -12,12 +12,12 @@ DisplayMain::DisplayMain() : DisplayBase() {
 	headerTexture = NULL;
 }
 
-MainDisplay::MainDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r) : DisplayBase(c, w, r) {
+DisplayMain::DisplayMain(Controller *c, SDL_Window *w, SDL_Renderer *r) : DisplayBase(c, w, r) {
 	headerSurface = NULL;
 	headerTexture = NULL;
 }
 
-void MainDisplay::run() {
+void DisplayMain::run() {
 	//Load media
 	if (!loadMedia()) {
 		printf("Failed to load media!\n");
@@ -36,7 +36,7 @@ void MainDisplay::run() {
 			} else if (e.type == SDL_KEYDOWN) {
 				handleKeyPresses(e);
 			} else {
-				for (int i = 0; i < gButtons.size(); i++) {
+				for (size_t i = 0; i < gButtons.size(); i++) {
                 	handleButtonEvent(&e, gButtons.at(i));
 				}
 			}
@@ -91,7 +91,7 @@ bool DisplayMain::loadButtons() {
 	return true;
 }
 
-void MainDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
+void DisplayMain::handleButtonEvent(SDL_Event* e, Button *currButton)
 {
 	//If mouse event happened
 	if (e->type == SDL_MOUSEBUTTONDOWN)
@@ -107,43 +107,43 @@ void MainDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 				case BUTTON_SPRITE_PHYSICIAN:
 					loadPhysicianScreen();
 					break;
-
 				case BUTTON_SPRITE_PATIENT:
 					loadPatientScreen();
+					break;
+				default:
 					break;
 			}
 		}
 	}
 }
 
-void MainDisplay::handleKeyPresses(SDL_Event e) {
+void DisplayMain::handleKeyPresses(SDL_Event e) {
 	switch (e.key.keysym.sym) {
 		case SDLK_d:
 			loadPhysicianScreen();
 			break;
-
 		case SDLK_p:
 			loadPatientScreen();
 			break;
 	}
 }
 
-void MainDisplay::loadPhysicianScreen() {
+void DisplayMain::loadPhysicianScreen() {
 	newDisplay = new PhysicianMenuDisplay(control, window, renderer);
 	loadNewDisplay();
 }
 
-void MainDisplay::loadPatientScreen() {
+void DisplayMain::loadPatientScreen() {
 	newDisplay = new PatientMenuDisplay(control, window, renderer);
 	loadNewDisplay();
 }
 
-void MainDisplay::loadNewDisplay() {
+void DisplayMain::loadNewDisplay() {
 	(*control).switchDisplays(newDisplay);
 	quit = true; // Necessary for when control waterfalls back up the chain of displays loading, which will only happen when program is closing
 }
 
-void MainDisplay::close() {
+void DisplayMain::close() {
 	SDL_FreeSurface(headerSurface);
     SDL_DestroyTexture(headerTexture);
 
