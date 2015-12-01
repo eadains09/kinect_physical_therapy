@@ -55,8 +55,6 @@ bool ActionDisplay::init() {
 	bool success = true;
 	IBodyFrameSource* pBodyFrameSource = NULL;
 
-
-
 	GetDefaultKinectSensor(&m_pKinectSensor);
 	if (playback == LIVE || playback == LIVE_RECORD)
 	{
