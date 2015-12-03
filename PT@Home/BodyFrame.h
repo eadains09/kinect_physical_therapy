@@ -30,5 +30,6 @@ public:
 	virtual ~BodyFrame();
     void setTimestamp(double ts);
     double getTimestamp();
+	void transformPoints();
 //    void writeFrame(FileWriter *currFile);
 };

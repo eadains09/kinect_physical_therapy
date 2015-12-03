@@ -48,7 +48,8 @@ void DisplayMain::run() {
 		}
 	}
 }
-    
+ //if all this does is call renderFrame(), neither have arguments,
+//and both always return true, do we really need renderScreen()?
 bool DisplayMain::renderScreen() {
 	renderFrame();
 

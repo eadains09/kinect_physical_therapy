@@ -26,6 +26,11 @@ ActionDisplay::ActionDisplay() : DisplayBase() {
 	for (int i = 0; i < TOTAL_BODIES; i++)
 		displayBodies[i] = BodyFrame();
 
+	displayQuats = new QuatFrame[TOTAL_BODIES];
+	for (int i = 0; i < TOTAL_BODIES; i++)
+		displayQuats[i] = QuatFrame();
+
+
 	log.open("logData.txt");
 }
 
@@ -110,16 +115,20 @@ bool ActionDisplay::renderScreen() {
 	if (playing) {
 		if (playback == LIVE) {
 			frameFromKinect();
+			displayBodies[bodyCount - 1].transformPoints();
 		}
 		else if (playback == RECORDED) {
+			//I think the best way to do this might be to change
+			//single frame from file to deal with slerping
 			getSingleFrameFromFile();
+			displayQuats[0].initBodyFrame(displayBodies[0]);
 		}
 		else {
 			//so this is the bit where we'll have to 
 			//compare, and thus is the only place in which
 			//it necessary to convert live kinect frames
-			//to quaternions, I would suggest a new function
-			//for that
+			//to quaternions, I would suggest (a) new function(s)
+			//that deal(s) with one to all of those things
 
 			//simultaneous playback
 			getSingleFrameFromFile();
@@ -148,13 +157,7 @@ bool ActionDisplay::renderFrame() {
 	for (i = 0; i < bodyCount; i++) {
 		if (displayBodies[i].getCurrJointCount() != JOINT_TOTAL)
 			continue;
-
-		//	QuatFrame *proof = new QuatFrame(*displayBodies[j]);
-		//	proof->initBodyFrame(*displayBodies[j]);
-		//	delete proof;
-
-		irr::core::vector3df **joints = displayBodies[i].getJoints();
-
+	
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i % 2], 0xFF);
 		renderBody(displayBodies[i]);
 	}
@@ -170,64 +173,84 @@ bool ActionDisplay::renderFrame() {
 }
 
 void ActionDisplay::renderBody(BodyFrame currBody) {
-	// eJoint *joints = currBody.getJoints();
 	irr::core::vector3df **joints = currBody.getJoints();
 
-	for (int i = 0; i < currBody.getCurrJointCount(); i++) {
+	for (int i = 0; i < currBody.getCurrJointCount(); i++)
 		if (getParent(i) != i)
 			SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
-	}
+
 }
 
 bool ActionDisplay::frameFromKinect()
 {
 	HRESULT hr;
-	if (!m_pBodyFrameReader)
-	{
-		return false;
-	}
-
+	int j;
+	BodyFrame *anorexia = NULL;
 	IBodyFrame* pBodyFrame = NULL;
+	INT64 nTime = 0;
+
+	if (!m_pBodyFrameReader)
+		return false;
+
 	hr = m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
 	if (!pBodyFrame || !SUCCEEDED(hr))
 		return false;
 
-	INT64 nTime = 0;
-
-	hr = pBodyFrame->get_RelativeTime(&nTime);
-
+	Joint *joints = new Joint[JointType_Count];
 	IBody* ppBodies[BODY_COUNT] = { 0 };
 
+	hr = pBodyFrame->get_RelativeTime(&nTime);
+	//check?
 	hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
+	//check?
 
-	BodyFrame *anorexia = new BodyFrame();
-
-	Joint *joints = new Joint[JointType_Count];
-
-		for (int j = 0; j < _countof(ppBodies); j++)
+	//So here we have an interesting issue
+	//I'm going through ppbodies which supports several(6) bodies,
+	//many of which are going to be bogus, but we can put only one
+	//of these bodies into displayBodies, so we need some way of choosing a
+	//body that is likely to be valid, ideally choosing the body that the
+	//the most likly to be valid
+	for (j = 0; j < _countof(ppBodies); j++)
 	{
-		//For frames from kinect before keyframe selection I think it makes
-		//most sense to just keep them points, then do all the quat math
-		//on the keyframes we've captured
+		BOOLEAN bTracked = false;
+		hr = ppBodies[j]->get_IsTracked(&bTracked);
+
+		if (!SUCCEEDED(hr) || !bTracked)
+			continue;
+
 		ppBodies[j]->GetJoints(JointType_Count, joints);
+		anorexia = new BodyFrame();
 
 		for (int i = 0; i < JointType_Count; i++)
 		{
 			irr::core::vector3df *joint = new irr::core::vector3df(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
 			anorexia->addJoint(joint);
 		}
-		//TODO deal with properly writing out quaternions and midSpine
+		//someCalculation(&nTime);
+		//anorexia->setTimestamp(nTime);
+		//or
+		//something = someCalculation(&nTime);
+		//anorexia->setTimestamp(something);
+		
 		displayBodies[bodyCount-1] = *anorexia;
+		break; //once we've set the one entry in displayBodies we are alotted
+		//we are done no matter what
 	}
+
+	//default just in case no bodies are being tracked
+	//TODO make sure default behaves like it is supposed to
+	if (j == BODY_COUNT || anorexia == NULL)
+		displayBodies[bodyCount - 1] = BodyFrame();
+
 	SafeRelease(pBodyFrame);
 
-	for (int i = 0; i < _countof(ppBodies); ++i)
+	for (int i = 0; i < _countof(ppBodies); i++)
 	{
 		SafeRelease(ppBodies[i]);
 	}
 
+	delete[] joints;
 	return true;
-
 }
 
 bool ActionDisplay::getSingleFrameFromFile() {
@@ -235,6 +258,12 @@ bool ActionDisplay::getSingleFrameFromFile() {
     // In that case, subtract one from bodyCount so that only 
     // the kinect body or no body will be rendered
 	if (moveFromFile->getCurrFrameCount() <= 0) {
+		//I quite like this, but there are a couple of other variables
+		//that interact with this one and I see several control paths that
+		//lead to this guy being problematic
+		//also set PLAYBACK?
+		//reset bodyCount in main loop every time and make sure this function ALWAYS gets called before other frameGetty functons?
+		//some third thing I can't think of right now?
 		bodyCount--;
 	}
 	else {
@@ -331,6 +360,7 @@ void ActionDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 
 //TODO so around here is where we want to do the quaternion math
 //on the captured keyframe
+//maybe
 void ActionDisplay::captureKeyframe() {
 	time_t currTime;
 	double seconds;
@@ -345,6 +375,10 @@ void ActionDisplay::captureKeyframe() {
 	}
 	prevTime = currTime;
 
+	//ask erika, is there any particular reason
+	//we capture another frame from the kinect
+	//instead of just using the displayBodies frame
+	//that's already been loaded?
 	frameFromKinect();
 	prevKeyframe = displayBodies[bodyCount-1];
 	prevKeyframe.setTimestamp(seconds);
@@ -371,6 +405,9 @@ void ActionDisplay::deleteLastKeyframe() {
 void ActionDisplay::saveKeyframes() {
 	saveCount++;
 	string filename = "testMovement" + to_string(saveCount);
+	//there is a compelling argument to be made that I should
+	//avoid messing with stuff here as much as possible and
+	//instead do all the quat stuff in Movement.logFrames()
 	keyframes.logFrames(filename);
 	keyframeCaptured = false;
 }

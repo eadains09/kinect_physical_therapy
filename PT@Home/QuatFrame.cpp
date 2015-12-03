@@ -92,6 +92,24 @@ QuatFrame::QuatFrame(BodyFrame base)
 		addJoint(*points[i]);
 }
 
+void QuatFrame::initFromBodyFrame(BodyFrame source)
+{
+	irr::core::vector3df **points = source.getJoints();
+	bool reInit = true;
+	for (int i = 0; i < JOINT_TOTAL; i++)
+	{
+		if (joints[i] != NULL)
+			joints[i]->set(*points[i]);
+		else
+		{
+			addJoint(*points[i]);
+			reInit = false;
+		}
+	}
+	if (reInit)
+		init();
+}
+
 QuatFrame *QuatFrame::slerp(QuatFrame next, irr::f32 time)
 {
 	QuatFrame *inter = new QuatFrame();
@@ -159,16 +177,20 @@ void QuatFrame::initBodyFrame(BodyFrame frame)
 	irr::core::vector3df **points = frame.getJoints();
 
 	//flush points
-	for (int i = 0; i < JOINT_TOTAL; i++)
-		if (i != JointType_SpineMid && points[i] != NULL)
-			points[i] = NULL;
+//	for (int i = 0; i < JOINT_TOTAL; i++)
+//		if (i != JointType_SpineMid && points[i] != NULL)
+//			points[i] = NULL;
 
 	//build points from our quaternions
+//	for (int i = 0; i < JOINT_TOTAL; i++)
+//		if (points[i] == NULL)
+//			points[i] = getPoint(i);
 	for (int i = 0; i < JOINT_TOTAL; i++)
-		if (points[i] == NULL)
-			points[i] = getPoint(i);
-	
-
+	{
+		irr::core::vector3df *temp = getPoint(i);
+		points[i]->set(*temp);
+		delete temp;
+	}
 }
 
 void QuatFrame::addMidSpine(irr::core::vector3df mid)
@@ -186,6 +208,7 @@ void QuatFrame::addMidSpine(irr::core::vector3df mid)
 	}
 }
 
+//this is now a memory leak waiting to happen
 irr::core::vector3df *QuatFrame::getPoint(int i)
 {
 	if (i == JointType_SpineMid)
@@ -204,14 +227,15 @@ irr::core::vector3df *QuatFrame::getPoint(int i)
 	temp->X = fake->X;
 	temp->Y = fake->Y;
 	temp->Z = fake->Z;
-	delete fake;
+	delete fake, inv;
 
 	temp->setLength(getBoneLength(i)*60);
 	*temp += *getPoint(getParent(i));
 
-	joints[i] = temp;
+	return temp;
+//	joints[i] = temp;
 
-	return joints[i];
+//	return joints[i];
 }
 
 irr::core::vector3df *QuatFrame::getBone(int i)

@@ -166,12 +166,11 @@ void Movement::readKeyframes(std::string path) {
 			//as stored in file
             currFrame.setTimestamp(file.findTimestamp());
 
-			if (!file.findJointStart())
-				continue;
-
+			file.findJointStart();
+			//I think I might need one more findJointStart() here
+			//ask erika?
 			currFrame.addMidSpine(readJointPoints(&file));
 
-			//I noticed this in front, and was a bit confused by it
             file.findJointStart();
             while (file.findJointStart())
 				currFrame.addQuatJoint(readJointQuat(&file));
@@ -206,15 +205,12 @@ irr::core::quaternion Movement::readJointQuat(FileReader *file) {
     zQuat = (*file).findDouble();
     wQuat = (*file).findDouble();
 
-    //eJoint currJoint(currFrame.getCurrJointCount(), xQuat, yQuat, zQuat, wQuat);
 	irr::core::quaternion currJoint(xQuat, yQuat, zQuat, wQuat);
 
     return currJoint;
 }
 
-//TODO
-//I am really not crazy about this memory leak waiting to happen
-//fix
+//so here maybe is where we do the slerping?
 BodyFrame Movement::getSingleFrame(int i) {
 
 	if (i < currFrameCount) {
@@ -249,6 +245,11 @@ void Movement::logMove(std::string fileName)
 
 /*neat fact to bear in mind: we will never, under any circumstances,
 need to log raw points*/
+//maybe here after constructing file before if we do a check to see
+//if we have qframes, and if not we go ahead and convert frames into qframes
+//the basic idea being that we continue making movement an opaque layer that deals with
+//quatframe/bodyframe stuff
+//idk
 void Movement::logFrames(std::string fileName)
 {
     FileWriter file(fileName, "keyframes");

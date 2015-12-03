@@ -33,6 +33,7 @@ private:
 public:
 	QuatFrame();
 	QuatFrame(BodyFrame);
+	void initFromBodyFrame(BodyFrame source);
 	QuatFrame *slerp(QuatFrame next, irr::f32 time);
 	bool addJoint(float x, float y, float z);
 	bool addJoint(irr::core::vector3df joint);

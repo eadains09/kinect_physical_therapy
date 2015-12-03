@@ -59,6 +59,22 @@ void BodyFrame::setTimestamp(double ts) {
 double BodyFrame::getTimestamp() {
     return timestamp;
 }
+
+void BodyFrame::transformPoints()
+{
+	if (joints == NULL || currJointCount != JOINT_TOTAL)
+		return;
+
+	for (int i = 0; i < JOINT_TOTAL; i++)
+	{
+		joints[i]->X = (joints[i]->X + 1) * 200;
+		joints[i]->Y = (joints[i]->Y - 1) * -200;
+		joints[i]->Z = (joints[i]->Z + 1) * 200;
+	//	*xPos = (*xPos + 1) * 200;
+	//	*yPos = (*yPos - 1) * -200;
+	//	*zPos = (*zPos + 1) * 200;
+	}
+}
 //this function should be useless now
 /*
 void BodyFrame::writeFrame(FileWriter *currFile) {
