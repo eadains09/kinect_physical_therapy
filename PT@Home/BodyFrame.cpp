@@ -16,15 +16,15 @@ BodyFrame::BodyFrame() {
     timestamp = 0;
 }
 //
-//BodyFrame::BodyFrame(BodyFrame& source)
-//{
-//	currJointCount = source.currJointCount;
-//	joints = new irr::core::vector3df*[JOINT_TOTAL];
-//	for (int i = 0; i < JOINT_TOTAL; i++)
-//		joints[i] = new irr::core::vector3df(*source.joints[i]);
-//
-//	timestamp = source.timestamp;
-//}
+BodyFrame::BodyFrame(const BodyFrame& source)
+{
+	currJointCount = source.currJointCount;
+	joints = new irr::core::vector3df*[JOINT_TOTAL];
+	for (int i = 0; i < currJointCount; i++)
+		joints[i] = new irr::core::vector3df(*source.joints[i]);
+
+	timestamp = source.timestamp;
+}
 
 bool BodyFrame::addJoint(irr::core::vector3df *currJoint) {
     bool success = false;

@@ -87,8 +87,10 @@ QuatFrame::QuatFrame(BodyFrame base)
 	currJointCount = 0;
 	currQuatCount = 0;
 
+	timestamp = base.getTimestamp();
+
 	irr::core::vector3df **points = base.getJoints();
-	for (int i = 0; i < JOINT_TOTAL; i++)
+	for (int i = 0; i < base.getCurrJointCount(); i++)
 		addJoint(*points[i]);
 }
 

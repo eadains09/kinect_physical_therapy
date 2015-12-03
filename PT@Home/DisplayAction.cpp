@@ -30,6 +30,7 @@ ActionDisplay::ActionDisplay() : DisplayBase() {
 	for (int i = 0; i < TOTAL_BODIES; i++)
 		displayQuats[i] = QuatFrame();
 
+	keyframes = Movement();
 
 	log.open("logData.txt");
 }
@@ -380,9 +381,9 @@ void ActionDisplay::captureKeyframe() {
 	//instead of just using the displayBodies frame
 	//that's already been loaded?
 	frameFromKinect();
-	prevKeyframe = displayBodies[bodyCount-1];
+	prevKeyframe = *new BodyFrame(displayBodies[bodyCount-1]);
 	prevKeyframe.setTimestamp(seconds);
-	keyframes.pushBackFrame(prevKeyframe);
+	keyframes.pushBackFrame(&prevKeyframe);
 }
 
 void ActionDisplay::deleteLastKeyframe() {
@@ -401,7 +402,9 @@ void ActionDisplay::deleteLastKeyframe() {
 	time(&currTime);
 	prevTime = currTime;
 }
-
+//so we seem to be having too little indirection shaped
+//problems, my guess is therefore that we need more indirection
+//and/or less direction tied to our stack
 void ActionDisplay::saveKeyframes() {
 	saveCount++;
 	string filename = "testMovement" + to_string(saveCount);

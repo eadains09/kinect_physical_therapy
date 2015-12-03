@@ -22,8 +22,8 @@ Movement::Movement() {
 	//be nice to have a second constructor that takes frame_total as an
 	//argument 
 	//frames = new BodyFrame*[FRAME_TOTAL];
-	frames = new deque<BodyFrame>(FRAME_TOTAL);
-	deque<BodyFrame> qframes(FRAME_TOTAL);
+	frames = new deque<BodyFrame>();// (FRAME_TOTAL);
+	qframes = new deque<QuatFrame>();// (FRAME_TOTAL);
 	//for (int i = 0; i < FRAME_TOTAL; i++)
 //		frames[i] = NULL;
 }
@@ -114,16 +114,10 @@ void Movement::readQuatFrame(std::string path) {
     if(file.isOpen()) {
         file.findFileStart();
 
-
-
-
-
        file.findJointStart();
 
         while (file.findKeyframeStart()) {
             QuatFrame currFrame;
-
-
 
             while (file.findJointStart()) {
                 // Just change this part to switch to reading quaternions
@@ -139,7 +133,7 @@ void Movement::readQuatFrame(std::string path) {
 				continue;
 			}
 			else {
-				qframes.push_back(currFrame);
+				qframes->push_back(currFrame);
 				currFrameCount++;
 			}
         }
@@ -175,7 +169,7 @@ void Movement::readKeyframes(std::string path) {
             while (file.findJointStart())
 				currFrame.addQuatJoint(readJointQuat(&file));
 
-            qframes.push_back(currFrame);
+            qframes->push_back(currFrame);
             currFrameCount++;
         }
     }
@@ -211,6 +205,7 @@ irr::core::quaternion Movement::readJointQuat(FileReader *file) {
 }
 
 //so here maybe is where we do the slerping?
+//if so the int i gets changed to timestamp value maybe?
 BodyFrame Movement::getSingleFrame(int i) {
 
 	if (i < currFrameCount) {
@@ -254,13 +249,21 @@ void Movement::logFrames(std::string fileName)
 {
     FileWriter file(fileName, "keyframes");
 
-    if (qframes.size() > 0) {
-		qframes.front().writeFrame(&file);
-		qframes.pop_front();
+	while (frames->size() > 0)
+	{
+		//TODO change qframes and frames to deques of pointers
+		//so we can destruct properly
+		qframes->push_back(*new QuatFrame(frames->front()));
+		frames->pop_front();
+	}
+
+    if (qframes->size() > 0) {
+		qframes->front().writeFrame(&file);
+		qframes->pop_front();
         while (frames->size() > 0) {
             file.addComma();
-            qframes.front().writeFrame(&file);
-			qframes.pop_front();
+            qframes->front().writeFrame(&file);
+			qframes->pop_front();
         }
     }
 
@@ -272,8 +275,10 @@ void Movement::popBackFrame() {
     currFrameCount--;
 }
 
-void Movement::pushBackFrame(BodyFrame frame) {
-    frames->push_back(frame);
+//changing to BodyFrame * to avoid automatically calling destructor on frame
+//at end of function
+void Movement::pushBackFrame(BodyFrame *frame) {
+    frames->push_back(*frame);
     currFrameCount++;
 }
 
