@@ -46,12 +46,12 @@ public:
     irr::core::vector3df readJointPoints(FileReader *file);
     irr::core::quaternion readJointQuat(FileReader *file);
     //BodyFrame* getFrames();
-	BodyFrame getSingleFrame(double time);
+	BodyFrame getSingleFrame(int i);
     int getCurrFrameCount();
  //   void freeFrames();
 	void logFrames(std::string fileName);
     void popBackFrame();
-    void pushBackFrame(const BodyFrame& frame);
+    void pushBackFrame(BodyFrame *frame);
 	deque<BodyFrame> getFrames();
     BodyFrame getBackFrame();
 	virtual ~Movement();

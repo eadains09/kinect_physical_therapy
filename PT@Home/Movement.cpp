@@ -118,7 +118,6 @@ void Movement::readQuatFrame(std::string path) {
 
         while (file.findKeyframeStart()) {
             QuatFrame currFrame;
-			file.findJointStart();
 
             while (file.findJointStart()) {
                 // Just change this part to switch to reading quaternions
@@ -205,25 +204,17 @@ irr::core::quaternion Movement::readJointQuat(FileReader *file) {
     return currJoint;
 }
 
+//so here maybe is where we do the slerping?
+//if so the int i gets changed to timestamp value maybe?
+BodyFrame Movement::getSingleFrame(int i) {
 
-BodyFrame Movement::getSingleFrame(double time) {
-	int i;
-	double sum = 0;
-	for (i = 0; i < qframes->size(); i++)
-	{
-		sum += qframes->at(i).getTimestamp();
-		if (sum > time)
-			break;
+	if (i < currFrameCount) {
+        return frames->at(i);
 	}
-
-	if (qframes->size() == i)
-	{
-		BodyFrame lazyRet = *new BodyFrame();
-		qframes->at(i - 1).initBodyFrame(lazyRet);
-		return lazyRet;
+	else {
+		//returns last frame in array when called on int greater than number of frames (instead of returning null)
+        return frames->at(currFrameCount-1);
 	}
-
-
 }
 
 int Movement::getCurrFrameCount() {
@@ -269,7 +260,7 @@ void Movement::logFrames(std::string fileName)
     if (qframes->size() > 0) {
 		qframes->front().writeFrame(&file);
 		qframes->pop_front();
-        while (qframes->size() > 0) {
+        while (frames->size() > 0) {
             file.addComma();
             qframes->front().writeFrame(&file);
 			qframes->pop_front();
@@ -286,8 +277,8 @@ void Movement::popBackFrame() {
 
 //changing to BodyFrame * to avoid automatically calling destructor on frame
 //at end of function
-void Movement::pushBackFrame(const BodyFrame& frame) {
-    frames->push_back(frame);
+void Movement::pushBackFrame(BodyFrame *frame) {
+    frames->push_back(*frame);
     currFrameCount++;
 }
 
