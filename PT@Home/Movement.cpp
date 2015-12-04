@@ -155,7 +155,7 @@ void Movement::readKeyframes(std::string path) {
         file.findFileStart();
 
         while (file.findKeyframeStart()) {
-            QuatFrame currFrame;
+            QuatFrame currFrame = *new QuatFrame();
 			//TODO
 			//FOR SURE MAKE SURE OF ORDERING of frame struct
 			//as stored in file
