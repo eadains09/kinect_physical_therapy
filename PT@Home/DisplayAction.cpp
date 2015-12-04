@@ -255,27 +255,13 @@ bool ActionDisplay::frameFromKinect()
 }
 
 bool ActionDisplay::getSingleFrameFromFile() {
-    // If loaded file was empty, getCurrFrameCount will be 0
-    // In that case, subtract one from bodyCount so that only 
-    // the kinect body or no body will be rendered
-	if (moveFromFile->getCurrFrameCount() <= 0) {
-		//I quite like this, but there are a couple of other variables
-		//that interact with this one and I see several control paths that
-		//lead to this guy being problematic
-		//also set PLAYBACK?
-		//reset bodyCount in main loop every time and make sure this function ALWAYS gets called before other frameGetty functons?
-		//some third thing I can't think of right now?
-		bodyCount--;
+	if (frameNumber >= moveFromFile->getCurrFrameCount()) {
+		frameNumber = frameNumber % moveFromFile->getCurrFrameCount();
 	}
-	else {
-		if (frameNumber >= moveFromFile->getCurrFrameCount()) {
-			frameNumber = frameNumber % moveFromFile->getCurrFrameCount();
-		}
 		//TODO 
 		//we will now be reading in a keyquatframe instead of a bodyframe
 		//let's make that happen
-		displayBodies[0] = moveFromFile->getSingleFrame(frameNumber);
-	}
+	displayBodies[0] = moveFromFile->getSingleFrame(frameNumber);
 
 	return true;
 }
@@ -336,7 +322,6 @@ void ActionDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 					default:
 						break;
 				}
-
 			} else {
 				switch ((*currButton).getType()) {
 					case BUTTON_SPRITE_PLAY:
@@ -383,7 +368,7 @@ void ActionDisplay::captureKeyframe() {
 	frameFromKinect();
 	prevKeyframe = *new BodyFrame(displayBodies[bodyCount-1]);
 	prevKeyframe.setTimestamp(seconds);
-	keyframes.pushBackFrame(prevKeyframe);
+	keyframes.pushBackFrame(&prevKeyframe);
 }
 
 void ActionDisplay::deleteLastKeyframe() {
@@ -452,12 +437,33 @@ bool ActionDisplay::loadMedia() {
     	//moveFromFile->readPoints("movement1.dat");
 		//moveFromFile->readPoints("whereData.dat");
 		//moveFromFile->readPoints("testMovement1.dat");
-
-		//TODO change Movement method name to readQuatFrames
-		//to indicate that we're reading in the whole file
-		//which is what it does and is supposed to do
 		moveFromFile->readQuatFrame("testMovement1.dat");
     }
+
+	// If loaded file was empty, getCurrFrameCount will be 0
+	// In that case, subtract one from bodyCount so that only 
+	// the kinect body or no body will be rendered
+<<<<<<< HEAD
+	//if (moveFromFile->getCurrFrameCount() <= 0) {
+=======
+	if (moveFromFile->getCurrFrameCount() <= 0) {
+>>>>>>> parent of 7f27a3c... just in case commit
+		//I quite like this, but there are a couple of other variables
+		//that interact with this one and I see several control paths that
+		//lead to this guy being problematic
+		//also set PLAYBACK?
+		//reset bodyCount in main loop every time and make sure this function ALWAYS gets called before other frameGetty functons?
+		//some third thing I can't think of right now?
+<<<<<<< HEAD
+		//bodyCount--;
+		//playback = LIVE;
+	//}
+=======
+		bodyCount--;
+		playback = LIVE;
+	}
+
+>>>>>>> parent of 7f27a3c... just in case commit
 
     loadButtons();
 
