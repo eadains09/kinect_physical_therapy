@@ -258,16 +258,16 @@ bool ActionDisplay::getSingleFrameFromFile() {
     // If loaded file was empty, getCurrFrameCount will be 0
     // In that case, subtract one from bodyCount so that only 
     // the kinect body or no body will be rendered
-	if (moveFromFile->getCurrFrameCount() <= 0) {
-		//I quite like this, but there are a couple of other variables
-		//that interact with this one and I see several control paths that
-		//lead to this guy being problematic
-		//also set PLAYBACK?
-		//reset bodyCount in main loop every time and make sure this function ALWAYS gets called before other frameGetty functons?
-		//some third thing I can't think of right now?
-		bodyCount--;
-	}
-	else {
+	// if (moveFromFile->getCurrFrameCount() <= 0) {
+	// 	//I quite like this, but there are a couple of other variables
+	// 	//that interact with this one and I see several control paths that
+	// 	//lead to this guy being problematic
+	// 	//also set PLAYBACK?
+	// 	//reset bodyCount in main loop every time and make sure this function ALWAYS gets called before other frameGetty functons?
+	// 	//some third thing I can't think of right now?
+	// 	bodyCount--;
+	// }
+	// else {
 		if (frameNumber >= moveFromFile->getCurrFrameCount()) {
 			frameNumber = frameNumber % moveFromFile->getCurrFrameCount();
 		}
@@ -275,7 +275,7 @@ bool ActionDisplay::getSingleFrameFromFile() {
 		//we will now be reading in a keyquatframe instead of a bodyframe
 		//let's make that happen
 		displayBodies[0] = moveFromFile->getSingleFrame(frameNumber);
-	}
+	// }
 
 	return true;
 }
@@ -458,6 +458,20 @@ bool ActionDisplay::loadMedia() {
 		//which is what it does and is supposed to do
 		moveFromFile->readQuatFrame("testMovement1.dat");
     }
+
+    // If loaded file was empty, getCurrFrameCount will be 0
+    // In that case, subtract one from bodyCount so that only 
+    // the kinect body or no body will be rendered
+    if (moveFromFile->getCurrFrameCount() <= 0) {
+		//I quite like this, but there are a couple of other variables
+		//that interact with this one and I see several control paths that
+		//lead to this guy being problematic
+		//also set PLAYBACK?
+		//reset bodyCount in main loop every time and make sure this function ALWAYS gets called before other frameGetty functons?
+		//some third thing I can't think of right now?
+		bodyCount--;
+		PLAYBACK = LIVE;
+	}
 
     loadButtons();
 
