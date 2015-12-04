@@ -5,6 +5,13 @@
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
+//since we are going to immediately transform points to quaternions
+//upon reading them in from kinect and we save keyframes as quaternions
+//this means that a BodyFrame can only be in one of two valid states
+//transformed and untransformed, ie just read in from kinect or about
+//to be written to sdl, and it seems likely that keeping track of which
+//state a particular BodyFrame is in with a little boolean would be useful
+
 #include "BodyFrame.h"
 
 BodyFrame::BodyFrame() {

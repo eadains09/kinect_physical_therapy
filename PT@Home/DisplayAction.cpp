@@ -438,7 +438,8 @@ bool ActionDisplay::loadMedia() {
     	//moveFromFile->readPoints("movement1.dat");
 		//moveFromFile->readPoints("whereData.dat");
 		//moveFromFile->readPoints("testMovement1.dat");
-		moveFromFile->readQuatFrame("testMovement1.dat");
+		//moveFromFile->readQuatFrame("testMovement1.dat");
+		moveFromFile->readKeyframes("testMovement1.dat");
     }
 
     // If loaded file was empty, getCurrFrameCount will be 0

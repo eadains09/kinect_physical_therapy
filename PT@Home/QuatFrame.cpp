@@ -300,10 +300,10 @@ void QuatFrame::writeFrame(FileWriter *currFile) {
 	currFile->logTimestampMidspine(timestamp, *joints[JointType_SpineMid]);
 	currFile->openBodyFrame();
 	if (isReady()) {
-		currFile->logDataPoint(joints[0]->X, joints[0]->Y, joints[0]->Z);
+		currFile->logDataQuat(jointQuats[0]->X, jointQuats[0]->Y, jointQuats[0]->Z, jointQuats[0]->W);
 		for (int i = 1; i < currJointCount; i++) {
 			currFile->addComma();
-			currFile->logDataPoint(joints[i]->X, joints[i]->Y, joints[i]->Z);
+			currFile->logDataQuat(jointQuats[i]->X, jointQuats[i]->Y, jointQuats[i]->Z, jointQuats[i]->W);
 		}
 	}
 	currFile->closeBodyFrame();
