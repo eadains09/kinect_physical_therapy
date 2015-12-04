@@ -30,8 +30,6 @@ ActionDisplay::ActionDisplay() : DisplayBase() {
 	for (int i = 0; i < TOTAL_BODIES; i++)
 		displayQuats[i] = QuatFrame();
 
-	keyframes = Movement();
-
 	log.open("logData.txt");
 }
 
