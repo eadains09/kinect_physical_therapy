@@ -22,7 +22,7 @@ void FileWriter::logTimestampMidspine(double timestamp, irr::core::vector3df mid
 	currFile << "{"
 		<< "\"timestamp\": "
 		<< timestamp
-		<< " \"midspine\": ";
+		<< ", \"midspine\": ";
 	logDataPoint(midspine.X, midspine.Y, midspine.Z);
 
 	currFile << ", \"joints\": " ;

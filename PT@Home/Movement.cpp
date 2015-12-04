@@ -118,6 +118,7 @@ void Movement::readQuatFrame(std::string path) {
 
         while (file.findKeyframeStart()) {
             QuatFrame currFrame;
+			file.findJointStart();
 
             while (file.findJointStart()) {
                 // Just change this part to switch to reading quaternions
@@ -260,7 +261,7 @@ void Movement::logFrames(std::string fileName)
     if (qframes->size() > 0) {
 		qframes->front().writeFrame(&file);
 		qframes->pop_front();
-        while (frames->size() > 0) {
+        while (qframes->size() > 0) {
             file.addComma();
             qframes->front().writeFrame(&file);
 			qframes->pop_front();
