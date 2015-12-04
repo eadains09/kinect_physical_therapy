@@ -223,15 +223,10 @@ BodyFrame Movement::getSingleFrame(double time) {
 		return lazyRet;
 	}
 
-	QuatFrame *inter = qframes->at(i - 1).slerp(qframes->at(i), sum - qframes->at(i - 1).getTimestamp());
-	BodyFrame ret = BodyFrame();
-	inter->initBodyFrame(ret);
-	return ret;
+
 }
 
 int Movement::getCurrFrameCount() {
-	if (currFrameCount == 0)
-		return qframes->size();
     return currFrameCount;
 }
 
