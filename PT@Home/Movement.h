@@ -46,7 +46,11 @@ public:
     irr::core::vector3df readJointPoints(FileReader *file);
     irr::core::quaternion readJointQuat(FileReader *file);
     //BodyFrame* getFrames();
-	BodyFrame getSingleFrame(int i);
+	BodyFrame getSingleFrame(double time);
+	//it would be trivial to write a similar method
+	//that instead returns a quatframe, this may be
+	//useful for control flow after we change to 
+	//immediately converting points to quaternions
     int getCurrFrameCount();
  //   void freeFrames();
 	void logFrames(std::string fileName);

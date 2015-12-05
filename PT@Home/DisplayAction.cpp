@@ -122,7 +122,7 @@ bool ActionDisplay::renderScreen() {
 			//I think the best way to do this might be to change
 			//single frame from file to deal with slerping
 			getSingleFrameFromFile();
-			displayQuats[0].initBodyFrame(displayBodies[0]);
+			displayQuats[0].initBodyFrame(&displayBodies[0]);
 		}
 		else {
 			//so this is the bit where we'll have to 
@@ -262,7 +262,9 @@ bool ActionDisplay::getSingleFrameFromFile() {
 		//TODO 
 		//we will now be reading in a keyquatframe instead of a bodyframe
 		//let's make that happen
-	displayBodies[0] = moveFromFile->getSingleFrame(frameNumber);
+	//TODO change frameNumber to time corresponding to timestamps
+	//in keyframes
+	displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(frameNumber));
 
 	return true;
 }

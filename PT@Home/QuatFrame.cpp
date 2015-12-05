@@ -74,8 +74,9 @@ QuatFrame::QuatFrame()
 
 	for (int i = 0; i < JOINT_TOTAL; i++)
 	{
-		jointQuats[i] = NULL;
-		joints[i] = NULL;
+		jointQuats[i] = new irr::core::quaternion();
+		joints[i] = new irr::core::vector3df();
+		bones[i] = new irr::core::vector3df();
 	}
 }
 
@@ -88,6 +89,13 @@ QuatFrame::QuatFrame(BodyFrame base)
 	currQuatCount = 0;
 
 	timestamp = base.getTimestamp();
+
+	for (int i = 0; i < JOINT_TOTAL; i++)
+	{
+		jointQuats[i] = new irr::core::quaternion();
+		joints[i] = new irr::core::vector3df();
+		bones[i] = new irr::core::vector3df();
+	}
 
 	irr::core::vector3df **points = base.getJoints();
 	for (int i = 0; i < base.getCurrJointCount(); i++)
@@ -111,8 +119,11 @@ void QuatFrame::initFromBodyFrame(BodyFrame source)
 	if (reInit)
 		init();
 }
-
-QuatFrame *QuatFrame::slerp(QuatFrame next, irr::f32 time)
+//slerps between two QuatFrames. 
+//Time is the time argument
+//passed to irrlicht's slerp method, which expects a value
+//between 0 and 1.
+QuatFrame *QuatFrame::slerp(const QuatFrame& next, irr::f32 time)
 {
 	QuatFrame *inter = new QuatFrame();
 	for (int i = 0; i < JOINT_TOTAL; i++)
@@ -127,7 +138,12 @@ QuatFrame *QuatFrame::slerp(QuatFrame next, irr::f32 time)
 
 bool QuatFrame::addJoint(float x, float y, float z)
 {
-	joints[currJointCount++] = new irr::core::vector3df(x, y, z);
+	joints[currJointCount]->X = x;
+	joints[currJointCount]->Y = y;
+	joints[currJointCount]->Z = z;
+	currJointCount++;
+
+//	joints[currJointCount++] = new irr::core::vector3df(x, y, z);
 	if (!isReady())
 		return false;
 
@@ -135,9 +151,9 @@ bool QuatFrame::addJoint(float x, float y, float z)
 	return true;
 }
 
-bool QuatFrame::addJoint(irr::core::vector3df joint)
+bool QuatFrame::addJoint(const irr::core::vector3df& joint)
 {
-	joints[currJointCount++] = new irr::core::vector3df(joint);
+	joints[currJointCount++]->set(joint); //= new irr::core::vector3df(joint);
 	if (!isReady())
 		return false;
 
@@ -145,17 +161,34 @@ bool QuatFrame::addJoint(irr::core::vector3df joint)
 	return true;
 }
 
-bool QuatFrame::addQuatJoint(irr::core::quaternion joint)
+//so, it has become obvious after perhaps too long (perhaps even far too long)
+//that even if the QuatFrame is "initialized" by
+//adding all the necessary quats and the midspine joint
+//there still must be some actual initialization done so we
+//can call getPoint and/or getBone and/or other stuff
+
+//the choice that must be made is whether to write a special
+//initialization method just for addQuatJoint or to do the
+//correct thing and generalize the existing functions so that
+//I can just call init
+
+//also for both the addJoint and addQuatJoint methods,
+//why in god's name do we not just include an int i
+//parameter, then we can get rid of the stupid
+//addMidspine method
+
+bool QuatFrame::addQuatJoint(const irr::core::quaternion& joint)
 {
-	bool success = true;
-	this->jointQuats[currQuatCount] = new irr::core::quaternion(joint);
-	for (int i = 0; i < JOINT_TOTAL; i++)
-		if (jointQuats[i] == NULL)
-			success = false;
+	if (currQuatCount >= JOINT_TOTAL)
+		return false;
+	this->jointQuats[currQuatCount]->set(joint); //= new irr::core::quaternion(joint);
+	this->jointQuats[currQuatCount]->normalize();
+	currQuatCount++;
 
-	this->jointQuats[currJointCount]->normalize();
+	if (isReady())
+		init();
 
-	return isReady();
+	return true;
 }
 
 bool QuatFrame::isReady()
@@ -169,58 +202,53 @@ bool QuatFrame::isReady()
 	return joints[JointType_SpineMid] && (currJointCount == JOINT_TOTAL || currQuatCount == JOINT_TOTAL);
 }
 
-void QuatFrame::initBodyFrame(BodyFrame frame)
+void QuatFrame::initBodyFrame(BodyFrame *frame)
 {
 	if (!isReady())
 	{
 		return;
 	}
+	//irr::core::vector3df **points = frame->getJoints();
 
-	irr::core::vector3df **points = frame.getJoints();
-
-	//flush points
-//	for (int i = 0; i < JOINT_TOTAL; i++)
-//		if (i != JointType_SpineMid && points[i] != NULL)
-//			points[i] = NULL;
-
-	//build points from our quaternions
-//	for (int i = 0; i < JOINT_TOTAL; i++)
-//		if (points[i] == NULL)
-//			points[i] = getPoint(i);
 	for (int i = 0; i < JOINT_TOTAL; i++)
 	{
+		//it seems like the c++ auto destruction
+		//behavior could save us some space here
+		//but it does require that we deal with
+		//all the indirection headaches
+
 		irr::core::vector3df *temp = getPoint(i);
-		points[i]->set(*temp);
+		//points[i]->set(*temp);
+		frame->addJoint(getPoint(i));
 		delete temp;
 	}
 }
 
-void QuatFrame::addMidSpine(irr::core::vector3df mid)
+void QuatFrame::addMidSpine(const irr::core::vector3df& mid)
 {
-	bool success = true;
-	joints[JointType_SpineMid] = new irr::core::vector3df(mid);
+	//increment currJointCount?
+	joints[JointType_SpineMid]->set(mid); //= new irr::core::vector3df(mid);
 
-	for (int i = 0; i < JOINT_TOTAL; i++)
-		if (jointQuats[i] == NULL)
-			success = false;
 
-	if (success)
-	{
-		currJointCount = JOINT_TOTAL;
-	}
+	if (isReady())
+		init();
 }
+
+//for getPoint and getBone it would be nice
+//to more effectively memoize, right now the 
+//only memos we have are the midspines
 
 //this is now a memory leak waiting to happen
 irr::core::vector3df *QuatFrame::getPoint(int i)
 {
 	if (i == JointType_SpineMid)
 	{
-		return joints[JointType_SpineMid];
+		return new irr::core::vector3df(*joints[JointType_SpineMid]);
 	}
 
 	irr::core::quaternion *inv = new irr::core::quaternion(*jointQuats[i]);
 	inv->makeInverse();
-	irr::core::vector3df *temp = new irr::core::vector3df(*getBone(getParent(i)));
+	irr::core::vector3df *temp = getBone(getParent(i));
 	temp->normalize();
 
 	irr::core::quaternion *fake = new irr::core::quaternion(temp->X, temp->Y, temp->Z);
@@ -233,11 +261,10 @@ irr::core::vector3df *QuatFrame::getPoint(int i)
 
 	temp->setLength(getBoneLength(i)*60);
 	*temp += *getPoint(getParent(i));
+	irr::core::vector3df *retVal = new irr::core::vector3df(*temp);
+	delete temp;
 
-	return temp;
-//	joints[i] = temp;
-
-//	return joints[i];
+	return retVal;
 }
 
 irr::core::vector3df *QuatFrame::getBone(int i)
@@ -246,10 +273,38 @@ irr::core::vector3df *QuatFrame::getBone(int i)
 	if (i == JointType_SpineMid)
 	{
 		bones[JointType_SpineMid] = new irr::core::vector3df(*joints[JointType_SpineMid]);
-		return bones[JointType_SpineMid];
+		return new irr::core::vector3df(*bones[JointType_SpineMid]);
 	}
-	bones[i] = new irr::core::vector3df(*joints[i] - *joints[getParent(i)]);
-	return bones[i];
+	if (currJointCount == JOINT_TOTAL)
+		bones[i]->set(*joints[i] - *joints[getParent(i)]); //= new irr::core::vector3df(*joints[i] - *joints[getParent(i)]);
+	else if (currQuatCount == JOINT_TOTAL)
+	{
+		//generate bone with only the midspine point, quaternions, and the power of recursion
+		//TODO double check and make sure this makes sense
+		irr::core::quaternion *inv = new irr::core::quaternion(*jointQuats[i]);
+		inv->makeInverse();
+		irr::core::vector3df *temp = getBone(getParent(i));
+		temp->normalize();
+
+		irr::core::quaternion *fake = new irr::core::quaternion(temp->X, temp->Y, temp->Z);
+
+		fake->set(((*jointQuats[i]) * (*fake)*(*inv)));
+		temp->X = fake->X;
+		temp->Y = fake->Y;
+		temp->Z = fake->Z;
+		delete fake, inv;
+
+		temp->setLength(getBoneLength(i) * 60);
+		bones[i] = temp;
+		return new irr::core::vector3df(*temp);
+
+	}
+	else
+	{
+		//we weren't ready, not sure if this case will ever get hit
+		return new irr::core::vector3df();
+	}
+	return new irr::core::vector3df(*bones[i]);
 }
 
 
@@ -259,7 +314,7 @@ void QuatFrame::init()
 	for (int i = 0; i < JointType_Count; i++)
 		getBone(i);
 
-	for (int i = 0; i < JointType_Count; i++)
+	for (int i = currQuatCount; i < JointType_Count; i++)
 	{
 		irr::core::quaternion *quat;
 		irr::core::matrix4 *mat = new irr::core::matrix4();
@@ -269,6 +324,9 @@ void QuatFrame::init()
 		ourBone = new irr::core::vector3df(*bones[i]);
 		ourBone->normalize();
 
+		//so this is the thing I thought would prevent the
+		//bizarre rotationy behavior, as we know it did not
+		//TODO find out why it didn't work and do something that does
 		if (getParent(i) == i)
 			parentBone = new irr::core::vector3df(0, 1, 0);
 		else
@@ -282,8 +340,8 @@ void QuatFrame::init()
 		quat = new irr::core::quaternion(*mat);
 		delete mat, parentBone, ourBone;
 		quat->normalize();
-		jointQuats[i] = quat;
-
+		jointQuats[i]->set(*quat); //= quat;
+		delete quat;
 	}
 }
 

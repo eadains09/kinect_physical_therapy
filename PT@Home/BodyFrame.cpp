@@ -19,7 +19,7 @@ BodyFrame::BodyFrame() {
 	joints = new irr::core::vector3df*[JOINT_TOTAL];
 
 	for (int i = 0; i < JOINT_TOTAL; i++)
-		joints[i] = NULL;//new irr::core::vector3df();
+		joints[i] = new irr::core::vector3df();
     timestamp = 0;
 }
 //
@@ -27,17 +27,24 @@ BodyFrame::BodyFrame(const BodyFrame& source)
 {
 	currJointCount = source.currJointCount;
 	joints = new irr::core::vector3df*[JOINT_TOTAL];
+
+//	irr::core::vector3df ** points = source.getJoints();
+
 	for (int i = 0; i < currJointCount; i++)
-		joints[i] = new irr::core::vector3df(*source.joints[i]);
+	{
+		joints[i] = new irr::core::vector3df();
+		joints[i]->set(*source.joints[i]); //= new irr::core::vector3df(*source.joints[i]);
+	}
 
 	timestamp = source.timestamp;
 }
+
 
 bool BodyFrame::addJoint(irr::core::vector3df *currJoint) {
     bool success = false;
     
     if (currJointCount < JOINT_TOTAL) {
-        joints[currJointCount] = currJoint;
+		joints[currJointCount]->set(*currJoint); //= currJoint;
         currJointCount++;
         success = true;
     }

@@ -147,7 +147,10 @@ deque<BodyFrame> Movement::getFrames() {
     return *frames;
 }
 
-//TODO check w/ erika
+//I have had an idea that I think might be useful:
+//use the deque allocator and modify the values of
+//the instance the deque allocator created instead 
+//of trying to allocate then push into the deque
 void Movement::readKeyframes(std::string path) {
     FileReader file(path);
     
@@ -155,22 +158,22 @@ void Movement::readKeyframes(std::string path) {
         file.findFileStart();
 
         while (file.findKeyframeStart()) {
-            QuatFrame currFrame = *new QuatFrame();
+            QuatFrame *currFrame = new QuatFrame();
 			//TODO
 			//FOR SURE MAKE SURE OF ORDERING of frame struct
 			//as stored in file
-            currFrame.setTimestamp(file.findTimestamp());
+            currFrame->setTimestamp(file.findTimestamp());
 
 			file.findJointStart();
 			//I think I might need one more findJointStart() here
 			//ask erika?
-			currFrame.addMidSpine(readJointPoints(&file));
+			currFrame->addMidSpine(readJointPoints(&file));
 
             file.findJointStart();
             while (file.findJointStart())
-				currFrame.addQuatJoint(readJointQuat(&file));
+				currFrame->addQuatJoint(readJointQuat(&file));
 
-            qframes->push_back(currFrame);
+            qframes->push_back(*currFrame);
             currFrameCount++;
         }
     }
@@ -187,9 +190,9 @@ irr::core::vector3df Movement::readJointPoints(FileReader *file) {
 
 	//transformPoints(&xPos, &yPos, &zPos);
 //    eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos, (int)zPos);
-	irr::core::vector3df currJoint(xPos, yPos, zPos);
+	irr::core::vector3df *currJoint = new irr::core::vector3df(xPos, yPos, zPos);
 
-    return currJoint;
+    return *currJoint;
 }
 
 irr::core::quaternion Movement::readJointQuat(FileReader *file) {
@@ -200,22 +203,58 @@ irr::core::quaternion Movement::readJointQuat(FileReader *file) {
     zQuat = (*file).findDouble();
     wQuat = (*file).findDouble();
 
-	irr::core::quaternion currJoint(xQuat, yQuat, zQuat, wQuat);
+	irr::core::quaternion *currJoint = new irr::core::quaternion(xQuat, yQuat, zQuat, wQuat);
 
-    return currJoint;
+    return *currJoint;
 }
 
 //so here maybe is where we do the slerping?
 //if so the int i gets changed to timestamp value maybe?
-BodyFrame Movement::getSingleFrame(int i) {
+//so retVal is now a memory hemorrhage, lame option
+//would be to add retVal as a pointer member to this class
+//and keep it the same pointer that we check and (maybe) delete
+//at the beginning of this function, then dereference and return
+//but you and I both know that is not the Tao
 
-	if (i < currFrameCount) {
-        return frames->at(i);
+//a slightly better alternative to the above solution would be
+//to still keep a nice poiunter as a ember, but instead of checking if it's
+//null destructing and reallocating, we just set the values
+//this seems like a much better idea, and while not completely
+//ideal, it seems like it just might be close enough for 
+//the problem at hand
+
+//time is the total movement time that has transpired
+BodyFrame Movement::getSingleFrame(double time)
+{
+	double sum = 0;
+	int i;
+	BodyFrame *retVal = new BodyFrame();
+	if (qframes->size() == 0)
+		return *retVal;
+	if (qframes->size() == 1)
+	{
+		qframes->at(0).initBodyFrame(retVal);
+		return *retVal;
 	}
-	else {
-		//returns last frame in array when called on int greater than number of frames (instead of returning null)
-        return frames->at(currFrameCount-1);
+	for (i = 0; i < qframes->size(); i++)
+	{
+		sum += qframes->at(i).getTimestamp();
+		if (sum >= time)
+			break;
 	}
+	if (i == qframes->size())//if we ran off the end
+		qframes->at(i - 1).initBodyFrame(retVal);
+	else if (i == 0)//if my picture of things is right enough, we should hit this case exactly once
+		qframes->at(0).initBodyFrame(retVal);
+	else
+	{
+		double diff = sum - time;
+		diff = 1-diff/ qframes->at(i).getTimestamp();
+		QuatFrame *inter = qframes->at(i - 1).slerp(*new QuatFrame(qframes->at(i)), diff);
+		inter->initBodyFrame(retVal);
+		delete inter;
+	}
+	return *new BodyFrame(*retVal);
 }
 
 int Movement::getCurrFrameCount() {

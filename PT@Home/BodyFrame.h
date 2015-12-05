@@ -24,6 +24,7 @@ public:
 	irr::core::vector3df **joints;
     BodyFrame();
 	BodyFrame(const BodyFrame& source);
+	//irr::core::vector3df getJoint(int n);
     bool addJoint(irr::core::vector3df *currJoint);
 	irr::core::vector3df** getJoints(); //Returns joints as stored in file
     int getCurrJointCount();

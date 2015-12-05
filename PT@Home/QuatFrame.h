@@ -34,13 +34,13 @@ public:
 	QuatFrame();
 	QuatFrame(BodyFrame);
 	void initFromBodyFrame(BodyFrame source);
-	QuatFrame *slerp(QuatFrame next, irr::f32 time);
+	QuatFrame *slerp(const QuatFrame& next, irr::f32 time);
 	bool addJoint(float x, float y, float z);
-	bool addJoint(irr::core::vector3df joint);
-	bool addQuatJoint(irr::core::quaternion joint);
+	bool addJoint(const irr::core::vector3df& joint);
+	bool addQuatJoint(const irr::core::quaternion& joint);
 	bool isReady();
-	void initBodyFrame(BodyFrame frame);
-	void addMidSpine(irr::core::vector3df mid);
+	void initBodyFrame(BodyFrame *frame);
+	void addMidSpine(const irr::core::vector3df& mid);
 	irr::f32 getBoneLength(int i);
 	void setTimestamp(double ts);
 	double getTimestamp();
