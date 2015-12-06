@@ -53,6 +53,6 @@ public:
     void popBackFrame();
     void pushBackFrame(BodyFrame *frame);
 	deque<BodyFrame> getFrames();
-    BodyFrame getBackFrame();
+    BodyFrame* getBackFrame();
 	virtual ~Movement();
 };

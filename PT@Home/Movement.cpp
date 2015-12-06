@@ -260,7 +260,7 @@ void Movement::logFrames(std::string fileName)
     if (qframes->size() > 0) {
 		qframes->front().writeFrame(&file);
 		qframes->pop_front();
-        while (frames->size() > 0) {
+        while (qframes->size() > 0) {
             file.addComma();
             qframes->front().writeFrame(&file);
 			qframes->pop_front();
@@ -282,8 +282,9 @@ void Movement::pushBackFrame(BodyFrame *frame) {
     currFrameCount++;
 }
 
-BodyFrame Movement::getBackFrame() {
-    return frames->back();
+//Changing to return BodyFrame * to avoid automatic destructor on joints - where it gets returned calls transform points, meaning what will later be converted to quats are transformed points
+BodyFrame* Movement::getBackFrame() {
+    return &frames->back();
 }
 
 void Movement::transformPoints(double *xPos, double *yPos, double *zPos) {
