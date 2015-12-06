@@ -29,9 +29,15 @@ private:
 	QuatFrame *displayQuats;
 	//BodyFrame displayBodies[TOTAL_BODIES];
 	PlaybackType playback;
+	string playbackFile;
 
 	// navigation variable
 	DisplayType prevScreen;
+
+	// instruction variables
+	SDL_Surface* instructionSurface;
+	SDL_Texture* instructionTexture;
+	SDL_Rect instructionDestR;
 
 	// capturing keyframe variables
 	static int saveCount;
@@ -51,11 +57,13 @@ private:
 
 	std::ofstream log, buttonLog;
 
+	void constructUniversalActionDisplay();
 	virtual bool renderScreen(); // Class specific what should go on the screen other than buttons    
     virtual bool renderFrame();
     virtual void handleKeyPresses(SDL_Event e);
     virtual void handleButtonEvent(SDL_Event* e, Button *currButton);
     virtual bool loadMedia();
+	bool loadText(std::string textureText, SDL_Color textColor);
     virtual bool loadButtons();
 
     bool init();
@@ -69,12 +77,14 @@ private:
 
     void loadPrevDisplay();
     void togglePlaying();
-    void loadKeyframeButtons();
-    void loadPlaybackButtons();
+    void loadKeyframeButtons(int yPos);
+    void loadPlaybackButtons(int yPos);
 
 public:
 	ActionDisplay();
 	ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, PlaybackType p, DisplayType d);
+	ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, PlaybackType p, DisplayType d, string pfile);
+
 	
 	virtual void run();
 	virtual void close();

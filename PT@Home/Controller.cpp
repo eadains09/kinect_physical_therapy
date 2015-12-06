@@ -53,6 +53,12 @@ bool Controller::init() {
             } else {
                 //Initialize renderer color
                 SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+
+
+				if (TTF_Init() != 0) {
+					printf("SDL_ttf could not initialize. SDL_ttf Error: %s\n", TTF_GetError());
+					success = false;
+				}
             }
         }
     }

@@ -57,15 +57,17 @@ void DisplayBase::renderButtons() {
 
 void DisplayBase::closeSDL() {
 	//closeButtons();
+
+	TTF_CloseFont(currFont);
+	currFont = NULL;
     
     SDL_DestroyRenderer(renderer);
-    
-    //Destroy window
     SDL_DestroyWindow(window);
     window = NULL;
     renderer = NULL;
     
     //Quit SDL subsystems
+	TTF_Quit();
     SDL_Quit();
 }
 
