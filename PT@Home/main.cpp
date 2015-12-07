@@ -6,8 +6,7 @@
 //
 
 #include "stdafx.h"
-#include "Display.h"
-//#include "DisplayMain.h"
+#include <Windows.h>
 #include "Controller.h"
 
 

@@ -251,6 +251,7 @@ BodyFrame Movement::getSingleFrame(double time)
 		double diff = sum - time;
 		diff = 1-diff/ qframes->at(i).getTimestamp();
 		QuatFrame *inter = qframes->at(i - 1).slerp(*new QuatFrame(qframes->at(i)), diff);
+		inter->addMidSpine(irr::core::vector3df(400, 300, 0));
 		inter->initBodyFrame(retVal);
 		delete inter;
 	}
@@ -322,8 +323,9 @@ void Movement::pushBackFrame(BodyFrame *frame) {
     currFrameCount++;
 }
 
-BodyFrame Movement::getBackFrame() {
-    return frames->back();
+//Changing to return BodyFrame * to avoid automatic destructor on joints - where it gets returned calls transform points, meaning what will later be converted to quats are transformed points
+BodyFrame* Movement::getBackFrame() {
+    return &frames->back();
 }
 
 void Movement::transformPoints(double *xPos, double *yPos, double *zPos) {

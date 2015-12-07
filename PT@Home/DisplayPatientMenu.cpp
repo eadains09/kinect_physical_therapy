@@ -3,7 +3,6 @@
 //
 
 #include "DisplayPatientMenu.h"
-#include "DisplayAction.h"
 #include "DisplayMain.h"
 
 PatientMenuDisplay::PatientMenuDisplay() : DisplayBase() {
@@ -84,7 +83,8 @@ bool PatientMenuDisplay::loadMedia() {
 
 bool PatientMenuDisplay::loadButtons() {
 	gButtons.push_back(new Button(BUTTON_SPRITE_BACK, 10, 10, "art/back.bmp"));
-	gButtons.push_back(new Button(BUTTON_SPRITE_FULLWORKOUT, 300, 100, (SCREEN_WIDTH/2)-150, SCREEN_HEIGHT/2, "art/PatientMenu/FullWorkout.bmp"));
+	gButtons.push_back(new Button(BUTTON_SPRITE_FULLWORKOUT, 300, 100, (SCREEN_WIDTH / 2) - 150, (SCREEN_HEIGHT / 3) + 25, "art/PatientMenu/FullWorkout.bmp"));
+	gButtons.push_back(new Button(BUTTON_SPRITE_SELECTEXERCISE, 300, 100, (SCREEN_WIDTH / 2) - 150, ((SCREEN_HEIGHT / 3) * 2) - 50, "art/PatientMenu/SelectExercise.bmp"));
 
 	return true;
 }
@@ -95,7 +95,17 @@ void PatientMenuDisplay::handleKeyPresses(SDL_Event e) {
 			//Load Exercise screen
 			loadActionDisplay();
 			break;
-
+		case SDLK_s:
+			initFileSelector();
+			SetCurrentDirectory("./movements");
+			if (GetOpenFileName(&playbackPFile)) {
+				SetCurrentDirectory("..");
+				loadActionDisplay(playbackPFile.lpstrFile);
+			}
+			else {
+				SetCurrentDirectory("..");
+			}
+			break;
 		case SDLK_BACKSPACE:
 			loadPrevDisplay();
 			break;
@@ -117,7 +127,17 @@ void PatientMenuDisplay::handleButtonEvent(SDL_Event* e, Button *currButton) {
 				case BUTTON_SPRITE_FULLWORKOUT:
 					loadActionDisplay();
 					break;
-
+				case BUTTON_SPRITE_SELECTEXERCISE:
+					initFileSelector();
+					SetCurrentDirectory("./movements");
+					if (GetOpenFileName(&playbackPFile)) {
+						SetCurrentDirectory("..");
+						loadActionDisplay(playbackPFile.lpstrFile);
+					}
+					else {
+						SetCurrentDirectory("..");
+					}
+					break;
 				case BUTTON_SPRITE_BACK:
 					loadPrevDisplay();
 					break;
@@ -131,10 +151,31 @@ void PatientMenuDisplay::loadActionDisplay() {
 	loadNewDisplay();
 }
 
+void PatientMenuDisplay::loadActionDisplay(std::string file) {
+	newDisplay = new ActionDisplay(control, window, renderer, LIVE_RECORD, PATIENT_MENU, file);
+	loadNewDisplay();
+}
+
 void PatientMenuDisplay::loadPrevDisplay() {
 	newDisplay = new DisplayMain(control, window, renderer);
 	loadNewDisplay();
 }
+
+void PatientMenuDisplay::initFileSelector() {
+	ZeroMemory(&playbackPFile, sizeof(playbackPFile));
+	playbackPFile.lStructSize = sizeof(playbackPFile);
+	playbackPFile.hwndOwner = NULL;
+	playbackPFile.lpstrFile = szPFile;
+	playbackPFile.lpstrFile[0] = '\0';
+	playbackPFile.nMaxFile = sizeof(szPFile);
+	playbackPFile.lpstrFilter = "movement(*.dat)\0*.dat\0";
+	playbackPFile.nFilterIndex = 1;
+	playbackPFile.lpstrFileTitle = NULL;
+	playbackPFile.nMaxFileTitle = 0;
+	playbackPFile.lpstrInitialDir = NULL;
+	playbackPFile.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+}
+
 
 void PatientMenuDisplay::close() {
 	SDL_FreeSurface(headerSurface);

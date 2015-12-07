@@ -6,6 +6,7 @@
 #define _DISPLAY_BASE_H_
 
 #include <vector>
+#include <Windows.h>
 #include "Button.h"
 #include "Controller.h"
 
@@ -28,7 +29,7 @@ protected:
 	bool quit;
 
     std::vector<Button*> gButtons;
-
+	TTF_Font *currFont = NULL;
     // virtual bool init(); // Init's SDL window and renderer only - should be called by inheriting classes
 
     virtual bool renderScreen() = 0; // Class specific what should go on the screen other than buttons    

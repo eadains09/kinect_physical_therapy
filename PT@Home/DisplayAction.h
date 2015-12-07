@@ -29,9 +29,16 @@ private:
 	QuatFrame *displayQuats;
 	//BodyFrame displayBodies[TOTAL_BODIES];
 	PlaybackType playback;
+	string playbackFile;
+	string playFileName;
 
 	// navigation variable
 	DisplayType prevScreen;
+
+	// instruction variables
+	SDL_Surface* instructionSurface;
+	SDL_Texture* instructionTexture;
+	SDL_Rect instructionDestR;
 
 	// capturing keyframe variables
 	static int saveCount;
@@ -40,6 +47,9 @@ private:
 	BodyFrame prevKeyframe;
 	Movement keyframes;
 	FileWriter writer;
+	OPENFILENAME saveFile;
+	char szFile[100]; // memory buffer to contain file name
+
 
 	// kinect capturing variables
 	// Current Kinect
@@ -51,12 +61,16 @@ private:
 
 	std::ofstream log, buttonLog;
 
+	void constructUniversalActionDisplay();
 	virtual bool renderScreen(); // Class specific what should go on the screen other than buttons    
     virtual bool renderFrame();
     virtual void handleKeyPresses(SDL_Event e);
     virtual void handleButtonEvent(SDL_Event* e, Button *currButton);
     virtual bool loadMedia();
+	bool loadText(std::string textureText, SDL_Color textColor);
     virtual bool loadButtons();
+	string trimAddress(string pfile);
+
 
     bool init();
     void renderBody(BodyFrame currBody);
@@ -66,15 +80,19 @@ private:
     void captureKeyframe();
     void deleteLastKeyframe();
     void saveKeyframes();
+	void initFileSelector();
+
 
     void loadPrevDisplay();
     void togglePlaying();
-    void loadKeyframeButtons();
-    void loadPlaybackButtons();
+    void loadKeyframeButtons(int yPos);
+    void loadPlaybackButtons(int yPos);
 
 public:
 	ActionDisplay();
 	ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, PlaybackType p, DisplayType d);
+	ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, PlaybackType p, DisplayType d, string pfile);
+
 	
 	virtual void run();
 	virtual void close();

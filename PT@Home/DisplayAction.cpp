@@ -15,36 +15,17 @@
 int ActionDisplay::saveCount = 0;
 
 ActionDisplay::ActionDisplay() : DisplayBase() {
-	frameNumber = 0;
-	keyframeCaptured = false;
-	playing = true;
 	playback = LIVE;
 	bodyCount = 1;
 	prevScreen = DISPLAY_MAIN;
-
-	displayBodies = new BodyFrame[TOTAL_BODIES];
-	for (int i = 0; i < TOTAL_BODIES; i++)
-		displayBodies[i] = BodyFrame();
-
-	displayQuats = new QuatFrame[TOTAL_BODIES];
-	for (int i = 0; i < TOTAL_BODIES; i++)
-		displayQuats[i] = QuatFrame();
-
-	keyframes = Movement();
-
-	log.open("logData.txt");
+	playbackFile = "movements/testMovement1.dat";
+	constructUniversalActionDisplay();
 }
 
 ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, PlaybackType p, DisplayType d) : DisplayBase(c, w, r) {
-	frameNumber = 0;
-	keyframeCaptured = false;
-	playing = true;
 	playback = p;
 	prevScreen = d;
-
-	displayBodies = new BodyFrame[TOTAL_BODIES];
-	for (int i = 0; i < TOTAL_BODIES; i++)
-		displayBodies[i] = BodyFrame();
+	playbackFile = "movements/testMovement1.dat";
 
 	if (playback == LIVE || playback == RECORDED) {
 		bodyCount = 1;
@@ -54,7 +35,48 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 		bodyCount = 2;
 	}
 
+	//TODO if LIVE_RECORD, circle through all exercises for playback (because if it were a single exercise, other constructor would've been used)
+
+	constructUniversalActionDisplay();
+
+}
+
+ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, PlaybackType p, DisplayType d, string pfile) : DisplayBase(c, w, r) {
+	playback = p;
+	prevScreen = d;
+	playbackFile = pfile;
+
+	if (playback == LIVE || playback == RECORDED) {
+		bodyCount = 1;
+	}
+	else {
+		bodyCount = 2;
+	}
+
+	constructUniversalActionDisplay();
+}
+
+void ActionDisplay::constructUniversalActionDisplay() {
+	frameNumber = 0;
+	keyframeCaptured = false;
+	playing = true;
+	playFileName = trimAddress(playbackFile);
+
+	displayBodies = new BodyFrame[TOTAL_BODIES];
+	for (int i = 0; i < TOTAL_BODIES; i++)
+		displayBodies[i] = BodyFrame();
+
+	displayQuats = new QuatFrame[TOTAL_BODIES];
+	for (int i = 0; i < TOTAL_BODIES; i++)
+		displayQuats[i] = QuatFrame();
+
 	log.open("logData.txt");
+}
+
+
+string ActionDisplay::trimAddress(string pfile) {
+	size_t found = pfile.find_last_of("\\");
+	return pfile.substr(found + 1);
 }
 
 bool ActionDisplay::init() {
@@ -121,8 +143,9 @@ bool ActionDisplay::renderScreen() {
 		else if (playback == RECORDED) {
 			//I think the best way to do this might be to change
 			//single frame from file to deal with slerping
-			getSingleFrameFromFile();
-			displayQuats[0].initBodyFrame(&displayBodies[0]);
+			if (getSingleFrameFromFile()) {
+				displayQuats[0].initBodyFrame(&displayBodies[0]);
+			}
 		}
 		else {
 			//so this is the bit where we'll have to 
@@ -132,7 +155,7 @@ bool ActionDisplay::renderScreen() {
 			//that deal(s) with one to all of those things
 
 			//simultaneous playback
-			getSingleFrameFromFile();
+			getSingleFrameFromFile(); //Must check if singleFrameFromFile returns true to do anything with displayBodies
 			frameFromKinect();
 			displayBodies[bodyCount-1].transformPoints();
 		}
@@ -152,6 +175,11 @@ bool ActionDisplay::renderFrame() {
     //Clear screen
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
+
+
+	instructionTexture = SDL_CreateTextureFromSurface(renderer, instructionSurface);
+	SDL_RenderCopy(renderer, instructionTexture, NULL, &instructionDestR);
+	SDL_DestroyTexture(instructionTexture);
     
     renderButtons();
     
@@ -251,16 +279,13 @@ bool ActionDisplay::frameFromKinect()
 }
 
 bool ActionDisplay::getSingleFrameFromFile() {
-
-//	if (frameNumber >= moveFromFile->getCurrFrameCount()) {
-//		frameNumber = frameNumber % moveFromFile->getCurrFrameCount();
-//	}
-		//TODO 
-		//we will now be reading in a keyquatframe instead of a bodyframe
-		//let's make that happen
-	//TODO change frameNumber to time corresponding to timestamps
-	//in keyframes
-	displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(frameNumber));
+		//TODO change frameNumber to time corresponding to timestamps
+		//in keyframes
+		displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(frameNumber));
+	}
+	else {
+		return false;
+	}
 
 	return true;
 }
@@ -368,6 +393,7 @@ void ActionDisplay::captureKeyframe() {
 	prevKeyframe = *new BodyFrame(displayBodies[bodyCount-1]);
 	prevKeyframe.setTimestamp(seconds);
 	keyframes.pushBackFrame(&prevKeyframe);
+	prevKeyframe.transformPoints();
 }
 
 void ActionDisplay::deleteLastKeyframe() {
@@ -378,7 +404,8 @@ void ActionDisplay::deleteLastKeyframe() {
 		keyframes.popBackFrame();
 	}
 	if (keyframes.getCurrFrameCount() > 0) {
-		prevKeyframe = keyframes.getBackFrame();
+		prevKeyframe = *keyframes.getBackFrame();
+		prevKeyframe.transformPoints();
 	} else {
 		keyframeCaptured = false;
 	}
@@ -391,12 +418,36 @@ void ActionDisplay::deleteLastKeyframe() {
 //and/or less direction tied to our stack
 void ActionDisplay::saveKeyframes() {
 	saveCount++;
-	string filename = "testMovement" + to_string(saveCount);
-	//there is a compelling argument to be made that I should
-	//avoid messing with stuff here as much as possible and
-	//instead do all the quat stuff in Movement.logFrames()
-	keyframes.logFrames(filename);
-	keyframeCaptured = false;
+	string defaultFilename = "movements/testMovement" + to_string(saveCount);
+
+	initFileSelector();
+	SetCurrentDirectory("./movements");
+	if (GetSaveFileName(&saveFile)) {
+		//there is a compelling argument to be made that I should
+		//avoid messing with stuff here as much as possible and
+		//instead do all the quat stuff in Movement.logFrames()
+		keyframes.logFrames(saveFile.lpstrFile);
+		keyframeCaptured = false;
+	}
+	else {
+		keyframes.logFrames(defaultFilename);
+	}
+	SetCurrentDirectory("..");
+}
+
+void ActionDisplay::initFileSelector() {
+	ZeroMemory(&saveFile, sizeof(saveFile));
+	saveFile.lStructSize = sizeof(saveFile);
+	saveFile.hwndOwner = NULL;
+	saveFile.lpstrFile = szFile;
+	saveFile.lpstrFile[0] = '\0';
+	saveFile.nMaxFile = sizeof(szFile);
+	saveFile.lpstrFilter = "movement(*.dat)\0*.dat\0";
+	saveFile.nFilterIndex = 1;
+	saveFile.lpstrFileTitle = NULL;
+	saveFile.nMaxFileTitle = 0;
+	saveFile.lpstrInitialDir = NULL;
+	saveFile.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 }
 
 void ActionDisplay::loadPrevDisplay() {
@@ -429,53 +480,90 @@ void ActionDisplay::togglePlaying() {
 
 bool ActionDisplay::loadMedia() {
     bool success = true;
+	string text = "";
 
     moveFromFile = new Movement();
     
-    if (playback == RECORDED || playback == LIVE_RECORD)
-		moveFromFile->readKeyframes("testMovement1.dat");
 
-    // If loaded file was empty, getCurrFrameCount will be 0
-    // In that case, subtract one from bodyCount so that only 
-    // the kinect body or no body will be rendered
-//    if (moveFromFile->getCurrFrameCount() <= 0) {
+	if (playback == RECORDED || playback == LIVE_RECORD) {
+		moveFromFile->readKeyframes(playbackFile);
 
 
-		//I quite like this, but there are a couple of other variables
-		//that interact with this one and I see several control paths that
-		//lead to this guy being problematic
-		//also set PLAYBACK?
-		//reset bodyCount in main loop every time and make sure this function ALWAYS gets called before other frameGetty functons?
-		//some third thing I can't think of right now?
+		/* If loaded file was empty, getCurrFrameCount will be 0
+		 * In that case, subtract one from bodyCount so that only
+		 * the kinect body or no body will be rendered
+		 */
+		//TODO: test that this works correctly
+		 if (moveFromFile->getCurrFrameCount() <= 0) {
+			 bodyCount--;
+			 //playback = LIVE;
+		 }
+	}
 
-		//bodyCount--;
-		//playback = LIVE;
-	//}
+	currFont = TTF_OpenFont("freefont-ttf/fonts/FreeMono.ttf", 16);
+	if (currFont == NULL) {
+		log << printf("Failed to load font. SDL_ttf Error: %s\n", TTF_GetError()) << std::endl;
+		success = false;
+	}
+	else if (playback == LIVE) {
+		text = "Press + button or space bar to capture keyframe.\nPress x button or d key to delete last keyframe.\nPress checkmark button or s key to save to movement file.\nPress back arrow or backspace key to go to previous screen.";
+	}
+	else if (playback == RECORDED) {
+		text = "     Playing " + playFileName + ".";
+	}
+	else if (playback == LIVE_RECORD) {
+		text = "     Beginning workout!";
+	}
+	SDL_Color textColor = { 0, 0, 0 };
+	success = success & loadText(text, textColor);
 
-    loadButtons();
+	success = success & loadButtons(); // Must load buttons after font, as height of font determines y position of buttons
 
     return success;
 }
 
+bool ActionDisplay::loadText(std::string textureText, SDL_Color textColor) {
+	bool success = true;
+	instructionSurface = TTF_RenderText_Blended_Wrapped(currFont, textureText.c_str(), textColor, 630);
+	if (instructionSurface == NULL) {
+		log << printf("Unable to render text to surface. SDL_ttf Error: %s\n", TTF_GetError()) << std::endl;
+		success = false;
+	}
+	
+	instructionDestR.h = instructionSurface->h;
+	instructionDestR.w = instructionSurface->w;
+	instructionDestR.x = 60;
+	instructionDestR.y = 10;
+
+	return success;
+}
+
 bool ActionDisplay::loadButtons() {
-	gButtons.push_back(new Button(BUTTON_SPRITE_BACK, 10, 10, "art/back.bmp"));
+	int yPos;
+	if (instructionDestR.h >= 30) {
+		yPos = (instructionDestR.h / 2) - 20;
+	}
+	else {
+		yPos = 10;
+	}
+	gButtons.push_back(new Button(BUTTON_SPRITE_BACK, 10, yPos, "art/back.bmp"));
 	if (playback == LIVE) {
-		loadKeyframeButtons();
+		loadKeyframeButtons(yPos);
 	} else {
-		loadPlaybackButtons();
+		loadPlaybackButtons(yPos);
 	}
 	
 	return true;
 }
 
-void ActionDisplay::loadKeyframeButtons() {
-	gButtons.push_back(new Button(BUTTON_SPRITE_ADD, (SCREEN_WIDTH-BUTTON_WIDTH*3)-30, 10, "art/KeyframeButtons/add.bmp"));
-	gButtons.push_back(new Button(BUTTON_SPRITE_DELETE, (SCREEN_WIDTH-BUTTON_WIDTH*2)-20, 10, "art/KeyframeButtons/delete.bmp"));
-	gButtons.push_back(new Button(BUTTON_SPRITE_SAVE, (SCREEN_WIDTH-BUTTON_WIDTH)-10, 10, "art/KeyframeButtons/save.bmp"));
+void ActionDisplay::loadKeyframeButtons(int yPos) {
+	gButtons.push_back(new Button(BUTTON_SPRITE_ADD, (SCREEN_WIDTH-BUTTON_WIDTH*3)-30, yPos, "art/KeyframeButtons/add.bmp"));
+	gButtons.push_back(new Button(BUTTON_SPRITE_DELETE, (SCREEN_WIDTH-BUTTON_WIDTH*2)-20, yPos, "art/KeyframeButtons/delete.bmp"));
+	gButtons.push_back(new Button(BUTTON_SPRITE_SAVE, (SCREEN_WIDTH-BUTTON_WIDTH)-10, yPos, "art/KeyframeButtons/save.bmp"));
 }
 
-void ActionDisplay::loadPlaybackButtons() {
-	gButtons.push_back(new Button(BUTTON_SPRITE_PAUSE, (SCREEN_WIDTH-BUTTON_WIDTH)-10, 10, "art/PlaybackButtons/pause.bmp"));
+void ActionDisplay::loadPlaybackButtons(int yPos) {
+	gButtons.push_back(new Button(BUTTON_SPRITE_PAUSE, (SCREEN_WIDTH-BUTTON_WIDTH)-10, yPos, "art/PlaybackButtons/pause.bmp"));
 }
 
 void ActionDisplay::close() {
@@ -483,6 +571,9 @@ void ActionDisplay::close() {
 		// moveFromFile.freeFrames();
 		delete moveFromFile;
 	}
+
+	SDL_FreeSurface(instructionSurface);
+	SDL_DestroyTexture(instructionTexture);
 
 	closeButtons();
 }
