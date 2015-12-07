@@ -279,14 +279,10 @@ bool ActionDisplay::frameFromKinect()
 }
 
 bool ActionDisplay::getSingleFrameFromFile() {
-		//TODO change frameNumber to time corresponding to timestamps
-		//in keyframes
-		displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(frameNumber));
-	}
-	else {
-		return false;
-	}
-
+	//TODO change frameNumber to time corresponding to timestamps
+	//in keyframes
+	displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(frameNumber));
+	
 	return true;
 }
 
