@@ -243,9 +243,13 @@ BodyFrame Movement::getSingleFrame(double time)
 			break;
 	}
 	if (i == qframes->size())//if we ran off the end
-		qframes->at(i - 1).initBodyFrame(retVal);
+		return BodyFrame();
+		//qframes->at(i - 1).initBodyFrame(retVal);
 	else if (i == 0)//if my picture of things is right enough, we should hit this case exactly once
+	{
+		qframes->at(0).addMidSpine(irr::core::vector3df(400, 300, 0));
 		qframes->at(0).initBodyFrame(retVal);
+	}
 	else
 	{
 		double diff = sum - time;
