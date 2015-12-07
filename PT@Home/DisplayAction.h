@@ -47,6 +47,9 @@ private:
 	BodyFrame prevKeyframe;
 	Movement keyframes;
 	FileWriter writer;
+	OPENFILENAME saveFile;
+	char szFile[100]; // memory buffer to contain file name
+
 
 	// kinect capturing variables
 	// Current Kinect
@@ -77,6 +80,8 @@ private:
     void captureKeyframe();
     void deleteLastKeyframe();
     void saveKeyframes();
+	void initFileSelector();
+
 
     void loadPrevDisplay();
     void togglePlaying();

@@ -84,7 +84,7 @@ bool PatientMenuDisplay::loadMedia() {
 bool PatientMenuDisplay::loadButtons() {
 	gButtons.push_back(new Button(BUTTON_SPRITE_BACK, 10, 10, "art/back.bmp"));
 	gButtons.push_back(new Button(BUTTON_SPRITE_FULLWORKOUT, 300, 100, (SCREEN_WIDTH/2)-150, SCREEN_HEIGHT/2, "art/PatientMenu/FullWorkout.bmp"));
-
+	//TODO add button for selecting exercise
 	return true;
 }
 

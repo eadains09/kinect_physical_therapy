@@ -427,12 +427,36 @@ void ActionDisplay::deleteLastKeyframe() {
 //and/or less direction tied to our stack
 void ActionDisplay::saveKeyframes() {
 	saveCount++;
-	string filename = "movements/testMovement" + to_string(saveCount);
-	//there is a compelling argument to be made that I should
-	//avoid messing with stuff here as much as possible and
-	//instead do all the quat stuff in Movement.logFrames()
-	keyframes.logFrames(filename);
-	keyframeCaptured = false;
+	string defaultFilename = "movements/testMovement" + to_string(saveCount);
+
+	initFileSelector();
+	SetCurrentDirectory("./movements");
+	if (GetSaveFileName(&saveFile)) {
+		//there is a compelling argument to be made that I should
+		//avoid messing with stuff here as much as possible and
+		//instead do all the quat stuff in Movement.logFrames()
+		keyframes.logFrames(saveFile.lpstrFile);
+		keyframeCaptured = false;
+	}
+	else {
+		keyframes.logFrames(defaultFilename);
+	}
+	SetCurrentDirectory("..");
+}
+
+void ActionDisplay::initFileSelector() {
+	ZeroMemory(&saveFile, sizeof(saveFile));
+	saveFile.lStructSize = sizeof(saveFile);
+	saveFile.hwndOwner = NULL;
+	saveFile.lpstrFile = szFile;
+	saveFile.lpstrFile[0] = '\0';
+	saveFile.nMaxFile = sizeof(szFile);
+	saveFile.lpstrFilter = "movement(*.dat)\0*.dat\0";
+	saveFile.nFilterIndex = 1;
+	saveFile.lpstrFileTitle = NULL;
+	saveFile.nMaxFileTitle = 0;
+	saveFile.lpstrInitialDir = NULL;
+	saveFile.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 }
 
 void ActionDisplay::loadPrevDisplay() {
