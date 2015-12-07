@@ -14,6 +14,8 @@ private:
 	SDL_Texture* headerTexture;
 	SDL_Rect headerDestR;
 
+	OPENFILENAME playbackFile;
+	char szFile[100]; // memory buffer to contain file name
 	std::ofstream log, buttonLog;
     
     virtual bool renderScreen();
@@ -23,9 +25,9 @@ private:
     virtual void handleKeyPresses(SDL_Event e);
     virtual void handleButtonEvent(SDL_Event* e, Button *currButton);
     void loadActionDisplay(PlaybackType playType);
+	void loadActionDisplay(PlaybackType playType, string file);
     void loadPrevDisplay();
-    // void loadNewDisplay();
-
+	void initFileSelector();
 
     virtual void close();
 

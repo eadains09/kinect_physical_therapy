@@ -15,19 +15,17 @@
 int ActionDisplay::saveCount = 0;
 
 ActionDisplay::ActionDisplay() : DisplayBase() {
-	constructUniversalActionDisplay();
 	playback = LIVE;
 	bodyCount = 1;
 	prevScreen = DISPLAY_MAIN;
-	playbackFile = "";
-
+	playbackFile = "movements/testMovement1.dat";
+	constructUniversalActionDisplay();
 }
 
 ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, PlaybackType p, DisplayType d) : DisplayBase(c, w, r) {
-	constructUniversalActionDisplay();
 	playback = p;
 	prevScreen = d;
-	playbackFile = "testMovement1.dat";
+	playbackFile = "movements/testMovement1.dat";
 
 	if (playback == LIVE || playback == RECORDED) {
 		bodyCount = 1;
@@ -36,10 +34,12 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 		//simultaneous playback
 		bodyCount = 2;
 	}
+
+	constructUniversalActionDisplay();
+
 }
 
 ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, PlaybackType p, DisplayType d, string pfile) : DisplayBase(c, w, r) {
-	constructUniversalActionDisplay();
 	playback = p;
 	prevScreen = d;
 	playbackFile = pfile;
@@ -48,26 +48,33 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 		bodyCount = 1;
 	}
 	else {
-		bodyCount == 2;
+		bodyCount = 2;
 	}
+
+	constructUniversalActionDisplay();
 }
 
 void ActionDisplay::constructUniversalActionDisplay() {
 	frameNumber = 0;
 	keyframeCaptured = false;
 	playing = true;
-
+	playFileName = trimAddress(playbackFile);
 
 	displayBodies = new BodyFrame[TOTAL_BODIES];
 	for (int i = 0; i < TOTAL_BODIES; i++)
 		displayBodies[i] = BodyFrame();
 
-
-	//displayQuats = new QuatFrame[TOTAL_BODIES];
-	//for (int i = 0; i < TOTAL_BODIES; i++)
-		//displayQuats[i] = QuatFrame();
+	displayQuats = new QuatFrame[TOTAL_BODIES];
+	for (int i = 0; i < TOTAL_BODIES; i++)
+		displayQuats[i] = QuatFrame();
 
 	log.open("logData.txt");
+}
+
+
+string ActionDisplay::trimAddress(string pfile) {
+	size_t found = pfile.find_last_of("\\");
+	return pfile.substr(found + 1);
 }
 
 bool ActionDisplay::init() {
@@ -420,7 +427,7 @@ void ActionDisplay::deleteLastKeyframe() {
 //and/or less direction tied to our stack
 void ActionDisplay::saveKeyframes() {
 	saveCount++;
-	string filename = "testMovement" + to_string(saveCount);
+	string filename = "movements/testMovement" + to_string(saveCount);
 	//there is a compelling argument to be made that I should
 	//avoid messing with stuff here as much as possible and
 	//instead do all the quat stuff in Movement.logFrames()
@@ -490,15 +497,15 @@ bool ActionDisplay::loadMedia() {
 		text = "Press + button or space bar to capture keyframe.\nPress x button or d key to delete last keyframe.\nPress checkmark button or s key to save to movement file.\nPress back arrow or backspace key to go to previous screen.";
 	}
 	else if (playback == RECORDED) {
-		text = "     Playing " + playbackFile + ".";
+		text = "     Playing " + playFileName + ".";
 	}
 	else if (playback == LIVE_RECORD) {
 		text = "     Beginning workout!";
 	}
 	SDL_Color textColor = { 0, 0, 0 };
-	success = success + loadText(text, textColor);
+	success = success & loadText(text, textColor);
 
-	success = success + loadButtons(); // Must load buttons after font, as height of font determines y position of buttons
+	success = success & loadButtons(); // Must load buttons after font, as height of font determines y position of buttons
 
     return success;
 }

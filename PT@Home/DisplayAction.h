@@ -30,6 +30,7 @@ private:
 	//BodyFrame displayBodies[TOTAL_BODIES];
 	PlaybackType playback;
 	string playbackFile;
+	string playFileName;
 
 	// navigation variable
 	DisplayType prevScreen;
@@ -65,6 +66,8 @@ private:
     virtual bool loadMedia();
 	bool loadText(std::string textureText, SDL_Color textColor);
     virtual bool loadButtons();
+	string trimAddress(string pfile);
+
 
     bool init();
     void renderBody(BodyFrame currBody);

@@ -251,6 +251,7 @@ BodyFrame Movement::getSingleFrame(double time)
 		double diff = sum - time;
 		diff = 1-diff/ qframes->at(i).getTimestamp();
 		QuatFrame *inter = qframes->at(i - 1).slerp(*new QuatFrame(qframes->at(i)), diff);
+		inter->addMidSpine(irr::core::vector3df(400, 300, 0));
 		inter->initBodyFrame(retVal);
 		delete inter;
 	}

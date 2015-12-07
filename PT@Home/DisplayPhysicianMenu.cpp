@@ -98,7 +98,15 @@ void PhysicianMenuDisplay::handleKeyPresses(SDL_Event e) {
 
 		case SDLK_p:
 			//Load Playback screen
-			loadActionDisplay(RECORDED);
+			initFileSelector();
+			SetCurrentDirectory("./movements");
+			if (GetOpenFileName(&playbackFile)) {
+				SetCurrentDirectory("..");
+				loadActionDisplay(RECORDED, playbackFile.lpstrFile);
+			}
+			else {
+				SetCurrentDirectory("..");
+			}
 			break;
 
 		case SDLK_BACKSPACE:
@@ -124,7 +132,15 @@ void PhysicianMenuDisplay::handleButtonEvent(SDL_Event* e, Button *currButton) {
 					break;
 
 				case BUTTON_SPRITE_PLAYBACK:
-					loadActionDisplay(RECORDED);
+					initFileSelector();
+					SetCurrentDirectory("./movements");
+					if (GetOpenFileName(&playbackFile)) {
+						SetCurrentDirectory("..");
+						loadActionDisplay(RECORDED, playbackFile.lpstrFile);
+					}
+					else {
+						SetCurrentDirectory("..");
+					}
 					break;
 
 				case BUTTON_SPRITE_BACK:
@@ -134,6 +150,12 @@ void PhysicianMenuDisplay::handleButtonEvent(SDL_Event* e, Button *currButton) {
 		}
 	}
 }
+
+void PhysicianMenuDisplay::loadActionDisplay(PlaybackType playType, string file) {
+	newDisplay = new ActionDisplay(control, window, renderer, playType, PHYSICIAN_MENU, file);
+	loadNewDisplay();
+}
+
 
 void PhysicianMenuDisplay::loadActionDisplay(PlaybackType playType) {
 	newDisplay = new ActionDisplay(control, window, renderer, playType, PHYSICIAN_MENU);
@@ -145,11 +167,20 @@ void PhysicianMenuDisplay::loadPrevDisplay() {
 	loadNewDisplay();
 }
 
-// void PhysicianMenuDisplay::loadNewDisplay() {
-// 	control.switchDisplays(&newDisplay);
-// 	quit = true;
-// }
-
+void PhysicianMenuDisplay::initFileSelector() {
+	ZeroMemory(&playbackFile, sizeof(playbackFile));
+	playbackFile.lStructSize = sizeof(playbackFile);
+	playbackFile.hwndOwner = NULL;
+	playbackFile.lpstrFile = szFile;
+	playbackFile.lpstrFile[0] = '\0';
+	playbackFile.nMaxFile = sizeof(szFile);
+	playbackFile.lpstrFilter = "movement(*.dat)\0*.dat\0";
+	playbackFile.nFilterIndex = 1;
+	playbackFile.lpstrFileTitle = NULL;
+	playbackFile.nMaxFileTitle = 0;
+	playbackFile.lpstrInitialDir = NULL;
+	playbackFile.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+}
 
 void PhysicianMenuDisplay::close() {
 	SDL_FreeSurface(headerSurface);

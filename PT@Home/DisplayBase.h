@@ -6,6 +6,7 @@
 #define _DISPLAY_BASE_H_
 
 #include <vector>
+#include <Windows.h>
 #include "Button.h"
 #include "Controller.h"
 
