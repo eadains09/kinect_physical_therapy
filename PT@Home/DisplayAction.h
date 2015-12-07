@@ -31,6 +31,9 @@ private:
 	PlaybackType playback;
 	string playbackFile;
 	string playFileName;
+	time_t beginningTimestamp;
+	time_t beginPauseTime;
+	double pauseTime;
 
 	// navigation variable
 	DisplayType prevScreen;
@@ -75,7 +78,7 @@ private:
     bool init();
     void renderBody(BodyFrame currBody);
     bool frameFromKinect();
-    bool getSingleFrameFromFile();
+    bool getSingleFrameFromFile(double elapsedTime);
 
     void captureKeyframe();
     void deleteLastKeyframe();

@@ -63,6 +63,8 @@ void ActionDisplay::constructUniversalActionDisplay() {
 	keyframeCaptured = false;
 	playing = true;
 	playFileName = trimAddress(playbackFile);
+	beginningTimestamp = 0;
+	pauseTime = 0;
 
 	displayBodies = new BodyFrame[TOTAL_BODIES];
 	for (int i = 0; i < TOTAL_BODIES; i++)
@@ -116,6 +118,7 @@ void ActionDisplay::run() {
 
 	quit = false;
 	SDL_Event e;
+	time(&beginningTimestamp);
 
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
@@ -137,7 +140,14 @@ void ActionDisplay::run() {
 }
 
 bool ActionDisplay::renderScreen() {
+	time_t currTime;
+	double elapsedTime;
+	
 	if (playing) {
+		time(&currTime);
+		elapsedTime = difftime(currTime, beginningTimestamp);
+		elapsedTime = elapsedTime - pauseTime;
+
 		if (playback == LIVE) {
 			frameFromKinect();
 			displayBodies[bodyCount - 1].transformPoints();
@@ -145,7 +155,7 @@ bool ActionDisplay::renderScreen() {
 		else if (playback == RECORDED) {
 			//I think the best way to do this might be to change
 			//single frame from file to deal with slerping
-			if (getSingleFrameFromFile()) {
+			if (getSingleFrameFromFile(elapsedTime)) {
 				displayQuats[0].initBodyFrame(&displayBodies[0]);
 			}
 		}
@@ -157,7 +167,7 @@ bool ActionDisplay::renderScreen() {
 			//that deal(s) with one to all of those things
 
 			//simultaneous playback
-			getSingleFrameFromFile(); //Must check if singleFrameFromFile returns true to do anything with displayBodies
+			getSingleFrameFromFile(elapsedTime); //Must check if singleFrameFromFile returns true to do anything with displayBodies[0]
 			frameFromKinect();
 			displayBodies[bodyCount-1].transformPoints();
 		}
@@ -280,11 +290,12 @@ bool ActionDisplay::frameFromKinect()
 	return true;
 }
 
-bool ActionDisplay::getSingleFrameFromFile() {
+bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
 	//TODO change frameNumber to time corresponding to timestamps
 	//in keyframes
-	displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(frameNumber));
-	
+	//displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(frameNumber));
+	displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(elapsedTime));
+
 	return true;
 }
 
@@ -408,8 +419,13 @@ void ActionDisplay::deleteLastKeyframe() {
 		keyframeCaptured = false;
 	}
 	
-	time(&currTime);
-	prevTime = currTime;
+	if (keyframeCaptured) {
+		time(&currTime);
+		prevTime = currTime;
+	}
+	else {
+		prevTime = NULL;
+	}
 }
 //so we seem to be having too little indirection shaped
 //problems, my guess is therefore that we need more indirection
@@ -426,10 +442,9 @@ void ActionDisplay::saveKeyframes() {
 		//instead do all the quat stuff in Movement.logFrames()
 		keyframes.logFrames(saveFile.lpstrFile);
 		keyframeCaptured = false;
+		prevTime = NULL;
 	}
-	else {
-		keyframes.logFrames(defaultFilename);
-	}
+
 	SetCurrentDirectory("..");
 }
 
@@ -460,6 +475,18 @@ void ActionDisplay::loadPrevDisplay() {
 }
 
 void ActionDisplay::togglePlaying() {
+	time_t currTime;
+	if (playing) {
+		//Program is currently playing movement and user has decided to pause it
+		time(&beginPauseTime);
+	}
+	else {
+		//Program is currently paused and user has decided to resume playing
+		time(&currTime);
+		pauseTime = pauseTime + difftime(currTime, beginPauseTime);
+	}
+
+	//swap playing variable: if true, becomes false, if false becomes true
 	playing = !playing;
 
 	for (size_t i = 0; i < gButtons.size(); i++) {
