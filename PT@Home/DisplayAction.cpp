@@ -159,6 +159,7 @@ bool ActionDisplay::renderScreen() {
 			//simultaneous playback
 			getSingleFrameFromFile(); //Must check if singleFrameFromFile returns true to do anything with displayBodies
 			frameFromKinect();
+			displayBodies[bodyCount-1].transformPoints();
 		}
 		frameNumber++;
 	}
@@ -235,12 +236,7 @@ bool ActionDisplay::frameFromKinect()
 	hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
 	//check?
 
-	//So here we have an interesting issue
-	//I'm going through ppbodies which supports several(6) bodies,
-	//many of which are going to be bogus, but we can put only one
-	//of these bodies into displayBodies, so we need some way of choosing a
-	//body that is likely to be valid, ideally choosing the body that the
-	//the most likly to be valid
+
 	for (j = 0; j < _countof(ppBodies); j++)
 	{
 		BOOLEAN bTracked = false;
@@ -285,21 +281,10 @@ bool ActionDisplay::frameFromKinect()
 }
 
 bool ActionDisplay::getSingleFrameFromFile() {
-	if (moveFromFile->getCurrFrameCount() != 0) {
-		if (frameNumber >= moveFromFile->getCurrFrameCount()) {
-			frameNumber = frameNumber % moveFromFile->getCurrFrameCount();
-		}
-		//TODO 
-		//we will now be reading in a keyquatframe instead of a bodyframe
-		//let's make that happen
-		//TODO change frameNumber to time corresponding to timestamps
-		//in keyframes
-		displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(frameNumber));
-	}
-	else {
-		return false;
-	}
-
+	//TODO change frameNumber to time corresponding to timestamps
+	//in keyframes
+	displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(frameNumber));
+	
 	return true;
 }
 
@@ -497,11 +482,8 @@ bool ActionDisplay::loadMedia() {
 
     moveFromFile = new Movement();
     
+
 	if (playback == RECORDED || playback == LIVE_RECORD) {
-		//moveFromFile->readPoints("movement1.dat");
-		//moveFromFile->readPoints("whereData.dat");
-		//moveFromFile->readPoints("testMovement1.dat");
-		//moveFromFile->readQuatFrame(playbackFile);
 		moveFromFile->readKeyframes(playbackFile);
 
 
