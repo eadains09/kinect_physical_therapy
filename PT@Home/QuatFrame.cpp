@@ -161,21 +161,6 @@ bool QuatFrame::addJoint(const irr::core::vector3df& joint)
 	return true;
 }
 
-//so, it has become obvious after perhaps too long (perhaps even far too long)
-//that even if the QuatFrame is "initialized" by
-//adding all the necessary quats and the midspine joint
-//there still must be some actual initialization done so we
-//can call getPoint and/or getBone and/or other stuff
-
-//the choice that must be made is whether to write a special
-//initialization method just for addQuatJoint or to do the
-//correct thing and generalize the existing functions so that
-//I can just call init
-
-//also for both the addJoint and addQuatJoint methods,
-//why in god's name do we not just include an int i
-//parameter, then we can get rid of the stupid
-//addMidspine method
 
 bool QuatFrame::addQuatJoint(const irr::core::quaternion& joint)
 {
