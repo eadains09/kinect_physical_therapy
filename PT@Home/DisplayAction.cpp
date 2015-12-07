@@ -35,6 +35,8 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 		bodyCount = 2;
 	}
 
+	//TODO if LIVE_RECORD, circle through all exercises for playback (because if it were a single exercise, other constructor would've been used)
+
 	constructUniversalActionDisplay();
 
 }

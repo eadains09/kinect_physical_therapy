@@ -83,8 +83,9 @@ bool PatientMenuDisplay::loadMedia() {
 
 bool PatientMenuDisplay::loadButtons() {
 	gButtons.push_back(new Button(BUTTON_SPRITE_BACK, 10, 10, "art/back.bmp"));
-	gButtons.push_back(new Button(BUTTON_SPRITE_FULLWORKOUT, 300, 100, (SCREEN_WIDTH/2)-150, SCREEN_HEIGHT/2, "art/PatientMenu/FullWorkout.bmp"));
-	//TODO add button for selecting exercise
+	gButtons.push_back(new Button(BUTTON_SPRITE_FULLWORKOUT, 300, 100, (SCREEN_WIDTH / 2) - 150, (SCREEN_HEIGHT / 3) + 25, "art/PatientMenu/FullWorkout.bmp"));
+	gButtons.push_back(new Button(BUTTON_SPRITE_SELECTEXERCISE, 300, 100, (SCREEN_WIDTH / 2) - 150, ((SCREEN_HEIGHT / 3) * 2) - 50, "art/PatientMenu/SelectExercise.bmp"));
+
 	return true;
 }
 
@@ -94,7 +95,7 @@ void PatientMenuDisplay::handleKeyPresses(SDL_Event e) {
 			//Load Exercise screen
 			loadActionDisplay();
 			break;
-		case SDLK_c:
+		case SDLK_s:
 			initFileSelector();
 			SetCurrentDirectory("./movements");
 			if (GetOpenFileName(&playbackPFile)) {
