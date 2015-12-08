@@ -160,12 +160,7 @@ bool ActionDisplay::renderScreen() {
 			}
 		}
 		else {
-			//so this is the bit where we'll have to 
-			//compare, and thus is the only place in which
-			//it necessary to convert live kinect frames
-			//to quaternions, I would suggest (a) new function(s)
-			//that deal(s) with one to all of those things
-
+			//so this is the bit where we'll have to compare
 			//simultaneous playback
 			getSingleFrameFromFile(elapsedTime); //Must check if singleFrameFromFile returns true to do anything with displayBodies[0]
 			frameFromKinect();
@@ -263,6 +258,9 @@ bool ActionDisplay::frameFromKinect()
 			irr::core::vector3df *joint = new irr::core::vector3df(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
 			anorexia->addJoint(joint);
 		}
+		//if we want to use the kinect library for
+		//more granular time it would go something like
+		//this
 		//someCalculation(&nTime);
 		//anorexia->setTimestamp(nTime);
 		//or
@@ -291,12 +289,9 @@ bool ActionDisplay::frameFromKinect()
 }
 
 bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
-	//TODO change frameNumber to time corresponding to timestamps
-	//in keyframes
-	//displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(frameNumber));
 	displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(elapsedTime));
-
-	return true;
+	return displayBodies[0].isReady();
+//	return true;
 }
 
 void ActionDisplay::handleKeyPresses(SDL_Event e) {

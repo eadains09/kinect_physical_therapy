@@ -127,7 +127,7 @@ QuatFrame *QuatFrame::slerp(const QuatFrame& next, irr::f32 time)
 {
 	QuatFrame *inter = new QuatFrame();
 	for (int i = 0; i < JOINT_TOTAL; i++)
-		inter->addQuatJoint(this->jointQuats[i]->slerp(*this->jointQuats[i], *next.jointQuats[i], time));
+		inter->addQuatJoint(this->jointQuats[i]->slerp(*this->jointQuats[i], *next.jointQuats[i], time, .00000005f));
 
 	irr::core::vector3df interSpine = this->joints[JointType_SpineMid]->getInterpolated(*next.joints[JointType_SpineMid], time);
 
@@ -312,9 +312,9 @@ void QuatFrame::init()
 		//so this is the thing I thought would prevent the
 		//bizarre rotationy behavior, as we know it did not
 		//TODO find out why it didn't work and do something that does
-		if (getParent(i) == i)
-			parentBone = new irr::core::vector3df(0, 1, 0);
-		else
+		//if (getParent(i) == i)
+			//parentBone = new irr::core::vector3df(0, 1, 0);
+		//else
 			parentBone = new irr::core::vector3df(*bones[getParent(i)]);
 		
 		parentBone->normalize();
