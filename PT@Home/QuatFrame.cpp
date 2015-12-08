@@ -143,7 +143,6 @@ bool QuatFrame::addJoint(float x, float y, float z)
 	joints[currJointCount]->Z = z;
 	currJointCount++;
 
-//	joints[currJointCount++] = new irr::core::vector3df(x, y, z);
 	if (!isReady())
 		return false;
 
@@ -153,7 +152,7 @@ bool QuatFrame::addJoint(float x, float y, float z)
 
 bool QuatFrame::addJoint(const irr::core::vector3df& joint)
 {
-	joints[currJointCount++]->set(joint); //= new irr::core::vector3df(joint);
+	joints[currJointCount++]->set(joint);
 	if (!isReady())
 		return false;
 
@@ -166,7 +165,7 @@ bool QuatFrame::addQuatJoint(const irr::core::quaternion& joint)
 {
 	if (currQuatCount >= JOINT_TOTAL)
 		return false;
-	this->jointQuats[currQuatCount]->set(joint); //= new irr::core::quaternion(joint);
+	this->jointQuats[currQuatCount]->set(joint);
 	this->jointQuats[currQuatCount]->normalize();
 	currQuatCount++;
 
@@ -276,7 +275,7 @@ int QuatFrame::compare(QuatFrame *other)
 		total_diff += abs(other->jointQuats[i]->Y - jointQuats[i]->Y);
 		total_diff += abs(other->jointQuats[i]->Z - jointQuats[i]->Z);
 		total_diff += abs(other->jointQuats[i]->W - jointQuats[i]->W);
-		if (total_diff >= THRESHOLD)
+		if (total_diff >= QUAT_COMPARE_THRESHOLD)
 			bitField |= genMask(i);
 	}
 	return bitField;
@@ -346,7 +345,8 @@ void QuatFrame::init()
 		if (getParent(i) == i)
 		{
 			parentBone = new irr::core::vector3df(*ourBone);
-			ourBone = new irr::core::vector3df(1, 0, 0);
+			ourBone = new irr::core::vector3df(0, -1, 0);
+			ourBone->normalize();
 		}
 		else
 			parentBone = new irr::core::vector3df(*bones[getParent(i)]);
