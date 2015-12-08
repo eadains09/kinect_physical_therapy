@@ -252,6 +252,36 @@ irr::core::vector3df *QuatFrame::getPoint(int i)
 	return retVal;
 }
 
+int genMask(int n)
+{
+	return 1 << n;
+}
+
+bool getBit(int field,int n)
+{
+	return field&genMask(n);
+}
+
+int QuatFrame::compare(QuatFrame *other)
+{
+	if (!(other->isReady() && isReady()))
+	{
+		return 0;
+	}
+	int bitField = 0;
+	for (int i = 0; i < JOINT_TOTAL; i++)
+	{
+		double total_diff;
+		total_diff = abs(other->jointQuats[i]->X - jointQuats[i]->X);
+		total_diff += abs(other->jointQuats[i]->Y - jointQuats[i]->Y);
+		total_diff += abs(other->jointQuats[i]->Z - jointQuats[i]->Z);
+		total_diff += abs(other->jointQuats[i]->W - jointQuats[i]->W);
+		if (total_diff >= THRESHOLD)
+			bitField |= genMask(i);
+	}
+	return bitField;
+}
+
 irr::core::vector3df *QuatFrame::getBone(int i)
 {
 	//TODO body is rotated about midSpine vector, make that not happen anymore
@@ -296,6 +326,7 @@ irr::core::vector3df *QuatFrame::getBone(int i)
 
 void QuatFrame::init()
 {
+	//check if isReady()?
 	for (int i = 0; i < JointType_Count; i++)
 		getBone(i);
 
@@ -312,9 +343,12 @@ void QuatFrame::init()
 		//so this is the thing I thought would prevent the
 		//bizarre rotationy behavior, as we know it did not
 		//TODO find out why it didn't work and do something that does
-		//if (getParent(i) == i)
-			//parentBone = new irr::core::vector3df(0, 1, 0);
-		//else
+		if (getParent(i) == i)
+		{
+			parentBone = new irr::core::vector3df(*ourBone);
+			ourBone = new irr::core::vector3df(1, 0, 0);
+		}
+		else
 			parentBone = new irr::core::vector3df(*bones[getParent(i)]);
 		
 		parentBone->normalize();
