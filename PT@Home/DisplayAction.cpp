@@ -45,7 +45,7 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 		comparisonOn = true;
 		//TODO if LIVE_RECORD, circle through all exercises for playback (because if it were a single exercise, other constructor would've been used)
 		//playbackFile = getNextFile?
-		playbackFile = "movements/testMovement1.dat";
+		playbackFile = "movements/exercise1.dat";
 		//exerciseCount = getNumFiles in movement
 	}
 
@@ -190,7 +190,7 @@ bool ActionDisplay::renderScreen() {
 	}
 
 	renderFrame();
-	SDL_Delay(50);
+	//SDL_Delay(50);
 
 	return true;
 }
