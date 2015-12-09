@@ -34,6 +34,8 @@ private:
 	time_t beginningTimestamp;
 	time_t beginPauseTime;
 	double pauseTime;
+	bool comparisonOn;
+	int exerciseCount;
 
 	// navigation variable
 	DisplayType prevScreen;

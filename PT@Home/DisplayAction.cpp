@@ -18,25 +18,38 @@ ActionDisplay::ActionDisplay() : DisplayBase() {
 	playback = LIVE;
 	bodyCount = 1;
 	prevScreen = DISPLAY_MAIN;
-	playbackFile = "movements/testMovement1.dat";
+	playbackFile = "";
+	comparisonOn = false;
+	exerciseCount = 0;
 	constructUniversalActionDisplay();
 }
 
 ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, PlaybackType p, DisplayType d) : DisplayBase(c, w, r) {
 	playback = p;
 	prevScreen = d;
-	playbackFile = "movements/testMovement1.dat";
+	playbackFile = "";
 
-	if (playback == LIVE || playback == RECORDED) {
+	if (playback == LIVE) {
 		bodyCount = 1;
+		comparisonOn = false;
+		exerciseCount = 0;
 	}
-	else {
+	else if (playback == RECORDED) {
+		bodyCount = 1;
+		comparisonOn = false;
+		exerciseCount = 1;
+	}
+	else { /* LIVE_RECORD */
 		//simultaneous playback
 		bodyCount = 2;
+		comparisonOn = true;
+		//TODO if LIVE_RECORD, circle through all exercises for playback (because if it were a single exercise, other constructor would've been used)
+		//playbackFile = getNextFile?
+		playbackFile = "movements/testMovement1.dat";
+		//exerciseCount = getNumFiles in movement
 	}
 
-	//TODO if LIVE_RECORD, circle through all exercises for playback (because if it were a single exercise, other constructor would've been used)
-	//TODO if LIVE_RECORD, initialize comparer
+	
 	constructUniversalActionDisplay();
 
 }
@@ -46,14 +59,21 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 	prevScreen = d;
 	playbackFile = pfile;
 
-	if (playback == LIVE || playback == RECORDED) {
+	if (playback == LIVE) {
 		bodyCount = 1;
+		comparisonOn = false;
+		exerciseCount = 0;
+	}
+	else if (playback == RECORDED) {
+		bodyCount = 1;
+		comparisonOn = false;
+		exerciseCount = 1;
 	}
 	else {
 		bodyCount = 2;
+		comparisonOn = true;
+		exerciseCount = 1;
 	}
-
-	//TODO if LIVE_RECORD, initialize comparer
 
 	constructUniversalActionDisplay();
 }
@@ -291,8 +311,6 @@ bool ActionDisplay::frameFromKinect()
 }
 
 bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
-	//TODO change frameNumber to time corresponding to timestamps
-	//in keyframes
 	//displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(frameNumber));
 	displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(elapsedTime));
 
@@ -521,7 +539,6 @@ bool ActionDisplay::loadMedia() {
 		//TODO: test that this works correctly
 		 if (moveFromFile->getCurrFrameCount() <= 0) {
 			 bodyCount--;
-			 //playback = LIVE;
 		 }
 	}
 
