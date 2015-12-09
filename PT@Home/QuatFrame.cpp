@@ -166,7 +166,7 @@ bool QuatFrame::addQuatJoint(const irr::core::quaternion& joint)
 	if (currQuatCount >= JOINT_TOTAL)
 		return false;
 	this->jointQuats[currQuatCount]->set(joint);
-	this->jointQuats[currQuatCount]->normalize();
+//	this->jointQuats[currQuatCount]->normalize();
 	currQuatCount++;
 
 	if (isReady())
@@ -225,9 +225,20 @@ void QuatFrame::addMidSpine(const irr::core::vector3df& mid)
 //this is now a memory leak waiting to happen
 irr::core::vector3df *QuatFrame::getPoint(int i)
 {
+	//TODO semi-immediate next steps:
+	//1. the mid spine member shall now be
+	//a vector3df that is set by a call
+	//to setMidSpine and returned here
+	//instead of a constant (400, 300, 0)
+	//vector
+	//2. we will eliminate the joints array
+	//instead building up the bones and
+	//jointQuats arrays(/deques?) directly
+	//of the BodyFrame joints array
 	if (i == JointType_SpineMid)
 	{
-		return new irr::core::vector3df(*joints[JointType_SpineMid]);
+		//return new irr::core::vector3df(*joints[JointType_SpineMid]);
+		return new irr::core::vector3df(400, 300, 0);
 	}
 
 	irr::core::quaternion *inv = new irr::core::quaternion(*jointQuats[i]);
@@ -286,30 +297,32 @@ irr::core::vector3df *QuatFrame::getBone(int i)
 	//TODO body is rotated about midSpine vector, make that not happen anymore
 	if (i == JointType_SpineMid)
 	{
-		bones[JointType_SpineMid] = new irr::core::vector3df(*joints[JointType_SpineMid]);
+		bones[JointType_SpineMid]->set(*joints[JointType_SpineMid]);
 		return new irr::core::vector3df(*bones[JointType_SpineMid]);
 	}
+	if (!bones[i]->equals(irr::core::vector3df(), 0))
+		return new irr::core::vector3df(*bones[i]);
+
 	if (currJointCount == JOINT_TOTAL)
-		bones[i]->set(*joints[i] - *joints[getParent(i)]); //= new irr::core::vector3df(*joints[i] - *joints[getParent(i)]);
+		bones[i]->set(*joints[i] - *joints[getParent(i)]);
 	else if (currQuatCount == JOINT_TOTAL)
 	{
 		//generate bone with only the midspine point, quaternions, and the power of recursion
 		//TODO double check and make sure this makes sense
-		irr::core::quaternion *inv = new irr::core::quaternion(*jointQuats[i]);
-		inv->makeInverse();
+		irr::core::quaternion inv = irr::core::quaternion(*jointQuats[i]);
+		inv.makeInverse();
 		irr::core::vector3df *temp = getBone(getParent(i));
 		temp->normalize();
 
-		irr::core::quaternion *fake = new irr::core::quaternion(temp->X, temp->Y, temp->Z);
+		irr::core::quaternion fake = irr::core::quaternion(temp->X, temp->Y, temp->Z);
 
-		fake->set(((*jointQuats[i]) * (*fake)*(*inv)));
-		temp->X = fake->X;
-		temp->Y = fake->Y;
-		temp->Z = fake->Z;
-		delete fake, inv;
+		fake.set(((*jointQuats[i]) * fake * inv));
+		temp->X = fake.X;
+		temp->Y = fake.Y;
+		temp->Z = fake.Z;
 
 		temp->setLength(getBoneLength(i) * 60);
-		bones[i] = temp;
+		bones[i]->set(*temp);
 		return new irr::core::vector3df(*temp);
 
 	}
@@ -325,42 +338,40 @@ irr::core::vector3df *QuatFrame::getBone(int i)
 
 void QuatFrame::init()
 {
-	//check if isReady()?
 	for (int i = 0; i < JointType_Count; i++)
 		getBone(i);
 
 	for (int i = currQuatCount; i < JointType_Count; i++)
 	{
-		irr::core::quaternion *quat;
-		irr::core::matrix4 *mat = new irr::core::matrix4();
+		irr::core::quaternion quat;
+		irr::core::matrix4 mat = irr::core::matrix4();
 
-		irr::core::vector3df *ourBone;
-		irr::core::vector3df *parentBone;
-		ourBone = new irr::core::vector3df(*bones[i]);
-		ourBone->normalize();
+		irr::core::vector3df ourBone;
+		irr::core::vector3df parentBone;
+		ourBone = irr::core::vector3df(*bones[i]);
+		ourBone.normalize();
 
 		//so this is the thing I thought would prevent the
 		//bizarre rotationy behavior, as we know it did not
 		//TODO find out why it didn't work and do something that does
 		if (getParent(i) == i)
 		{
-			parentBone = new irr::core::vector3df(*ourBone);
-			ourBone = new irr::core::vector3df(0, -1, 0);
-			ourBone->normalize();
+			parentBone = irr::core::vector3df(ourBone);
+			ourBone = irr::core::vector3df(0, -1, 0);
+			ourBone.normalize();
 		}
 		else
-			parentBone = new irr::core::vector3df(*bones[getParent(i)]);
+			parentBone = irr::core::vector3df(*bones[getParent(i)]);
 		
-		parentBone->normalize();
+		parentBone.normalize();
 
 
-		mat->buildRotateFromTo(*parentBone, *ourBone);
+	//	mat.buildRotateFromTo(parentBone, ourBone);
+		mat.buildRotateFromTo(ourBone, parentBone);
 
-		quat = new irr::core::quaternion(*mat);
-		delete mat, parentBone, ourBone;
-		quat->normalize();
-		jointQuats[i]->set(*quat); //= quat;
-		delete quat;
+		quat = irr::core::quaternion(mat);
+		quat.normalize();
+		jointQuats[i]->set(quat);
 	}
 }
 

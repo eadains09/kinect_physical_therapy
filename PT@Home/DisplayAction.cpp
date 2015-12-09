@@ -150,7 +150,7 @@ bool ActionDisplay::renderScreen() {
 
 		if (playback == LIVE) {
 			frameFromKinect();
-			displayBodies[bodyCount - 1].transformPoints();
+			//displayBodies[bodyCount - 1].transformPoints();
 		}
 		else if (playback == RECORDED) {
 			//I think the best way to do this might be to change
@@ -255,7 +255,10 @@ bool ActionDisplay::frameFromKinect()
 
 		for (int i = 0; i < JointType_Count; i++)
 		{
-			irr::core::vector3df *joint = new irr::core::vector3df(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
+			//provide quatFrame with flipped image so it will display
+			//properly on sdl, or stop scaling in QuatFrame and 
+			//transform points afterwards
+			irr::core::vector3df *joint = new irr::core::vector3df(joints[i].Position.X, -joints[i].Position.Y, joints[i].Position.Z);
 			anorexia->addJoint(joint);
 		}
 		//if we want to use the kinect library for
@@ -266,8 +269,14 @@ bool ActionDisplay::frameFromKinect()
 		//or
 		//something = someCalculation(&nTime);
 		//anorexia->setTimestamp(something);
+	
+		QuatFrame test = QuatFrame(*anorexia);
+		BodyFrame *test2 = new BodyFrame();
+
+		test.initBodyFrame(test2);
 		
-		displayBodies[bodyCount-1] = *anorexia;
+		displayBodies[bodyCount - 1] = *test2;
+		//displayBodies[bodyCount-1] = *anorexia;
 		break; //once we've set the one entry in displayBodies we are alotted
 		//we are done no matter what
 	}
