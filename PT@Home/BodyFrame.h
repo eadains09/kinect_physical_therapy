@@ -21,6 +21,7 @@ private:
 	int currJointCount;
     
 public:
+	bool isReady();
 	irr::core::vector3df **joints;
     BodyFrame();
 	BodyFrame(const BodyFrame& source);

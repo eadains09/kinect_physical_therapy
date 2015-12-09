@@ -170,7 +170,7 @@ bool ActionDisplay::renderScreen() {
 
 		if (playback == LIVE) {
 			frameFromKinect();
-			displayBodies[bodyCount - 1].transformPoints();
+			//displayBodies[bodyCount - 1].transformPoints();
 		}
 		else if (playback == RECORDED) {
 			//I think the best way to do this might be to change
@@ -180,12 +180,7 @@ bool ActionDisplay::renderScreen() {
 			}
 		}
 		else {
-			//so this is the bit where we'll have to 
-			//compare, and thus is the only place in which
-			//it necessary to convert live kinect frames
-			//to quaternions, I would suggest (a) new function(s)
-			//that deal(s) with one to all of those things
-
+			//so this is the bit where we'll have to compare
 			//simultaneous playback
 			getSingleFrameFromFile(elapsedTime); //Must check if singleFrameFromFile returns true to do anything with displayBodies[0]
 			frameFromKinect();
@@ -280,16 +275,28 @@ bool ActionDisplay::frameFromKinect()
 
 		for (int i = 0; i < JointType_Count; i++)
 		{
-			irr::core::vector3df *joint = new irr::core::vector3df(joints[i].Position.X, joints[i].Position.Y, joints[i].Position.Z);
+			//provide quatFrame with flipped image so it will display
+			//properly on sdl, or stop scaling in QuatFrame and 
+			//transform points afterwards
+			irr::core::vector3df *joint = new irr::core::vector3df(joints[i].Position.X, -joints[i].Position.Y, joints[i].Position.Z);
 			anorexia->addJoint(joint);
 		}
+		//if we want to use the kinect library for
+		//more granular time it would go something like
+		//this
 		//someCalculation(&nTime);
 		//anorexia->setTimestamp(nTime);
 		//or
 		//something = someCalculation(&nTime);
 		//anorexia->setTimestamp(something);
+	
+		QuatFrame test = QuatFrame(*anorexia);
+		BodyFrame *test2 = new BodyFrame();
+
+		test.initBodyFrame(test2);
 		
-		displayBodies[bodyCount-1] = *anorexia;
+		displayBodies[bodyCount - 1] = *test2;
+		//displayBodies[bodyCount-1] = *anorexia;
 		break; //once we've set the one entry in displayBodies we are alotted
 		//we are done no matter what
 	}
@@ -311,10 +318,9 @@ bool ActionDisplay::frameFromKinect()
 }
 
 bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
-	//displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(frameNumber));
 	displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(elapsedTime));
-
-	return true;
+	return displayBodies[0].isReady();
+	//return true;
 }
 
 void ActionDisplay::handleKeyPresses(SDL_Event e) {

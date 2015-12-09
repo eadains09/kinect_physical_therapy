@@ -7,10 +7,11 @@
 #include <stdio.h>
 #include <quaternion.h>
 #include <irrlicht.h>
-//#include "Joint.h"
 #include "BodyFrame.h"
 #include "FileWriter.h"
 
+bool getBit();
+#define QUAT_COMPARE_THRESHOLD  .05
 
 //const int JOINT_TOTAL = 25;
 
@@ -33,6 +34,7 @@ private:
 public:
 	QuatFrame();
 	QuatFrame(BodyFrame);
+	int compare(QuatFrame *other);
 	void initFromBodyFrame(BodyFrame source);
 	QuatFrame *slerp(const QuatFrame& next, irr::f32 time);
 	bool addJoint(float x, float y, float z);

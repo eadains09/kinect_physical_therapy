@@ -52,6 +52,11 @@ bool BodyFrame::addJoint(irr::core::vector3df *currJoint) {
     return success;
 }
 
+bool BodyFrame::isReady()
+{
+	return currJointCount == JOINT_TOTAL;
+}
+
 irr::core::vector3df** BodyFrame::getJoints() {
     return joints;
 }
