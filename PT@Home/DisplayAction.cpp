@@ -63,7 +63,7 @@ void ActionDisplay::constructUniversalActionDisplay() {
 	keyframeCaptured = false;
 	playing = true;
 	playFileName = trimAddress(playbackFile);
-	beginningTimestamp = 0;
+//	beginningTimestamp = 0;
 	pauseTime = 0;
 
 	displayBodies = new BodyFrame[TOTAL_BODIES];
@@ -118,7 +118,8 @@ void ActionDisplay::run() {
 
 	quit = false;
 	SDL_Event e;
-	time(&beginningTimestamp);
+//	time(&beginningTimestamp);
+	GetLocalTime(&granularBeginning);
 
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
@@ -139,38 +140,57 @@ void ActionDisplay::run() {
 	}
 }
 
+double granularDiff(const SYSTEMTIME& from, const SYSTEMTIME& to)
+{
+	double result = 0;
+	double temp;
+	temp = abs(from.wHour - to.wHour);
+	result += temp * 3600000;
+	temp = abs(from.wMinute - to.wMinute);
+	result += temp * 60000;
+	temp = abs(from.wSecond - to.wSecond);
+	result += temp * 1000;
+	temp = abs(from.wMilliseconds - to.wMilliseconds);
+	result += temp;
+	return result;
+}
+
 bool ActionDisplay::renderScreen() {
 	time_t currTime;
 	double elapsedTime;
 	
 	if (playing) {
-		time(&currTime);
-		elapsedTime = difftime(currTime, beginningTimestamp);
-		elapsedTime = elapsedTime - pauseTime;
+//		time(&currTime);
+//		elapsedTime = difftime(currTime, beginningTimestamp);
+//		elapsedTime = elapsedTime - pauseTime;
+		GetLocalTime(&granularCurrent);
+		elapsedTime = granularDiff(granularBeginning, granularCurrent);
 
 		if (playback == LIVE) {
 			frameFromKinect();
 			//displayBodies[bodyCount - 1].transformPoints();
 		}
 		else if (playback == RECORDED) {
+			getSingleFrameFromFile(elapsedTime);
 			//I think the best way to do this might be to change
 			//single frame from file to deal with slerping
-			if (getSingleFrameFromFile(elapsedTime)) {
-				displayQuats[0].initBodyFrame(&displayBodies[0]);
-			}
+			//if (getSingleFrameFromFile(elapsedTime)) {
+				//displayQuats[0].initBodyFrame(&displayBodies[0]);
+			//}
 		}
 		else {
 			//so this is the bit where we'll have to compare
 			//simultaneous playback
 			getSingleFrameFromFile(elapsedTime); //Must check if singleFrameFromFile returns true to do anything with displayBodies[0]
 			frameFromKinect();
-			displayBodies[bodyCount-1].transformPoints();
+			//displayBodies[bodyCount-1].transformPoints();
+		//	displayBodies[0].transformPoints();
 		}
 		frameNumber++;
 	}
 
 	renderFrame();
-	SDL_Delay(50);
+//	SDL_Delay(50);
 
 	return true;
 }
@@ -479,15 +499,19 @@ void ActionDisplay::loadPrevDisplay() {
 }
 
 void ActionDisplay::togglePlaying() {
-	time_t currTime;
+//	time_t currTime;
+	SYSTEMTIME pauseLocal;
 	if (playing) {
 		//Program is currently playing movement and user has decided to pause it
-		time(&beginPauseTime);
+		//time(&beginPauseTime);
+		GetLocalTime(&granularBeginPauseTime);
 	}
 	else {
 		//Program is currently paused and user has decided to resume playing
-		time(&currTime);
-		pauseTime = pauseTime + difftime(currTime, beginPauseTime);
+		GetLocalTime(&pauseLocal);
+//		time(&currTime);
+//		pauseTime = pauseTime + difftime(currTime, beginPauseTime);
+		pauseTime += granularDiff(granularBeginPauseTime, pauseLocal);
 	}
 
 	//swap playing variable: if true, becomes false, if false becomes true

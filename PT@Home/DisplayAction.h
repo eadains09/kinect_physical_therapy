@@ -31,9 +31,10 @@ private:
 	PlaybackType playback;
 	string playbackFile;
 	string playFileName;
-	time_t beginningTimestamp;
-	time_t beginPauseTime;
+//	time_t beginningTimestamp;
+//	time_t beginPauseTime;
 	double pauseTime;
+	SYSTEMTIME granularBeginning, granularCurrent, granularBeginPauseTime;
 
 	// navigation variable
 	DisplayType prevScreen;
