@@ -26,7 +26,7 @@ private:
 	//save all pointer headaches that would be really swell
 	//once merge is sufficiently complete to determine whether
 	//or not that's feasible, do, and then do
-    deque<BodyFrame> *frames;
+    //deque<BodyFrame> *frames;
 	deque<QuatFrame> *qframes;
     //deque<BodyFrame> keyframeStack;
     int currFrameCount;
@@ -46,7 +46,7 @@ public:
     irr::core::vector3df readJointPoints(FileReader *file);
     irr::core::quaternion readJointQuat(FileReader *file);
     //BodyFrame* getFrames();
-	BodyFrame getSingleFrame(double time);
+	QuatFrame getSingleFrame(double time);
 	//it would be trivial to write a similar method
 	//that instead returns a quatframe, this may be
 	//useful for control flow after we change to 
@@ -55,8 +55,8 @@ public:
  //   void freeFrames();
 	void logFrames(std::string fileName);
     void popBackFrame();
-    void pushBackFrame(BodyFrame *frame);
-	deque<BodyFrame> getFrames();
-    BodyFrame* getBackFrame();
+    void pushBackFrame(QuatFrame *frame);
+	deque<QuatFrame> getFrames();
+    QuatFrame* getBackFrame();
 	virtual ~Movement();
 };

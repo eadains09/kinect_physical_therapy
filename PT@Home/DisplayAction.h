@@ -36,7 +36,7 @@ private:
 	double pauseTime;
 	bool comparisonOn;
 	int exerciseCount;
-	SYSTEMTIME granularBeginning, granularCurrent, granularBeginPauseTime;
+	SYSTEMTIME granularBeginning, granularCurrent, granularBeginPauseTime, granularPrevTime;
 
 	// navigation variable
 	DisplayType prevScreen;
