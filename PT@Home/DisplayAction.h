@@ -50,7 +50,8 @@ private:
 	static int saveCount;
 	bool keyframeCaptured;
 	time_t prevTime = NULL;
-	BodyFrame prevKeyframe;
+	//BodyFrame prevKeyframe;
+	QuatFrame prevKeyframe;
 	Movement keyframes;
 	FileWriter writer;
 	OPENFILENAME saveFile;
@@ -79,7 +80,8 @@ private:
 
 
     bool init();
-    void renderBody(BodyFrame currBody);
+    //void renderBody(BodyFrame currBody);
+	void renderBody(QuatFrame currQuatBody);
     bool frameFromKinect();
     bool getSingleFrameFromFile(double elapsedTime);
 
