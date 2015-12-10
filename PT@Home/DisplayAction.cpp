@@ -405,23 +405,28 @@ void ActionDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 //on the captured keyframe
 //maybe
 void ActionDisplay::captureKeyframe() {
-	time_t currTime;
+//	time_t currTime;
 	double seconds;
-
+	//TODO convert to GetLocalTime
 	keyframeCaptured = true;
 
-	time(&currTime);
-	if (prevTime != NULL) {
-		seconds = difftime(currTime, prevTime);
-	} else {
+	GetLocalTime(&granularCurrent);
+//	time(&currTime);
+//	if (prevTime != NULL) {
+//		seconds = difftime(currTime, prevTime);
+//	} else {
+//		seconds = 0;
+//	}
+	//prevTime = currTime;
+	if (granularPrevTime.wYear != 0)
+		seconds = granularDiff(granularCurrent, granularPrevTime);
+	else
 		seconds = 0;
-	}
-	prevTime = currTime;
 
-	//ask erika, is there any particular reason
-	//we capture another frame from the kinect
-	//instead of just using the displayBodies frame
-	//that's already been loaded?
+	granularPrevTime = granularCurrent;
+
+
+
 	frameFromKinect();
 	prevKeyframe = *new BodyFrame(displayBodies[bodyCount-1]);
 	prevKeyframe.setTimestamp(seconds);

@@ -34,7 +34,7 @@ private:
 //	time_t beginningTimestamp;
 //	time_t beginPauseTime;
 	double pauseTime;
-	SYSTEMTIME granularBeginning, granularCurrent, granularBeginPauseTime;
+	SYSTEMTIME granularBeginning, granularCurrent, granularBeginPauseTime, granularPrevTime;
 
 	// navigation variable
 	DisplayType prevScreen;
