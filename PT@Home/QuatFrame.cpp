@@ -109,6 +109,7 @@ QuatFrame::QuatFrame(const QuatFrame& source)
 	bones = new irr::core::vector3df*[JOINT_TOTAL];
 	currJointCount = 0;
 	currQuatCount = 0;
+	timestamp = source.timestamp;
 
 	for (int i = 0; i < JOINT_TOTAL; i++)
 	{
@@ -118,7 +119,8 @@ QuatFrame::QuatFrame(const QuatFrame& source)
 	}
 	for (int i = 0; i < JOINT_TOTAL; i++)
 		addQuatJoint(irr::core::quaternion(*source.jointQuats[i]));
-//	addMidSpine(source.g)
+
+	addMidSpine(irr::core::vector3df(*source.bones[JointType_SpineMid]));
 }
 
 void QuatFrame::initFromBodyFrame(BodyFrame source)
@@ -408,7 +410,7 @@ void QuatFrame::writeFrame(FileWriter *currFile) {
 	currFile->openBodyFrame();
 	if (isReady()) {
 		currFile->logDataQuat(jointQuats[0]->X, jointQuats[0]->Y, jointQuats[0]->Z, jointQuats[0]->W);
-		for (int i = 1; i < currJointCount; i++) {
+		for (int i = 1; i < currQuatCount; i++) {
 			currFile->addComma();
 			currFile->logDataQuat(jointQuats[i]->X, jointQuats[i]->Y, jointQuats[i]->Z, jointQuats[i]->W);
 		}
