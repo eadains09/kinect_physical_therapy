@@ -19,7 +19,7 @@ using namespace std;
 Movement::Movement() {
     currFrameCount = 0;
 	//frames = new BodyFrame*[FRAME_TOTAL];
-	frames = new deque<BodyFrame>();// (FRAME_TOTAL);
+	//frames = new deque<BodyFrame>();// (FRAME_TOTAL);
 	qframes = new deque<QuatFrame>();// (FRAME_TOTAL);
 }
 
