@@ -18,6 +18,7 @@ using namespace std;
 
 Movement::Movement() {
     currFrameCount = 0;
+	finished = false;
 	//frames = new BodyFrame*[FRAME_TOTAL];
 	//frames = new deque<BodyFrame>();// (FRAME_TOTAL);
 	qframes = new deque<QuatFrame>();// (FRAME_TOTAL);
@@ -169,6 +170,14 @@ QuatFrame Movement::getSingleFrame(double time)
 
 int Movement::getCurrFrameCount() {
     return currFrameCount;
+}
+
+bool Movement::isFinished() {
+	return finished;
+}
+
+void Movement::resetFinished() {
+	finished = false;
 }
 
 

@@ -81,8 +81,8 @@ void ActionDisplay::constructUniversalActionDisplay() {
 	frameNumber = 0;
 	keyframeCaptured = false;
 	playing = true;
+	playCount = 2;
 	playFileName = trimAddress(playbackFile);
-//	beginningTimestamp = 0;
 	pauseTime = 0;
 
 	displayBodies = new BodyFrame[TOTAL_BODIES];
@@ -137,7 +137,6 @@ void ActionDisplay::run() {
 
 	quit = false;
 	SDL_Event e;
-//	time(&beginningTimestamp);
 	GetLocalTime(&granularBeginning);
 
 	while (!quit) {
@@ -175,45 +174,37 @@ double granularDiff(const SYSTEMTIME& from, const SYSTEMTIME& to)
 }
 
 bool ActionDisplay::renderScreen() {
-	time_t currTime;
 	double elapsedTime;
-	int bitField;
+	int bitField = 0;
 	
-	if (playing) {
-//		time(&currTime);
-//		elapsedTime = difftime(currTime, beginningTimestamp);
-//		elapsedTime = elapsedTime - pauseTime;
+	if (playing && playCount > 0) {
 		GetLocalTime(&granularCurrent);
 		elapsedTime = granularDiff(granularBeginning, granularCurrent);
+		elapsedTime -= pauseTime;
 
 		if (playback == LIVE) {
 			frameFromKinect();
-			bitField = 0;
-			//displayBodies[bodyCount - 1].transformPoints();
 		}
 		else if (playback == RECORDED) {
 			getSingleFrameFromFile(elapsedTime);
-			bitField = 0;
-			//I think the best way to do this might be to change
-			//single frame from file to deal with slerping
-			//if (getSingleFrameFromFile(elapsedTime)) {
-				//displayQuats[0].initBodyFrame(&displayBodies[0]);
-			//}
 		}
 		else {
-			//so this is the bit where we'll have to compare
 			//simultaneous playback
-			getSingleFrameFromFile(elapsedTime); //Must check if singleFrameFromFile returns true to do anything with displayBodies[0]
+			getSingleFrameFromFile(elapsedTime);
 			frameFromKinect();
+			if (!displayQuats[0].isReady()) {
+				GetLocalTime(&granularBeginning);
+				elapsedTime = 0;
+				pauseTime = 0;
+				playCount--;
+			}
+			//Compare whether joints match
 			bitField = displayQuats[0].compare(&displayQuats[bodyCount - 1]);
-			//displayBodies[bodyCount-1].transformPoints();
-		//	displayBodies[0].transformPoints();
 		}
 		frameNumber++;
 	}
 
 	renderFrame(bitField);
-	//SDL_Delay(50);
 
 	return true;
 }
@@ -235,31 +226,39 @@ bool ActionDisplay::renderFrame(int bitField) {
     
     //render bodies
 	for (i = 0; i < bodyCount; i++) {
-		//if (displayBodies[i].getCurrJointCount() != JOINT_TOTAL)
-		//if (displayQuats[i].isReady() != JOINT_TOTAL)
-			//continue;
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i % 2], 0xFF);
-		//renderBody(displayBodies[i]);
-		renderBody(displayQuats[i], bitField);
+		renderBody(displayQuats[i], bitField, colorArray[i%2]);
 	}
 
 	if (keyframeCaptured) {
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i % 2], 0xFF);
-		renderBody(prevKeyframe, bitField);
+		renderBody(prevKeyframe, bitField, colorArray[i%2]);
 	}
 
-	if (errors.size() > 0) {
-		SDL_FreeSurface(instructionSurface);
-		string error_text = "Adjust your ";
-		while (!errors.empty()) {
-			error_text = error_text + getJointString(errors.back());
-			errors.pop_back();
-			if (!errors.empty()) {
-				error_text = error_text + " & ";
+	if (comparisonOn) {
+		if (errors.size() > 0) {
+			std::set<int>::iterator iter;
+			SDL_FreeSurface(instructionSurface);
+			string error_text = "Adjust your ";
+			iter = errors.begin();
+			while(iter != errors.end()) {
+				error_text = error_text + getJointString(*iter);
+				errors.erase(iter);
+				iter = errors.begin();
+				if (errors.size() > 1) {
+					error_text = error_text + " , ";
+				}
+				else if (errors.size() == 1) {
+					error_text = error_text + " & ";
+				}
 			}
+			SDL_Color textColor = { 255, 0, 0 };
+			loadText(error_text, textColor);
 		}
-		SDL_Color textColor = { 255, 0, 0 };
-		loadText(error_text, textColor);
+		else {
+			SDL_Color textColor = { 0, 0, 0 };
+			loadText("Doing good!", textColor);
+		}
 	}
 
     SDL_RenderPresent(renderer);
@@ -267,7 +266,7 @@ bool ActionDisplay::renderFrame(int bitField) {
     return true;
 }
 
-void ActionDisplay::renderBody(QuatFrame currQuatBody, int bitField) {
+void ActionDisplay::renderBody(QuatFrame currQuatBody, int bitField, int color) {
 	BodyFrame *currBody = new BodyFrame();
 	currQuatBody.initBodyFrame(currBody);
 
@@ -275,13 +274,14 @@ void ActionDisplay::renderBody(QuatFrame currQuatBody, int bitField) {
 
 	for (int i = 0; i < (*currBody).getCurrJointCount(); i++) {
 		if (getParent(i) != i) {
-			if (playback == LIVE_RECORD) {
-				if (/* currQuatBody.getBit(bitField, i) */false || false/*currQuatBody.getBit(bitField, getParent(i)) */) {
-					SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0xFF);
-					//if (QuatFrame::getBit(bitField, i)) {
-					//	errors.push_back(i);
-					//}
+			if (comparisonOn && tracking(i) && (getBit(bitField, i) || getBit(bitField, getParent(i)))) {
+				SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0xFF);
+				if (getBit(bitField, i)) {
+					errors.insert(i);
 				}
+			} 
+			else {
+				SDL_SetRenderDrawColor(renderer, 0x00, 0x00, color, 0xFF);
 			}
 			SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
 		}
@@ -640,7 +640,7 @@ bool ActionDisplay::loadMedia() {
 		text = "     Playing " + playFileName + ".";
 	}
 	else if (playback == LIVE_RECORD) {
-		text = "     Beginning workout!";
+		text = "     Beginning workout! Exercise will play once for you to see, then will start tracking you!";
 	}
 	SDL_Color textColor = { 0, 0, 0 };
 	success = success & loadText(text, textColor);
@@ -704,61 +704,87 @@ void ActionDisplay::close() {
 	SDL_DestroyTexture(instructionTexture);
 
 	closeButtons();
+
+	// done with body frame reader
+	SafeRelease(m_pBodyFrameReader);
+
+	// done with coordinate mapper
+	SafeRelease(m_pCoordinateMapper);
+
+	// close the Kinect Sensor
+	if (m_pKinectSensor)
+	{
+		m_pKinectSensor->Close();
+	}
+
+	SafeRelease(m_pKinectSensor);
+}
+
+bool ActionDisplay::tracking(int i) {
+	switch (i) {
+	case JointType_HandTipLeft:
+	case JointType_ThumbLeft:
+	case JointType_HandTipRight:
+	case JointType_ThumbRight:
+		return false;
+	default:
+		return true;
+	}
 }
 
 
 string ActionDisplay::getJointString(int type) {
 	switch (type) {
 	case JointType_SpineShoulder:
-		return "Upper back";
+		return "upper back";
 	case JointType_SpineBase:
-		return "Lower back";
+		return "lower back";
 	case JointType_SpineMid:
-		return "Mid back";
+		return "mid back";
 	case JointType_Neck:
-		return "Neck";
+		return "neck";
 	case JointType_ShoulderLeft:
-		return "Left shoulder";
+		return "left shoulder";
 	case JointType_ShoulderRight:
-		return "Right shoulder";
+		return "right shoulder";
 	case JointType_HipLeft:
-		return "Left hip";
+		return "left hip";
 	case JointType_HipRight:
-		return "Right hip";
+		return "right hip";
 	case JointType_HandTipLeft:
-		return "Left hand tip";
+		return "left hand tip";
 	case JointType_ThumbLeft:
-		return "Left thumb";
+		return "left thumb";
 	case JointType_HandTipRight:
-		return "Right hand tip";
+		return "right hand tip";
 	case JointType_ThumbRight:
-		return "Right thumb";
+		return "right thumb";
 	case JointType_Head:
-		return "Head";
+		return "head";
 	case JointType_ElbowLeft:
-		return "Left elbow";
+		return "left elbow";
 	case JointType_WristLeft:
-		return "Left wrist";
+		return "left wrist";
 	case JointType_HandLeft:
-		return "Left hand";
+		return "left hand";
 	case JointType_ElbowRight:
-		return "Right elbow";
+		return "right elbow";
 	case JointType_WristRight:
-		return "Right wrist";
+		return "right wrist";
 	case JointType_HandRight:
-		return "Right hand";
+		return "right hand";
 	case JointType_KneeLeft:
-		return "Left knee";
+		return "left knee";
 	case JointType_AnkleLeft:
-		return "Left ankle";
+		return "left ankle";
 	case JointType_FootLeft:
-		return "Left foot";
+		return "left foot";
 	case JointType_KneeRight:
-		return "Right knee";
+		return "right knee";
 	case JointType_AnkleRight:
-		return "Right ankle";
+		return "right ankle";
 	case JointType_FootRight:
-		return "Right foot";
+		return "right foot";
 
 	default:
 		return "";

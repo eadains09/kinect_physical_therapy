@@ -9,6 +9,7 @@
 #include "DisplayBase.h"
 #include "FileWriter.h"
 #include "Movement.h"
+#include <set>
 
 const int TOTAL_BODIES = 2;
 
@@ -35,10 +36,11 @@ private:
 //	time_t beginPauseTime;
 	double pauseTime;
 	bool comparisonOn;
+	int playCount;
 	int exerciseCount;
 	SYSTEMTIME granularBeginning, granularCurrent, granularBeginPauseTime, granularPrevTime;
 
-	std::vector<int> errors;
+	std::set<int> errors;
 	// navigation variable
 	DisplayType prevScreen;
 
@@ -82,10 +84,11 @@ private:
 
     bool init();
     //void renderBody(BodyFrame currBody);
-	void renderBody(QuatFrame currQuatBody, int bitField);
+	void renderBody(QuatFrame currQuatBody, int bitField, int color);
     bool frameFromKinect();
     bool getSingleFrameFromFile(double elapsedTime);
 	string getJointString(int type);
+	bool tracking(int i);
 
 
     void captureKeyframe();

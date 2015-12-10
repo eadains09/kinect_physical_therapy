@@ -30,7 +30,8 @@ private:
 	deque<QuatFrame> *qframes;
     //deque<BodyFrame> keyframeStack;
     int currFrameCount;
-	void logMove(std::string fileName);
+	bool finished;
+	//void logMove(std::string fileName);
     
 	//initbodyframe does this at the end, so this function
 	//should only be used for the raw points from the kinect
@@ -58,5 +59,7 @@ public:
     void pushBackFrame(QuatFrame *frame);
 	deque<QuatFrame> getFrames();
     QuatFrame* getBackFrame();
+	bool isFinished();
+	void resetFinished();
 	virtual ~Movement();
 };

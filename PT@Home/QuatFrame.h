@@ -10,8 +10,8 @@
 #include "BodyFrame.h"
 #include "FileWriter.h"
 
-bool getBit();
-#define QUAT_COMPARE_THRESHOLD  .05
+bool getBit(int bitField, int n);
+#define QUAT_COMPARE_THRESHOLD  .25
 
 //const int JOINT_TOTAL = 25;
 
