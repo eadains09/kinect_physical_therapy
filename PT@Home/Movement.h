@@ -26,7 +26,7 @@ private:
 	//save all pointer headaches that would be really swell
 	//once merge is sufficiently complete to determine whether
 	//or not that's feasible, do, and then do
-    deque<BodyFrame> *frames;
+    //deque<BodyFrame> *frames;
 	deque<QuatFrame> *qframes;
     //deque<BodyFrame> keyframeStack;
     int currFrameCount;
@@ -55,8 +55,8 @@ public:
  //   void freeFrames();
 	void logFrames(std::string fileName);
     void popBackFrame();
-    void pushBackFrame(BodyFrame *frame);
-	deque<BodyFrame> getFrames();
-    BodyFrame* getBackFrame();
+    void pushBackFrame(QuatFrame *frame);
+	deque<QuatFrame> getFrames();
+    QuatFrame* getBackFrame();
 	virtual ~Movement();
 };
