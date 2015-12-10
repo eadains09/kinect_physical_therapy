@@ -46,10 +46,9 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 		//TODO if LIVE_RECORD, circle through all exercises for playback (because if it were a single exercise, other constructor would've been used)
 		//playbackFile = getNextFile?
 		playbackFile = "movements/exercise1.dat";
-		//exerciseCount = getNumFiles in movement
+		//exerciseCount = getNumFiles in movement folder
 	}
 
-	
 	constructUniversalActionDisplay();
 
 }
@@ -83,7 +82,7 @@ void ActionDisplay::constructUniversalActionDisplay() {
 	keyframeCaptured = false;
 	playing = true;
 	playFileName = trimAddress(playbackFile);
-	beginningTimestamp = 0;
+//	beginningTimestamp = 0;
 	pauseTime = 0;
 
 	displayBodies = new BodyFrame[TOTAL_BODIES];
@@ -138,7 +137,8 @@ void ActionDisplay::run() {
 
 	quit = false;
 	SDL_Event e;
-	time(&beginningTimestamp);
+//	time(&beginningTimestamp);
+	GetLocalTime(&granularBeginning);
 
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
@@ -159,32 +159,51 @@ void ActionDisplay::run() {
 	}
 }
 
+double granularDiff(const SYSTEMTIME& from, const SYSTEMTIME& to)
+{
+	double result = 0;
+	double temp;
+	temp = abs(from.wHour - to.wHour);
+	result += temp * 3600000;
+	temp = abs(from.wMinute - to.wMinute);
+	result += temp * 60000;
+	temp = abs(from.wSecond - to.wSecond);
+	result += temp * 1000;
+	temp = abs(from.wMilliseconds - to.wMilliseconds);
+	result += temp;
+	return result;
+}
+
 bool ActionDisplay::renderScreen() {
 	time_t currTime;
 	double elapsedTime;
 	
 	if (playing) {
-		time(&currTime);
-		elapsedTime = difftime(currTime, beginningTimestamp);
-		elapsedTime = elapsedTime - pauseTime;
+//		time(&currTime);
+//		elapsedTime = difftime(currTime, beginningTimestamp);
+//		elapsedTime = elapsedTime - pauseTime;
+		GetLocalTime(&granularCurrent);
+		elapsedTime = granularDiff(granularBeginning, granularCurrent);
 
 		if (playback == LIVE) {
 			frameFromKinect();
 			//displayBodies[bodyCount - 1].transformPoints();
 		}
 		else if (playback == RECORDED) {
+			getSingleFrameFromFile(elapsedTime);
 			//I think the best way to do this might be to change
 			//single frame from file to deal with slerping
-			if (getSingleFrameFromFile(elapsedTime)) {
-				displayQuats[0].initBodyFrame(&displayBodies[0]);
-			}
+			//if (getSingleFrameFromFile(elapsedTime)) {
+				//displayQuats[0].initBodyFrame(&displayBodies[0]);
+			//}
 		}
 		else {
 			//so this is the bit where we'll have to compare
 			//simultaneous playback
 			getSingleFrameFromFile(elapsedTime); //Must check if singleFrameFromFile returns true to do anything with displayBodies[0]
 			frameFromKinect();
-			displayBodies[bodyCount-1].transformPoints();
+			//displayBodies[bodyCount-1].transformPoints();
+		//	displayBodies[0].transformPoints();
 		}
 		frameNumber++;
 	}
@@ -212,11 +231,13 @@ bool ActionDisplay::renderFrame() {
     
     //render bodies
 	for (i = 0; i < bodyCount; i++) {
-		if (displayBodies[i].getCurrJointCount() != JOINT_TOTAL)
-			continue;
+		//if (displayBodies[i].getCurrJointCount() != JOINT_TOTAL)
+		//if (displayQuats[i].isReady() != JOINT_TOTAL)
+			//continue;
 	
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i % 2], 0xFF);
-		renderBody(displayBodies[i]);
+		//renderBody(displayBodies[i]);
+		renderBody(displayQuats[i]);
 	}
 
 	if (keyframeCaptured) {
@@ -229,10 +250,15 @@ bool ActionDisplay::renderFrame() {
     return true;
 }
 
-void ActionDisplay::renderBody(BodyFrame currBody) {
-	irr::core::vector3df **joints = currBody.getJoints();
+void ActionDisplay::renderBody(QuatFrame currQuatBody) {
+//void ActionDisplay::renderBody(BodyFrame currBody) {
+	//THIS IS WHERE WE WANT TO CONVERT FROM QUATFRAME TO BODYFRAME POINTS
+	BodyFrame *currBody = new BodyFrame();
+	currQuatBody.initBodyFrame(currBody);
 
-	for (int i = 0; i < currBody.getCurrJointCount(); i++)
+	irr::core::vector3df **joints = (*currBody).getJoints();
+
+	for (int i = 0; i < (*currBody).getCurrJointCount(); i++)
 		if (getParent(i) != i)
 			SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
 
@@ -242,7 +268,8 @@ bool ActionDisplay::frameFromKinect()
 {
 	HRESULT hr;
 	int j;
-	BodyFrame *anorexia = NULL;
+	//BodyFrame *anorexia = NULL;
+	QuatFrame *anorexia = NULL;
 	IBodyFrame* pBodyFrame = NULL;
 	INT64 nTime = 0;
 
@@ -271,7 +298,8 @@ bool ActionDisplay::frameFromKinect()
 			continue;
 
 		ppBodies[j]->GetJoints(JointType_Count, joints);
-		anorexia = new BodyFrame();
+		//anorexia = new BodyFrame();
+		anorexia = new QuatFrame();
 
 		for (int i = 0; i < JointType_Count; i++)
 		{
@@ -279,7 +307,8 @@ bool ActionDisplay::frameFromKinect()
 			//properly on sdl, or stop scaling in QuatFrame and 
 			//transform points afterwards
 			irr::core::vector3df *joint = new irr::core::vector3df(joints[i].Position.X, -joints[i].Position.Y, joints[i].Position.Z);
-			anorexia->addJoint(joint);
+			//anorexia->addJoint(joint);
+			anorexia->addJoint(*joint);
 		}
 		//if we want to use the kinect library for
 		//more granular time it would go something like
@@ -290,12 +319,13 @@ bool ActionDisplay::frameFromKinect()
 		//something = someCalculation(&nTime);
 		//anorexia->setTimestamp(something);
 	
-		QuatFrame test = QuatFrame(*anorexia);
-		BodyFrame *test2 = new BodyFrame();
+		//QuatFrame test = QuatFrame(*anorexia);
+		displayQuats[bodyCount - 1] = *anorexia;
+		//BodyFrame *test2 = new BodyFrame();
 
-		test.initBodyFrame(test2);
+		//test.initBodyFrame(test2);
 		
-		displayBodies[bodyCount - 1] = *test2;
+		//displayBodies[bodyCount - 1] = *test2;
 		//displayBodies[bodyCount-1] = *anorexia;
 		break; //once we've set the one entry in displayBodies we are alotted
 		//we are done no matter what
@@ -304,7 +334,8 @@ bool ActionDisplay::frameFromKinect()
 	//default just in case no bodies are being tracked
 	//TODO make sure default behaves like it is supposed to
 	if (j == BODY_COUNT || anorexia == NULL)
-		displayBodies[bodyCount - 1] = BodyFrame();
+		//displayBodies[bodyCount - 1] = BodyFrame();
+		displayQuats[bodyCount - 1] = QuatFrame();
 
 	SafeRelease(pBodyFrame);
 
@@ -318,9 +349,11 @@ bool ActionDisplay::frameFromKinect()
 }
 
 bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
-	displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(elapsedTime));
-	return displayBodies[0].isReady();
-	//return true;
+	//displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(elapsedTime));
+	displayQuats[0] = *new QuatFrame(moveFromFile->getSingleFrame(elapsedTime));
+
+	//return displayBodies[0].isReady();
+	return true;
 }
 
 void ActionDisplay::handleKeyPresses(SDL_Event e) {
@@ -423,10 +456,11 @@ void ActionDisplay::captureKeyframe() {
 	//instead of just using the displayBodies frame
 	//that's already been loaded?
 	frameFromKinect();
-	prevKeyframe = *new BodyFrame(displayBodies[bodyCount-1]);
+	//prevKeyframe = *new BodyFrame(displayBodies[bodyCount-1]);
+	prevKeyframe = displayQuats[bodyCount - 1];
 	prevKeyframe.setTimestamp(seconds);
 	keyframes.pushBackFrame(&prevKeyframe);
-	prevKeyframe.transformPoints();
+	//prevKeyframe.transformPoints();
 }
 
 void ActionDisplay::deleteLastKeyframe() {
@@ -438,7 +472,7 @@ void ActionDisplay::deleteLastKeyframe() {
 	}
 	if (keyframes.getCurrFrameCount() > 0) {
 		prevKeyframe = *keyframes.getBackFrame();
-		prevKeyframe.transformPoints();
+		//prevKeyframe.transformPoints();
 	} else {
 		keyframeCaptured = false;
 	}
@@ -499,15 +533,19 @@ void ActionDisplay::loadPrevDisplay() {
 }
 
 void ActionDisplay::togglePlaying() {
-	time_t currTime;
+//	time_t currTime;
+	SYSTEMTIME pauseLocal;
 	if (playing) {
 		//Program is currently playing movement and user has decided to pause it
-		time(&beginPauseTime);
+		//time(&beginPauseTime);
+		GetLocalTime(&granularBeginPauseTime);
 	}
 	else {
 		//Program is currently paused and user has decided to resume playing
-		time(&currTime);
-		pauseTime = pauseTime + difftime(currTime, beginPauseTime);
+		GetLocalTime(&pauseLocal);
+//		time(&currTime);
+//		pauseTime = pauseTime + difftime(currTime, beginPauseTime);
+		pauseTime += granularDiff(granularBeginPauseTime, pauseLocal);
 	}
 
 	//swap playing variable: if true, becomes false, if false becomes true

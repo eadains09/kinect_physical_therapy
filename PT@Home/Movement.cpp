@@ -247,7 +247,7 @@ BodyFrame Movement::getSingleFrame(double time)
 		//qframes->at(i - 1).initBodyFrame(retVal);
 	else if (i == 0)//if my picture of things is right enough, we should hit this case exactly once
 	{
-		qframes->at(0).addMidSpine(irr::core::vector3df(400, 300, 0));
+		//qframes->at(0).addMidSpine(irr::core::vector3df(400, 300, 0));
 		qframes->at(0).initBodyFrame(retVal);
 	}
 	else
@@ -255,7 +255,7 @@ BodyFrame Movement::getSingleFrame(double time)
 		double diff = sum - time;
 		diff = 1-diff/ qframes->at(i).getTimestamp();
 		QuatFrame *inter = qframes->at(i - 1).slerp(*new QuatFrame(qframes->at(i)), diff);
-		inter->addMidSpine(irr::core::vector3df(400, 300, 0));
+		//inter->addMidSpine(irr::core::vector3df(400, 300, 0));
 		inter->initBodyFrame(retVal);
 		delete inter;
 	}
