@@ -102,6 +102,25 @@ QuatFrame::QuatFrame(BodyFrame base)
 		addJoint(*points[i]);
 }
 
+QuatFrame::QuatFrame(const QuatFrame& source)
+{
+	joints = new irr::core::vector3df*[JOINT_TOTAL];
+	jointQuats = new irr::core::quaternion*[JOINT_TOTAL];
+	bones = new irr::core::vector3df*[JOINT_TOTAL];
+	currJointCount = 0;
+	currQuatCount = 0;
+
+	for (int i = 0; i < JOINT_TOTAL; i++)
+	{
+		jointQuats[i] = new irr::core::quaternion();
+		joints[i] = new irr::core::vector3df();
+		bones[i] = new irr::core::vector3df();
+	}
+	for (int i = 0; i < JOINT_TOTAL; i++)
+		addQuatJoint(irr::core::quaternion(*source.jointQuats[i]));
+//	addMidSpine(source.g)
+}
+
 void QuatFrame::initFromBodyFrame(BodyFrame source)
 {
 	irr::core::vector3df **points = source.getJoints();

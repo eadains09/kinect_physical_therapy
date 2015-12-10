@@ -136,7 +136,7 @@ QuatFrame Movement::getSingleFrame(double time)
 	{
 		//qframes->at(0).initBodyFrame(retVal);
 		//return *retVal;
-		return qframes->at(0);
+		return QuatFrame(qframes->at(0));
 	}
 	for (i = 0; i < qframes->size(); i++)
 	{
@@ -152,7 +152,7 @@ QuatFrame Movement::getSingleFrame(double time)
 	{
 		//qframes->at(0).addMidSpine(irr::core::vector3df(400, 300, 0));
 		//qframes->at(0).initBodyFrame(retVal);
-		return qframes->at(0);
+		return QuatFrame(qframes->at(0));
 	}
 	else
 	{
@@ -164,7 +164,7 @@ QuatFrame Movement::getSingleFrame(double time)
 	//	inter->initBodyFrame(retVal);
 	//	delete inter;
 	}
-	return *retVal;
+	return QuatFrame(*retVal);
 }
 
 int Movement::getCurrFrameCount() {
@@ -230,13 +230,13 @@ void Movement::popBackFrame() {
 //changing to BodyFrame * to avoid automatically calling destructor on frame
 //at end of function
 void Movement::pushBackFrame(QuatFrame *frame) {
-    qframes->push_back(*frame);
+    qframes->push_back(*new QuatFrame(*frame));
     currFrameCount++;
 }
 
 //Changing to return BodyFrame * to avoid automatic destructor on joints - where it gets returned calls transform points, meaning what will later be converted to quats are transformed points
 QuatFrame* Movement::getBackFrame() {
-    return &qframes->back();
+    return new QuatFrame(qframes->back());
 }
 
 void Movement::transformPoints(double *xPos, double *yPos, double *zPos) {

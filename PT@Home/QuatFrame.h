@@ -34,6 +34,7 @@ private:
 public:
 	QuatFrame();
 	QuatFrame(BodyFrame);
+	QuatFrame(const QuatFrame& source);
 	int compare(QuatFrame *other);
 	void initFromBodyFrame(BodyFrame source);
 	QuatFrame *slerp(const QuatFrame& next, irr::f32 time);
