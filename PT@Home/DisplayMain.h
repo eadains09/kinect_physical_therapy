@@ -17,7 +17,7 @@ private:
 	std::ofstream log, buttonLog;
     
     virtual bool renderScreen();
-    virtual bool renderFrame();
+    bool renderFrame();
     virtual bool loadMedia();    
     virtual bool loadButtons();
     virtual void handleKeyPresses(SDL_Event e);

@@ -33,7 +33,6 @@ protected:
     // virtual bool init(); // Init's SDL window and renderer only - should be called by inheriting classes
 
     virtual bool renderScreen() = 0; // Class specific what should go on the screen other than buttons    
-    virtual bool renderFrame() = 0; // Clears screen and renders buttons
     virtual bool loadMedia() = 0;
     virtual bool loadButtons() = 0;
     virtual void handleKeyPresses(SDL_Event e) = 0;

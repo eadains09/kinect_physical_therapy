@@ -38,6 +38,7 @@ private:
 	int exerciseCount;
 	SYSTEMTIME granularBeginning, granularCurrent, granularBeginPauseTime, granularPrevTime;
 
+	std::vector<int> errors;
 	// navigation variable
 	DisplayType prevScreen;
 
@@ -55,7 +56,7 @@ private:
 	Movement keyframes;
 	FileWriter writer;
 	OPENFILENAME saveFile;
-	char szFile[100]; // memory buffer to contain file name
+	char szFile[500]; // memory buffer to contain file name
 
 
 	// kinect capturing variables
@@ -70,7 +71,7 @@ private:
 
 	void constructUniversalActionDisplay();
 	virtual bool renderScreen(); // Class specific what should go on the screen other than buttons    
-    virtual bool renderFrame();
+    bool renderFrame(int bitField);
     virtual void handleKeyPresses(SDL_Event e);
     virtual void handleButtonEvent(SDL_Event* e, Button *currButton);
     virtual bool loadMedia();
@@ -81,9 +82,11 @@ private:
 
     bool init();
     //void renderBody(BodyFrame currBody);
-	void renderBody(QuatFrame currQuatBody);
+	void renderBody(QuatFrame currQuatBody, int bitField);
     bool frameFromKinect();
     bool getSingleFrameFromFile(double elapsedTime);
+	string getJointString(int type);
+
 
     void captureKeyframe();
     void deleteLastKeyframe();

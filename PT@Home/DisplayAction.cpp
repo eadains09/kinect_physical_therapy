@@ -177,6 +177,7 @@ double granularDiff(const SYSTEMTIME& from, const SYSTEMTIME& to)
 bool ActionDisplay::renderScreen() {
 	time_t currTime;
 	double elapsedTime;
+	int bitField;
 	
 	if (playing) {
 //		time(&currTime);
@@ -187,10 +188,12 @@ bool ActionDisplay::renderScreen() {
 
 		if (playback == LIVE) {
 			frameFromKinect();
+			bitField = 0;
 			//displayBodies[bodyCount - 1].transformPoints();
 		}
 		else if (playback == RECORDED) {
 			getSingleFrameFromFile(elapsedTime);
+			bitField = 0;
 			//I think the best way to do this might be to change
 			//single frame from file to deal with slerping
 			//if (getSingleFrameFromFile(elapsedTime)) {
@@ -202,19 +205,20 @@ bool ActionDisplay::renderScreen() {
 			//simultaneous playback
 			getSingleFrameFromFile(elapsedTime); //Must check if singleFrameFromFile returns true to do anything with displayBodies[0]
 			frameFromKinect();
+			bitField = displayQuats[0].compare(&displayQuats[bodyCount - 1]);
 			//displayBodies[bodyCount-1].transformPoints();
 		//	displayBodies[0].transformPoints();
 		}
 		frameNumber++;
 	}
 
-	renderFrame();
+	renderFrame(bitField);
 	//SDL_Delay(50);
 
 	return true;
 }
 
-bool ActionDisplay::renderFrame() {
+bool ActionDisplay::renderFrame(int bitField) {
 	int i;
     int colorArray[2] = {0x00, 0xFF};
 
@@ -234,15 +238,28 @@ bool ActionDisplay::renderFrame() {
 		//if (displayBodies[i].getCurrJointCount() != JOINT_TOTAL)
 		//if (displayQuats[i].isReady() != JOINT_TOTAL)
 			//continue;
-	
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i % 2], 0xFF);
 		//renderBody(displayBodies[i]);
-		renderBody(displayQuats[i]);
+		renderBody(displayQuats[i], bitField);
 	}
 
 	if (keyframeCaptured) {
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i % 2], 0xFF);
-		renderBody(prevKeyframe);
+		renderBody(prevKeyframe, bitField);
+	}
+
+	if (errors.size() > 0) {
+		SDL_FreeSurface(instructionSurface);
+		string error_text = "Adjust your ";
+		while (!errors.empty()) {
+			error_text = error_text + getJointString(errors.back());
+			errors.pop_back();
+			if (!errors.empty()) {
+				error_text = error_text + " & ";
+			}
+		}
+		SDL_Color textColor = { 255, 0, 0 };
+		loadText(error_text, textColor);
 	}
 
     SDL_RenderPresent(renderer);
@@ -250,18 +267,27 @@ bool ActionDisplay::renderFrame() {
     return true;
 }
 
-void ActionDisplay::renderBody(QuatFrame currQuatBody) {
-//void ActionDisplay::renderBody(BodyFrame currBody) {
-	//THIS IS WHERE WE WANT TO CONVERT FROM QUATFRAME TO BODYFRAME POINTS
+void ActionDisplay::renderBody(QuatFrame currQuatBody, int bitField) {
 	BodyFrame *currBody = new BodyFrame();
 	currQuatBody.initBodyFrame(currBody);
 
 	irr::core::vector3df **joints = (*currBody).getJoints();
 
-	for (int i = 0; i < (*currBody).getCurrJointCount(); i++)
-		if (getParent(i) != i)
+	for (int i = 0; i < (*currBody).getCurrJointCount(); i++) {
+		if (getParent(i) != i) {
+			if (playback == LIVE_RECORD) {
+				if (/* currQuatBody.getBit(bitField, i) */false || false/*currQuatBody.getBit(bitField, getParent(i)) */) {
+					SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0xFF);
+					//if (QuatFrame::getBit(bitField, i)) {
+					//	errors.push_back(i);
+					//}
+				}
+			}
 			SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
+		}
+	}
 
+	delete currBody;
 }
 
 bool ActionDisplay::frameFromKinect()
@@ -321,6 +347,16 @@ bool ActionDisplay::frameFromKinect()
 	
 		//QuatFrame test = QuatFrame(*anorexia);
 		displayQuats[bodyCount - 1] = *anorexia;
+		if (playback == LIVE) {
+			//displayQuats[bodyCount - 1].setMidSpine(200, 200); 
+		}
+		else if (playback == RECORDED) {
+			//displayQuats[bodyCount - 1].setMidSpine(400, 200); 
+		}
+		else {
+			//displayQuats[bodyCount - 1].setMidSpine(600, 200); 
+		}
+
 		//BodyFrame *test2 = new BodyFrame();
 
 		//test.initBodyFrame(test2);
@@ -333,6 +369,7 @@ bool ActionDisplay::frameFromKinect()
 
 	//default just in case no bodies are being tracked
 	//TODO make sure default behaves like it is supposed to
+	//Erika: Isn't this covered in our constructor now, so should we delete it?
 	if (j == BODY_COUNT || anorexia == NULL)
 		//displayBodies[bodyCount - 1] = BodyFrame();
 		displayQuats[bodyCount - 1] = QuatFrame();
@@ -351,6 +388,7 @@ bool ActionDisplay::frameFromKinect()
 bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
 	//displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(elapsedTime));
 	displayQuats[0] = *new QuatFrame(moveFromFile->getSingleFrame(elapsedTime));
+	//displayQuats[0].setMidSpine(200, 200); 
 
 	//return displayBodies[0].isReady();
 	return true;
@@ -434,13 +472,9 @@ void ActionDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 	}
 }
 
-//TODO so around here is where we want to do the quaternion math
-//on the captured keyframe
-//maybe
 void ActionDisplay::captureKeyframe() {
 //	time_t currTime;
 	double seconds;
-	//TODO convert to GetLocalTime
 	keyframeCaptured = true;
 
 	GetLocalTime(&granularCurrent);
@@ -463,6 +497,7 @@ void ActionDisplay::captureKeyframe() {
 	frameFromKinect();
 	//prevKeyframe = *new BodyFrame(displayBodies[bodyCount-1]);
 	prevKeyframe = displayQuats[bodyCount - 1];
+	//prevKeyframe.setMidSpine(600, 200); 
 	prevKeyframe.setTimestamp(seconds);
 	keyframes.pushBackFrame(&prevKeyframe);
 	//prevKeyframe.transformPoints();
@@ -483,12 +518,14 @@ void ActionDisplay::deleteLastKeyframe() {
 	}
 	
 	if (keyframeCaptured) {
-		time(&currTime);
-		prevTime = currTime;
+		//time(&currTime);
+		//prevTime = currTime;
+		GetLocalTime(&granularCurrent);
+		granularPrevTime = granularCurrent;
 	}
-	else {
-		prevTime = NULL;
-	}
+	//else {
+		//prevTime = NULL;
+	//}
 }
 //so we seem to be having too little indirection shaped
 //problems, my guess is therefore that we need more indirection
@@ -669,6 +706,65 @@ void ActionDisplay::close() {
 	closeButtons();
 }
 
+
+string ActionDisplay::getJointString(int type) {
+	switch (type) {
+	case JointType_SpineShoulder:
+		return "Upper back";
+	case JointType_SpineBase:
+		return "Lower back";
+	case JointType_SpineMid:
+		return "Mid back";
+	case JointType_Neck:
+		return "Neck";
+	case JointType_ShoulderLeft:
+		return "Left shoulder";
+	case JointType_ShoulderRight:
+		return "Right shoulder";
+	case JointType_HipLeft:
+		return "Left hip";
+	case JointType_HipRight:
+		return "Right hip";
+	case JointType_HandTipLeft:
+		return "Left hand tip";
+	case JointType_ThumbLeft:
+		return "Left thumb";
+	case JointType_HandTipRight:
+		return "Right hand tip";
+	case JointType_ThumbRight:
+		return "Right thumb";
+	case JointType_Head:
+		return "Head";
+	case JointType_ElbowLeft:
+		return "Left elbow";
+	case JointType_WristLeft:
+		return "Left wrist";
+	case JointType_HandLeft:
+		return "Left hand";
+	case JointType_ElbowRight:
+		return "Right elbow";
+	case JointType_WristRight:
+		return "Right wrist";
+	case JointType_HandRight:
+		return "Right hand";
+	case JointType_KneeLeft:
+		return "Left knee";
+	case JointType_AnkleLeft:
+		return "Left ankle";
+	case JointType_FootLeft:
+		return "Left foot";
+	case JointType_KneeRight:
+		return "Right knee";
+	case JointType_AnkleRight:
+		return "Right ankle";
+	case JointType_FootRight:
+		return "Right foot";
+
+	default:
+		return "";
+	}
+}
+
 int getParent(int type) {
 	switch (type) {
 	case JointType_SpineShoulder:
@@ -720,4 +816,3 @@ int getParent(int type) {
 	}
 
 }
-
