@@ -262,18 +262,17 @@ irr::core::vector3df *QuatFrame::getPoint(int i)
 		return new irr::core::vector3df(400, 300, 0);
 	}
 
-	irr::core::quaternion *inv = new irr::core::quaternion(*jointQuats[i]);
-	inv->makeInverse();
+	irr::core::quaternion inv = irr::core::quaternion(*jointQuats[i]);
+	inv.makeInverse();
 	irr::core::vector3df *temp = getBone(getParent(i));
 	temp->normalize();
 
-	irr::core::quaternion *fake = new irr::core::quaternion(temp->X, temp->Y, temp->Z);
+	irr::core::quaternion fake = irr::core::quaternion(temp->X, temp->Y, temp->Z);
 
-	fake->set(((*jointQuats[i]) * (*fake)*(*inv)));
-	temp->X = fake->X;
-	temp->Y = fake->Y;
-	temp->Z = fake->Z;
-	delete fake, inv;
+	fake.set((*jointQuats[i]) * fake * inv);
+	temp->X = fake.X;
+	temp->Y = fake.Y;
+	temp->Z = fake.Z;
 
 	temp->setLength(getBoneLength(i)*60);
 	*temp += *getPoint(getParent(i));
