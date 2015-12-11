@@ -227,12 +227,12 @@ bool ActionDisplay::renderFrame(int bitField) {
     //render bodies
 	for (i = 0; i < bodyCount; i++) {
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i % 2], 0xFF);
-		renderBody(displayQuats[i], bitField, colorArray[i%2]);
+		renderBody(&displayQuats[i], bitField, colorArray[i%2]);
 	}
 
 	if (keyframeCaptured) {
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i % 2], 0xFF);
-		renderBody(prevKeyframe, bitField, colorArray[i%2]);
+		renderBody(&prevKeyframe, bitField, colorArray[i%2]);
 	}
 
 	if (comparisonOn) {
@@ -266,10 +266,10 @@ bool ActionDisplay::renderFrame(int bitField) {
     return true;
 }
 
-void ActionDisplay::renderBody(QuatFrame currQuatBody, int bitField, int color) {
+void ActionDisplay::renderBody(QuatFrame *currQuatBody, int bitField, int color) {
 	BodyFrame *currBody = new BodyFrame();
-	currQuatBody.initBodyFrame(currBody);
-
+	currQuatBody->initBodyFrame(currBody);
+	
 	irr::core::vector3df **joints = (*currBody).getJoints();
 
 	for (int i = 0; i < (*currBody).getCurrJointCount(); i++) {
@@ -286,6 +286,7 @@ void ActionDisplay::renderBody(QuatFrame currQuatBody, int bitField, int color) 
 			SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
 		}
 	}
+	
 	delete currBody;
 }
 

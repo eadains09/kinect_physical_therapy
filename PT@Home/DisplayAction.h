@@ -84,7 +84,7 @@ private:
 
     bool init();
     //void renderBody(BodyFrame currBody);
-	void renderBody(QuatFrame currQuatBody, int bitField, int color);
+	void renderBody(QuatFrame *currQuatBody, int bitField, int color);
     bool frameFromKinect();
     bool getSingleFrameFromFile(double elapsedTime);
 	string getJointString(int type);
