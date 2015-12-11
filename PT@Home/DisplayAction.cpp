@@ -85,13 +85,13 @@ void ActionDisplay::constructUniversalActionDisplay() {
 	playFileName = trimAddress(playbackFile);
 	pauseTime = 0;
 
-	displayBodies = new BodyFrame[TOTAL_BODIES];
+	displayBodies = new BodyFrame*[TOTAL_BODIES];
 	for (int i = 0; i < TOTAL_BODIES; i++)
-		displayBodies[i] = BodyFrame();
+		displayBodies[i] = new BodyFrame();
 
-	displayQuats = new QuatFrame[TOTAL_BODIES];
+	displayQuats = new QuatFrame*[TOTAL_BODIES];
 	for (int i = 0; i < TOTAL_BODIES; i++)
-		displayQuats[i] = QuatFrame();
+		displayQuats[i] = new QuatFrame();
 
 	log.open("logData.txt");
 }
@@ -192,14 +192,14 @@ bool ActionDisplay::renderScreen() {
 			//simultaneous playback
 			getSingleFrameFromFile(elapsedTime);
 			frameFromKinect();
-			if (!displayQuats[0].isReady()) {
+			if (!displayQuats[0]->isReady()) {
 				GetLocalTime(&granularBeginning);
 				elapsedTime = 0;
 				pauseTime = 0;
 				playCount--;
 			}
 			//Compare whether joints match
-			bitField = displayQuats[0].compare(&displayQuats[bodyCount - 1]);
+			bitField = displayQuats[0]->compare(displayQuats[bodyCount - 1]);
 		}
 		frameNumber++;
 	}
@@ -227,7 +227,7 @@ bool ActionDisplay::renderFrame(int bitField) {
     //render bodies
 	for (i = 0; i < bodyCount; i++) {
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i % 2], 0xFF);
-		renderBody(&displayQuats[i], bitField, colorArray[i%2]);
+		renderBody(displayQuats[i], bitField, colorArray[i%2]);
 	}
 
 	if (keyframeCaptured) {
@@ -286,7 +286,7 @@ void ActionDisplay::renderBody(QuatFrame *currQuatBody, int bitField, int color)
 			SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
 		}
 	}
-	
+	delete[] *joints;
 	delete currBody;
 }
 
@@ -332,21 +332,11 @@ bool ActionDisplay::frameFromKinect()
 			//provide quatFrame with flipped image so it will display
 			//properly on sdl, or stop scaling in QuatFrame and 
 			//transform points afterwards
-			irr::core::vector3df *joint = new irr::core::vector3df(joints[i].Position.X, -joints[i].Position.Y, joints[i].Position.Z);
-			//anorexia->addJoint(joint);
-			anorexia->addJoint(*joint);
+			anorexia->addJoint(joints[i].Position.X, -joints[i].Position.Y, joints[i].Position.Z);
 		}
-		//if we want to use the kinect library for
-		//more granular time it would go something like
-		//this
-		//someCalculation(&nTime);
-		//anorexia->setTimestamp(nTime);
-		//or
-		//something = someCalculation(&nTime);
-		//anorexia->setTimestamp(something);
 	
-		//QuatFrame test = QuatFrame(*anorexia);
-		displayQuats[bodyCount - 1] = *anorexia;
+		delete displayQuats[bodyCount - 1];
+		displayQuats[bodyCount - 1] = anorexia;
 		if (playback == LIVE) {
 			//displayQuats[bodyCount - 1].setMidSpine(200, 200); 
 		}
@@ -357,12 +347,6 @@ bool ActionDisplay::frameFromKinect()
 			//displayQuats[bodyCount - 1].setMidSpine(600, 200); 
 		}
 
-		//BodyFrame *test2 = new BodyFrame();
-
-		//test.initBodyFrame(test2);
-		
-		//displayBodies[bodyCount - 1] = *test2;
-		//displayBodies[bodyCount-1] = *anorexia;
 		break; //once we've set the one entry in displayBodies we are alotted
 		//we are done no matter what
 	}
@@ -371,8 +355,11 @@ bool ActionDisplay::frameFromKinect()
 	//TODO make sure default behaves like it is supposed to
 	//Erika: Isn't this covered in our constructor now, so should we delete it?
 	if (j == BODY_COUNT || anorexia == NULL)
+	{
+		delete displayQuats[bodyCount - 1];
 		//displayBodies[bodyCount - 1] = BodyFrame();
-		displayQuats[bodyCount - 1] = QuatFrame();
+		displayQuats[bodyCount - 1] = new QuatFrame();
+	}
 
 	SafeRelease(pBodyFrame);
 
@@ -386,8 +373,8 @@ bool ActionDisplay::frameFromKinect()
 }
 
 bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
-	//displayBodies[0] = *new BodyFrame(moveFromFile->getSingleFrame(elapsedTime));
-	displayQuats[0] = *new QuatFrame(moveFromFile->getSingleFrame(elapsedTime));
+	delete displayQuats[0];
+	displayQuats[0] = new QuatFrame(moveFromFile->getSingleFrame(elapsedTime));
 	//displayQuats[0].setMidSpine(200, 200); 
 
 	//return displayBodies[0].isReady();
@@ -473,18 +460,11 @@ void ActionDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 }
 
 void ActionDisplay::captureKeyframe() {
-//	time_t currTime;
 	double seconds;
 	keyframeCaptured = true;
 
 	GetLocalTime(&granularCurrent);
-//	time(&currTime);
-//	if (prevTime != NULL) {
-//		seconds = difftime(currTime, prevTime);
-//	} else {
-//		seconds = 0;
-//	}
-	//prevTime = currTime;
+
 	if (granularPrevTime.wYear != 0)
 		seconds = granularDiff(granularCurrent, granularPrevTime);
 	else
@@ -495,8 +475,7 @@ void ActionDisplay::captureKeyframe() {
 
 
 	frameFromKinect();
-	//prevKeyframe = *new BodyFrame(displayBodies[bodyCount-1]);
-	prevKeyframe = displayQuats[bodyCount - 1];
+	prevKeyframe = QuatFrame(*displayQuats[bodyCount - 1]);
 	//prevKeyframe.setMidSpine(600, 200); 
 	prevKeyframe.setTimestamp(seconds);
 	keyframes.pushBackFrame(&prevKeyframe);
@@ -518,14 +497,9 @@ void ActionDisplay::deleteLastKeyframe() {
 	}
 	
 	if (keyframeCaptured) {
-		//time(&currTime);
-		//prevTime = currTime;
 		GetLocalTime(&granularCurrent);
 		granularPrevTime = granularCurrent;
 	}
-	//else {
-		//prevTime = NULL;
-	//}
 }
 //so we seem to be having too little indirection shaped
 //problems, my guess is therefore that we need more indirection
@@ -537,9 +511,6 @@ void ActionDisplay::saveKeyframes() {
 	initFileSelector();
 	SetCurrentDirectory("./movements");
 	if (GetSaveFileName(&saveFile)) {
-		//there is a compelling argument to be made that I should
-		//avoid messing with stuff here as much as possible and
-		//instead do all the quat stuff in Movement.logFrames()
 		keyframes.logFrames(saveFile.lpstrFile);
 		keyframeCaptured = false;
 		prevTime = NULL;
@@ -575,18 +546,14 @@ void ActionDisplay::loadPrevDisplay() {
 }
 
 void ActionDisplay::togglePlaying() {
-//	time_t currTime;
 	SYSTEMTIME pauseLocal;
 	if (playing) {
 		//Program is currently playing movement and user has decided to pause it
-		//time(&beginPauseTime);
 		GetLocalTime(&granularBeginPauseTime);
 	}
 	else {
 		//Program is currently paused and user has decided to resume playing
 		GetLocalTime(&pauseLocal);
-//		time(&currTime);
-//		pauseTime = pauseTime + difftime(currTime, beginPauseTime);
 		pauseTime += granularDiff(granularBeginPauseTime, pauseLocal);
 	}
 

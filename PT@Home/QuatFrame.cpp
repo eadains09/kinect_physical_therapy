@@ -213,18 +213,11 @@ void QuatFrame::initBodyFrame(BodyFrame *frame)
 	{
 		return;
 	}
-	//irr::core::vector3df **points = frame->getJoints();
 
 	for (int i = 0; i < JOINT_TOTAL; i++)
 	{
-		//it seems like the c++ auto destruction
-		//behavior could save us some space here
-		//but it does require that we deal with
-		//all the indirection headaches
-
 		irr::core::vector3df *temp = getPoint(i);
-		//points[i]->set(*temp);
-		frame->addJoint(getPoint(i));
+		frame->addJoint(temp);
 		delete temp;
 	}
 }
@@ -275,7 +268,9 @@ irr::core::vector3df *QuatFrame::getPoint(int i)
 	temp->Z = fake.Z;
 
 	temp->setLength(getBoneLength(i)*60);
-	*temp += *getPoint(getParent(i));
+	irr::core::vector3df *tempParent = getPoint(getParent(i));
+	*temp += *tempParent;
+	delete tempParent;
 	irr::core::vector3df *retVal = new irr::core::vector3df(*temp);
 	delete temp;
 
@@ -336,7 +331,7 @@ irr::core::vector3df *QuatFrame::getBone(int i)
 
 		irr::core::quaternion fake = irr::core::quaternion(temp->X, temp->Y, temp->Z);
 
-		fake.set(((*jointQuats[i]) * fake * inv));
+		fake.set((*jointQuats[i]) * fake * inv);
 		temp->X = fake.X;
 		temp->Y = fake.Y;
 		temp->Z = fake.Z;
@@ -358,17 +353,25 @@ irr::core::vector3df *QuatFrame::getBone(int i)
 
 void QuatFrame::init()
 {
+	irr::core::matrix4 mat = irr::core::matrix4();
+
+	irr::core::vector3df ourBone = irr::core::vector3df();
+	irr::core::vector3df parentBone = irr::core::vector3df();
+
 	for (int i = 0; i < JointType_Count; i++)
-		getBone(i);
+		//TODO this is messy as hell, fix
+		//easy way out: special initBone function
+		//that works basically the same as getBone
+		//but doesnt return anything and has 0
+		//net heap change
+		//but there must be a better way
+		delete getBone(i);
 
 	for (int i = currQuatCount; i < JointType_Count; i++)
 	{
 		irr::core::quaternion quat;
-		irr::core::matrix4 mat = irr::core::matrix4();
 
-		irr::core::vector3df ourBone;
-		irr::core::vector3df parentBone;
-		ourBone = irr::core::vector3df(*bones[i]);
+		ourBone.set(*bones[i]);
 		ourBone.normalize();
 
 		//so this is the thing I thought would prevent the
@@ -376,12 +379,12 @@ void QuatFrame::init()
 		//TODO find out why it didn't work and do something that does
 		if (getParent(i) == i)
 		{
-			parentBone = irr::core::vector3df(ourBone);
-			ourBone = irr::core::vector3df(0, -1, 0);
+			parentBone.set(ourBone);
+			ourBone.set(irr::core::vector3df(0, -1, 0));
 			ourBone.normalize();
 		}
 		else
-			parentBone = irr::core::vector3df(*bones[getParent(i)]);
+			parentBone.set(*bones[getParent(i)]);
 		
 		parentBone.normalize();
 
@@ -421,8 +424,7 @@ void QuatFrame::writeFrame(FileWriter *currFile) {
 
 QuatFrame::~QuatFrame()
 {
-	if (isReady())
-		delete[] jointQuats;
-
+	delete[] jointQuats;
+	delete[] bones;
 	delete[] joints;
 }

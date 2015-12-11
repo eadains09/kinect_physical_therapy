@@ -26,8 +26,8 @@ private:
 	int bodyCount; //Number of bodies being displayed, right now only options are 1 or 2
 	bool playing;
 	Movement *moveFromFile;
-	BodyFrame *displayBodies;
-	QuatFrame *displayQuats;
+	BodyFrame **displayBodies;
+	QuatFrame **displayQuats;
 	//BodyFrame displayBodies[TOTAL_BODIES];
 	PlaybackType playback;
 	string playbackFile;
