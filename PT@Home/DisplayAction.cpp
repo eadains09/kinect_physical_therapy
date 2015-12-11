@@ -286,7 +286,6 @@ void ActionDisplay::renderBody(QuatFrame currQuatBody, int bitField, int color) 
 			SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
 		}
 	}
-
 	delete currBody;
 }
 
