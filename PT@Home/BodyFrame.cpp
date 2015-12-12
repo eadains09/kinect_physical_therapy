@@ -22,19 +22,15 @@ BodyFrame::BodyFrame() {
 		joints[i] = new irr::core::vector3df();
     timestamp = 0;
 }
-//
+
 BodyFrame::BodyFrame(const BodyFrame& source)
 {
 	currJointCount = source.currJointCount;
 	joints = new irr::core::vector3df*[JOINT_TOTAL];
 
-//	irr::core::vector3df ** points = source.getJoints();
 
 	for (int i = 0; i < currJointCount; i++)
-	{
-		joints[i] = new irr::core::vector3df();
-		joints[i]->set(*source.joints[i]); //= new irr::core::vector3df(*source.joints[i]);
-	}
+		joints[i] = new irr::core::vector3df(*source.joints[i]);
 
 	timestamp = source.timestamp;
 }
@@ -44,7 +40,7 @@ bool BodyFrame::addJoint(irr::core::vector3df *currJoint) {
     bool success = false;
     
     if (currJointCount < JOINT_TOTAL) {
-		joints[currJointCount]->set(*currJoint); //= currJoint;
+		joints[currJointCount]->set(*currJoint);
         currJointCount++;
         success = true;
     }
@@ -89,24 +85,5 @@ void BodyFrame::transformPoints()
 		joints[i]->X = (joints[i]->X + 1) * 200;
 		joints[i]->Y = (joints[i]->Y - 1) * -200;
 		joints[i]->Z = (joints[i]->Z + 1) * 200;
-	//	*xPos = (*xPos + 1) * 200;
-	//	*yPos = (*yPos - 1) * -200;
-	//	*zPos = (*zPos + 1) * 200;
 	}
 }
-//this function should be useless now
-/*
-void BodyFrame::writeFrame(FileWriter *currFile) {
-    (*currFile).logTimestamp(timestamp);
-    (*currFile).openBodyFrame();
-    if (currJointCount > 0) {
-        (*currFile).logDataPoint(joints[0]->X, joints[0]->Y, joints[0]->Z);
-        for (int i = 1; i < currJointCount; i++) {
-            (*currFile).addComma();
-            (*currFile).logDataPoint(joints[i]->X, joints[i]->Y, joints[i]->Z);
-        }
-    }
-    (*currFile).closeBodyFrame();
-    (*currFile).closeKeyframe();
-}
-*/

@@ -157,7 +157,7 @@ QuatFrame *QuatFrame::slerp(const QuatFrame& next, irr::f32 time)
 	return inter;
 }
 
-bool QuatFrame::addJoint(float x, float y, float z)
+bool QuatFrame::addJoint(irr::f32 x, irr::f32 y, irr::f32 z)
 {
 	joints[currJointCount]->X = x;
 	joints[currJointCount]->Y = y;
@@ -174,6 +174,7 @@ bool QuatFrame::addJoint(float x, float y, float z)
 bool QuatFrame::addJoint(const irr::core::vector3df& joint)
 {
 	joints[currJointCount++]->set(joint);
+
 	if (!isReady())
 		return false;
 
@@ -186,9 +187,8 @@ bool QuatFrame::addQuatJoint(const irr::core::quaternion& joint)
 {
 	if (currQuatCount >= JOINT_TOTAL)
 		return false;
-	this->jointQuats[currQuatCount]->set(joint);
-//	this->jointQuats[currQuatCount]->normalize();
-	currQuatCount++;
+
+	this->jointQuats[currQuatCount++]->set(joint);
 
 	if (isReady())
 		init();
@@ -270,9 +270,8 @@ irr::core::vector3df *QuatFrame::getPoint(int i)
 	temp->setLength(getBoneLength(i)*60);
 	irr::core::vector3df *tempParent = getPoint(getParent(i));
 	*temp += *tempParent;
-	delete tempParent;
 	irr::core::vector3df *retVal = new irr::core::vector3df(*temp);
-	delete temp;
+	delete temp, tempParent;
 
 	return retVal;
 }
@@ -338,8 +337,7 @@ irr::core::vector3df *QuatFrame::getBone(int i)
 
 		temp->setLength(getBoneLength(i) * 60);
 		bones[i]->set(*temp);
-		return new irr::core::vector3df(*temp);
-
+		return temp;
 	}
 	else
 	{
@@ -348,7 +346,6 @@ irr::core::vector3df *QuatFrame::getBone(int i)
 	}
 	return new irr::core::vector3df(*bones[i]);
 }
-
 
 
 void QuatFrame::init()
@@ -362,7 +359,7 @@ void QuatFrame::init()
 		//TODO this is messy as hell, fix
 		//easy way out: special initBone function
 		//that works basically the same as getBone
-		//but doesnt return anything and has 0
+		//but doesn't return anything and has 0
 		//net heap change
 		//but there must be a better way
 		delete getBone(i);
@@ -374,9 +371,6 @@ void QuatFrame::init()
 		ourBone.set(*bones[i]);
 		ourBone.normalize();
 
-		//so this is the thing I thought would prevent the
-		//bizarre rotationy behavior, as we know it did not
-		//TODO find out why it didn't work and do something that does
 		if (getParent(i) == i)
 		{
 			parentBone.set(ourBone);
@@ -388,8 +382,6 @@ void QuatFrame::init()
 		
 		parentBone.normalize();
 
-
-	//	mat.buildRotateFromTo(parentBone, ourBone);
 		mat.buildRotateFromTo(ourBone, parentBone);
 
 		quat = irr::core::quaternion(mat);
@@ -405,7 +397,6 @@ void QuatFrame::setTimestamp(double ts) {
 double QuatFrame::getTimestamp() {
 	return timestamp;
 }
-
 
 void QuatFrame::writeFrame(FileWriter *currFile) {
 	currFile->logTimestampMidspine(timestamp, *joints[JointType_SpineMid]);
