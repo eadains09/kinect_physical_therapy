@@ -56,8 +56,6 @@ public:
     void freeButton();
     
 private:
-    //Top left position
-    SDL_Point mPosition;
     SDL_Rect srcR;
     SDL_Rect destR;
     SDL_Surface* buttonSurface;

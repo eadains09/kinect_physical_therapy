@@ -5,6 +5,9 @@
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
 
+// NO LONGER USED CLASS - intended as a wrapper class for joints, could still be implemented by changing it to hold irrlicht vector joints, 
+// instead of xPos, yPos, zPos and xQuat, yQuat, zQuat, wQuat.
+
 #include "Joint.h"
 
 eJoint::eJoint() {

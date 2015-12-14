@@ -4,6 +4,9 @@
 //  Created by Erika Dains on 10/23/15.
 //  Copyright (c) 2015 Erika Dains. All rights reserved.
 //
+
+// NO LONGER USED CLASS SHOULD BE DELETED
+
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 #pragma once

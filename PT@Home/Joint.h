@@ -37,7 +37,6 @@ public:
     void setXPos(int x);
     void setYPos(int y);
     void setZPos(int y);
-    //SDL_Point* getSDLPoint();
     int getX();
     int getY();
     int getZ();
