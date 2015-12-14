@@ -125,19 +125,16 @@ irr::core::quaternion Movement::readJointQuat(FileReader *file) {
 }
 
 //time is the total movement time that has transpired
-QuatFrame Movement::getSingleFrame(double time)
+QuatFrame *Movement::getSingleFrame(double time)
 {
 	double sum = 0;
 	int i;
-	//BodyFrame *retVal = new BodyFrame();
-	QuatFrame *retVal = new QuatFrame();
+
 	if (qframes->size() == 0)
-		return *retVal;
+		return new QuatFrame();
 	if (qframes->size() == 1)
 	{
-		//qframes->at(0).initBodyFrame(retVal);
-		//return *retVal;
-		return QuatFrame(qframes->at(0));
+		return new QuatFrame(qframes->at(0));
 	}
 	for (i = 0; i < qframes->size(); i++)
 	{
@@ -146,26 +143,35 @@ QuatFrame Movement::getSingleFrame(double time)
 			break;
 	}
 	if (i == qframes->size())//if we ran off the end
-		return *retVal;
+		return new QuatFrame();
 		//return BodyFrame();
 		//qframes->at(i - 1).initBodyFrame(retVal);
 	else if (i == 0)//if my picture of things is right enough, we should hit this case exactly once
 	{
 		//qframes->at(0).addMidSpine(irr::core::vector3df(400, 300, 0));
 		//qframes->at(0).initBodyFrame(retVal);
-		return QuatFrame(qframes->at(0));
+		return new QuatFrame(qframes->at(0));
 	}
 	else
 	{
 		double diff = sum - time;
 		diff = 1-diff/ qframes->at(i).getTimestamp();
 	//	QuatFrame *inter 
-		retVal = qframes->at(i - 1).slerp(*new QuatFrame(qframes->at(i)), diff);
+		//QuatFrame *temp = 
+
+
+		return qframes->at(i - 1).slerp(QuatFrame(qframes->at(i)), diff);
+	//	return new QuatFrame();
+		
+		
+		
+		//	retVal = new QuatFrame(*temp);
+	//	delete temp;
+//		retVal = qframes->at(i - 1).slerp(QuatFrame(qframes->at(i)), diff);
 		//inter->addMidSpine(irr::core::vector3df(400, 300, 0));
 	//	inter->initBodyFrame(retVal);
 	//	delete inter;
 	}
-	return QuatFrame(*retVal);
 }
 
 int Movement::getCurrFrameCount() {

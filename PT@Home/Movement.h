@@ -47,7 +47,7 @@ public:
     irr::core::vector3df readJointPoints(FileReader *file);
     irr::core::quaternion readJointQuat(FileReader *file);
     //BodyFrame* getFrames();
-	QuatFrame getSingleFrame(double time);
+	QuatFrame *getSingleFrame(double time);
 	//it would be trivial to write a similar method
 	//that instead returns a quatframe, this may be
 	//useful for control flow after we change to 

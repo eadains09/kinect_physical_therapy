@@ -147,9 +147,12 @@ void QuatFrame::initFromBodyFrame(BodyFrame source)
 QuatFrame *QuatFrame::slerp(const QuatFrame& next, irr::f32 time)
 {
 	QuatFrame *inter = new QuatFrame();
-	for (int i = 0; i < JOINT_TOTAL; i++)
-		inter->addQuatJoint(this->jointQuats[i]->slerp(*this->jointQuats[i], *next.jointQuats[i], time, .00000005f));
+	for (int i = 0; i < JOINT_TOTAL; i++) {
+		//irr::core::quaternion q  = irr::core::quaternion();
+		//	inter->addQuatJoint(q);
 
+		inter->addQuatJoint(this->jointQuats[i]->slerp(*this->jointQuats[i], *next.jointQuats[i], time, .00000005f));
+	}
 	irr::core::vector3df interSpine = this->joints[JointType_SpineMid]->getInterpolated(*next.joints[JointType_SpineMid], time);
 
 	inter->addMidSpine(interSpine);
@@ -188,9 +191,15 @@ bool QuatFrame::addQuatJoint(const irr::core::quaternion& joint)
 	if (currQuatCount >= JOINT_TOTAL)
 		return false;
 
+	//this->jointQuats[currQuatCount++]->X = joint.X;
+	//this->jointQuats[currQuatCount++]->Y = joint.Y;
+	//this->jointQuats[currQuatCount++]->Z = joint.Z;
+	//this->jointQuats[currQuatCount++]->W = joint.W;
+
+//	currQuatCount++;
 	this->jointQuats[currQuatCount++]->set(joint);
 
-	if (isReady())
+	if (isReady()) 
 		init();
 
 	return true;
@@ -198,6 +207,7 @@ bool QuatFrame::addQuatJoint(const irr::core::quaternion& joint)
 
 bool QuatFrame::isReady()
 {
+
 	//math and addition logic could be generalized more so that joints and quaternions
 	//can be interleaved any which way and added in any order and as long as we have
 	//enough information we can proceed. However this requires a good deal of math
@@ -214,9 +224,12 @@ void QuatFrame::initBodyFrame(BodyFrame *frame)
 		return;
 	}
 
+
+
 	for (int i = 0; i < JOINT_TOTAL; i++)
 	{
 		irr::core::vector3df *temp = getPoint(i);
+//		irr::core::vector3df *temp = new irr::core::vector3df(0, 0, 0);
 		frame->addJoint(temp);
 		delete temp;
 	}
@@ -271,9 +284,14 @@ irr::core::vector3df *QuatFrame::getPoint(int i)
 	irr::core::vector3df *tempParent = getPoint(getParent(i));
 	*temp += *tempParent;
 	irr::core::vector3df *retVal = new irr::core::vector3df(*temp);
-	delete temp, tempParent;
+	delete tempParent;
+		delete temp;
+	//	int x, y;
+
+	//	x, y;
 
 	return retVal;
+	//return temp;
 }
 
 int genMask(int n)
@@ -320,6 +338,7 @@ irr::core::vector3df *QuatFrame::getBone(int i)
 	if (currJointCount == JOINT_TOTAL)
 		bones[i]->set(*joints[i] - *joints[getParent(i)]);
 	else if (currQuatCount == JOINT_TOTAL)
+
 	{
 		//generate bone with only the midspine point, quaternions, and the power of recursion
 		//TODO double check and make sure this makes sense
@@ -415,6 +434,12 @@ void QuatFrame::writeFrame(FileWriter *currFile) {
 
 QuatFrame::~QuatFrame()
 {
+	for (int i = 0; i < JOINT_TOTAL; i++)
+	{
+		delete jointQuats[i];
+		delete joints[i];
+		delete bones[i];
+	}
 	delete[] jointQuats;
 	delete[] bones;
 	delete[] joints;

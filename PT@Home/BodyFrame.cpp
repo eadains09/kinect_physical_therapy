@@ -29,8 +29,8 @@ BodyFrame::BodyFrame(const BodyFrame& source)
 	joints = new irr::core::vector3df*[JOINT_TOTAL];
 
 
-	for (int i = 0; i < currJointCount; i++)
-		joints[i] = new irr::core::vector3df(*source.joints[i]);
+//	for (int i = 0; i < currJointCount; i++)
+//		joints[i] = new irr::core::vector3df(*source.joints[i]);
 
 	timestamp = source.timestamp;
 }
@@ -64,6 +64,9 @@ int BodyFrame::getCurrJointCount() {
 
 BodyFrame::~BodyFrame()
 {
+	for (int i = 0; i < JOINT_TOTAL; i++)
+		delete joints[i];
+
 	delete[] joints;
 }
 

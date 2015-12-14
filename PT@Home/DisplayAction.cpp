@@ -236,9 +236,9 @@ bool ActionDisplay::renderFrame(int bitField) {
 	}
 
 	if (comparisonOn) {
+		SDL_FreeSurface(instructionSurface);
 		if (errors.size() > 0) {
 			std::set<int>::iterator iter;
-			SDL_FreeSurface(instructionSurface);
 			string error_text = "Adjust your ";
 			iter = errors.begin();
 			while(iter != errors.end()) {
@@ -259,7 +259,7 @@ bool ActionDisplay::renderFrame(int bitField) {
 			SDL_Color textColor = { 0, 0, 0 };
 			loadText("Doing good!", textColor);
 		}
-	}
+	} 
 
     SDL_RenderPresent(renderer);
 
@@ -285,8 +285,8 @@ void ActionDisplay::renderBody(QuatFrame *currQuatBody, int bitField, int color)
 			}
 			SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
 		}
-	}
-	delete[] *joints;
+	} 
+//	delete[] *joints;
 	delete currBody;
 }
 
@@ -374,7 +374,7 @@ bool ActionDisplay::frameFromKinect()
 
 bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
 	delete displayQuats[0];
-	displayQuats[0] = new QuatFrame(moveFromFile->getSingleFrame(elapsedTime));
+	displayQuats[0] = moveFromFile->getSingleFrame(elapsedTime);
 	//displayQuats[0].setMidSpine(200, 200); 
 
 	//return displayBodies[0].isReady();
