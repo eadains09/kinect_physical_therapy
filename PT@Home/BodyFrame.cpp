@@ -33,11 +33,6 @@ BodyFrame::BodyFrame(const BodyFrame& source)
 	timestamp = source.timestamp;
 }
 
-// Destructor
-BodyFrame::~BodyFrame()
-{
-	delete[] joints;
-}
 
 // Adds a single joint to the array of joints, increments currJointCount
 // Will return false if there are already the correct amount of joints in joint array
@@ -67,6 +62,7 @@ int BodyFrame::getCurrJointCount() {
     return currJointCount;
 }
 
+// Destructor
 BodyFrame::~BodyFrame()
 {
 	for (int i = 0; i < JOINT_TOTAL; i++)
