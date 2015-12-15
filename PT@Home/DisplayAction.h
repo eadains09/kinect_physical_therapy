@@ -54,7 +54,6 @@ private:
 	bool keyframeCaptured;
 	time_t prevTime = NULL;
 	//BodyFrame prevKeyframe;
-	QuatFrame prevKeyframe;
 	Movement keyframes;
 	FileWriter writer;
 	OPENFILENAME saveFile;
