@@ -19,9 +19,7 @@ using namespace std;
 Movement::Movement() {
     currFrameCount = 0;
 	finished = false;
-	//frames = new BodyFrame*[FRAME_TOTAL];
-	//frames = new deque<BodyFrame>();// (FRAME_TOTAL);
-	qframes = new deque<QuatFrame>();// (FRAME_TOTAL);
+	qframes = new deque<QuatFrame>();
 }
 
 void Movement::readQuatFrame(std::string path) {
@@ -37,10 +35,9 @@ void Movement::readQuatFrame(std::string path) {
 			file.findJointStart();
 
             while (file.findJointStart()) {
-                // Just change this part to switch to reading quaternions
                 irr::core::vector3df currJoint = readJointPoints(&file);
-                //eJoint currJoint = readJointQuats(&file, currFrame);
-				if (currJoint.X == 0 && currJoint.Y == 0 && currJoint.Z == 0) {
+
+				if (currJoint.X == 0 && currJoint.Y == 0 && currJoint.Z == 0) {//if readJointPoints returned a bogus point
 					continue;
 				}
 				currFrame.addJoint(currJoint);
@@ -75,14 +72,10 @@ void Movement::readKeyframes(std::string path) {
 
         while (file.findKeyframeStart()) {
             QuatFrame *currFrame = new QuatFrame();
-			//TODO
-			//FOR SURE MAKE SURE OF ORDERING of frame struct
-			//as stored in file
+			
             currFrame->setTimestamp(file.findTimestamp());
 
 			file.findJointStart();
-			//I think I might need one more findJointStart() here
-			//ask erika?
 			currFrame->addMidSpine(readJointPoints(&file));
 
             file.findJointStart();
@@ -104,8 +97,6 @@ irr::core::vector3df Movement::readJointPoints(FileReader *file) {
     yPos = (*file).findDouble();
     zPos = (*file).findDouble();
 
-	//transformPoints(&xPos, &yPos, &zPos);
-//    eJoint currJoint(currFrame.getCurrJointCount(), (int)xPos, (int)yPos, (int)zPos);
 	irr::core::vector3df *currJoint = new irr::core::vector3df(xPos, yPos, zPos);
 
     return *currJoint;
@@ -125,9 +116,44 @@ irr::core::quaternion Movement::readJointQuat(FileReader *file) {
 }
 
 //time is the total movement time that has transpired
-QuatFrame *Movement::getSingleFrame(double time)
+//QuatFrame *Movement::getSingleFrame(double time)
+//{
+//	double sum = 0;
+//	int i;
+//
+//	if (qframes->size() == 0)
+//		return new QuatFrame();
+//	if (qframes->size() == 1)
+//	{
+//		return new QuatFrame(qframes->at(0));
+//	}
+//	for (i = 0; i < qframes->size(); i++)
+//	{
+//		sum += qframes->at(i).getTimestamp();
+//		if (sum >= time)
+//			break;
+//	}
+//	if (i == qframes->size())//if we ran off the end
+//		return new QuatFrame();
+//	else if (i == 0)//if my picture of things is right enough, we should hit this case exactly once
+//	{
+//		return new QuatFrame(qframes->at(0));
+//	}
+//	else
+//	{
+//		double diff = sum - time;
+//		diff = 1-diff/ qframes->at(i).getTimestamp();
+//
+//		return qframes->at(i - 1).slerp(QuatFrame(qframes->at(i)), diff);
+//	}
+//}
+
+//time is the amount of time that has transpired while in
+//a playing state since the current keyframe was displayed
+//raw rather than being the initial state of the slerp
+QuatFrame *Movement::getSingleFrame(int frameNumber, double time)
 {
-	double sum = 0;
+	double quotient;
 	int i;
 
 	if (qframes->size() == 0)
@@ -136,43 +162,23 @@ QuatFrame *Movement::getSingleFrame(double time)
 	{
 		return new QuatFrame(qframes->at(0));
 	}
-	for (i = 0; i < qframes->size(); i++)
-	{
-		sum += qframes->at(i).getTimestamp();
-		if (sum >= time)
-			break;
-	}
-	if (i == qframes->size())//if we ran off the end
+	if (frameNumber >= qframes->size()-1)//if we ran off the end
 		return new QuatFrame();
-		//return BodyFrame();
-		//qframes->at(i - 1).initBodyFrame(retVal);
-	else if (i == 0)//if my picture of things is right enough, we should hit this case exactly once
-	{
-		//qframes->at(0).addMidSpine(irr::core::vector3df(400, 300, 0));
-		//qframes->at(0).initBodyFrame(retVal);
-		return new QuatFrame(qframes->at(0));
-	}
-	else
-	{
-		double diff = sum - time;
-		diff = 1-diff/ qframes->at(i).getTimestamp();
-	//	QuatFrame *inter 
-		//QuatFrame *temp = 
+	if (time >= qframes->at(frameNumber + 1).getTimestamp())//if we hit the end of a keyframe
+		return new QuatFrame();
 
+	//this has two possible issues, the timestamp we get could be 0
+	//or the time argument we got passed could be larger than the timestamp
+	//and while one of them is an error and the other a bug they are equally disastrous
+	//TODO make sure they don't happen or protect against them
+	quotient = time / qframes->at(frameNumber + 1).getTimestamp();
 
-		return qframes->at(i - 1).slerp(QuatFrame(qframes->at(i)), diff);
-	//	return new QuatFrame();
-		
-		
-		
-		//	retVal = new QuatFrame(*temp);
-	//	delete temp;
-//		retVal = qframes->at(i - 1).slerp(QuatFrame(qframes->at(i)), diff);
-		//inter->addMidSpine(irr::core::vector3df(400, 300, 0));
-	//	inter->initBodyFrame(retVal);
-	//	delete inter;
-	}
+	QuatFrame *temp = qframes->at(frameNumber).slerp(QuatFrame(qframes->at(frameNumber+1)), quotient);
+//	temp->setTimestamp(quotient);
+	return temp;
 }
+
+
 
 int Movement::getCurrFrameCount() {
     return currFrameCount;
@@ -189,28 +195,12 @@ void Movement::resetFinished() {
 
 Movement::~Movement()
 {
-//	freeFrames();
 	delete qframes;
 //	delete frames;
 }
-/*
-void Movement::logMove(std::string fileName)
-{
-    while (frames->size() > 0) {
-		//TODO I think there's a fancy deque foreach destructor
-		//that one is supposed to use, look up and implement
-        //frames->front().freeJoints();
-        frames->pop_front();
-    }
-}*/
 
 /*neat fact to bear in mind: we will never, under any circumstances,
 need to log raw points*/
-//maybe here after constructing file before if we do a check to see
-//if we have qframes, and if not we go ahead and convert frames into qframes
-//the basic idea being that we continue making movement an opaque layer that deals with
-//quatframe/bodyframe stuff
-//idk
 void Movement::logFrames(std::string fileName)
 {
     FileWriter file(fileName, "keyframes");
@@ -239,7 +229,6 @@ void Movement::logFrames(std::string fileName)
 void Movement::popBackFrame() {
     qframes->pop_back();
 	currFrameCount--;
-//    currFrameCount--;
 }
 
 //changing to BodyFrame * to avoid automatically calling destructor on frame
@@ -253,10 +242,10 @@ void Movement::pushBackFrame(QuatFrame *frame) {
 QuatFrame* Movement::getBackFrame() {
     return new QuatFrame(qframes->back());
 }
-
+/*
 void Movement::transformPoints(double *xPos, double *yPos, double *zPos) {
     *xPos = (*xPos + 1) * 200;
     *yPos = (*yPos - 1) * -200;
     *zPos = (*zPos + 1) * 200;
-}
+}*/
 

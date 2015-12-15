@@ -146,16 +146,19 @@ void QuatFrame::initFromBodyFrame(BodyFrame source)
 //between 0 and 1.
 QuatFrame *QuatFrame::slerp(const QuatFrame& next, irr::f32 time)
 {
+	//the fact that this works is very confusing
+	//it looks like the time we're passing to slerp is ~30x too big
+	//and I have no idea why that scaling would exist
+	//since we're passing in the correct value betweeen 0 and 1
+	time /= 32;
 	QuatFrame *inter = new QuatFrame();
-	for (int i = 0; i < JOINT_TOTAL; i++) {
-		//irr::core::quaternion q  = irr::core::quaternion();
-		//	inter->addQuatJoint(q);
+	for (int i = 0; i < JOINT_TOTAL; i++)
+		inter->addQuatJoint(this->jointQuats[i]->slerp(*this->jointQuats[i], *next.jointQuats[i], time));
 
-		inter->addQuatJoint(this->jointQuats[i]->slerp(*this->jointQuats[i], *next.jointQuats[i], time, .00000005f));
-	}
 	irr::core::vector3df interSpine = this->joints[JointType_SpineMid]->getInterpolated(*next.joints[JointType_SpineMid], time);
 
 	inter->addMidSpine(interSpine);
+	inter->setTimestamp(time);
 
 	return inter;
 }

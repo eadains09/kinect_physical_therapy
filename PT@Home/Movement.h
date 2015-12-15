@@ -36,7 +36,7 @@ private:
 	//initbodyframe does this at the end, so this function
 	//should only be used for the raw points from the kinect
 	//if at all
-    void transformPoints(double *xPos, double *yPos, double *zPos);
+//    void transformPoints(double *xPos, double *yPos, double *zPos);
 
 public:
     Movement();
@@ -47,7 +47,8 @@ public:
     irr::core::vector3df readJointPoints(FileReader *file);
     irr::core::quaternion readJointQuat(FileReader *file);
     //BodyFrame* getFrames();
-	QuatFrame *getSingleFrame(double time);
+//	QuatFrame *getSingleFrame(double time);
+	QuatFrame *getSingleFrame(int frameNumber, double time);
 	//it would be trivial to write a similar method
 	//that instead returns a quatframe, this may be
 	//useful for control flow after we change to 
