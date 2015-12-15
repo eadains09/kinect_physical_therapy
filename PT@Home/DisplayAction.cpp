@@ -137,6 +137,7 @@ void ActionDisplay::run() {
 
 	quit = false;
 	SDL_Event e;
+	//this should now be useless
 	GetLocalTime(&granularBeginning);
 
 	while (!quit) {
@@ -176,8 +177,12 @@ double granularDiff(const SYSTEMTIME& from, const SYSTEMTIME& to)
 bool ActionDisplay::renderScreen() {
 	double elapsedTime;
 	int bitField = 0;
+	int frameNumber = 0;
 	
 	if (playing && playCount > 0) {
+		//elapsed time should now be the result of granularDiff(granularPrevTime, granularCurrent);
+		//and then getSingleFrameFromFile returns a boolean indicating whether or not we reached the end of the slerp
+		//at which point we wait for the person to catch up, then increment framenumber and get a new granularPrevTime
 		GetLocalTime(&granularCurrent);
 		elapsedTime = granularDiff(granularBeginning, granularCurrent);
 		elapsedTime -= pauseTime;
@@ -192,6 +197,7 @@ bool ActionDisplay::renderScreen() {
 			//simultaneous playback
 			getSingleFrameFromFile(elapsedTime);
 			frameFromKinect();
+			//this will change drastically, not sure how much of it is worth keeping
 			if (!displayQuats[0]->isReady()) {
 				GetLocalTime(&granularBeginning);
 				elapsedTime = 0;
@@ -286,7 +292,7 @@ void ActionDisplay::renderBody(QuatFrame *currQuatBody, int bitField, int color)
 			SDL_RenderDrawLine(renderer, joints[i]->X, joints[i]->Y, joints[getParent(i)]->X, joints[getParent(i)]->Y);
 		}
 	} 
-//	delete[] *joints;
+
 	delete currBody;
 }
 
@@ -294,10 +300,8 @@ bool ActionDisplay::frameFromKinect()
 {
 	HRESULT hr;
 	int j;
-	//BodyFrame *anorexia = NULL;
 	QuatFrame *anorexia = NULL;
 	IBodyFrame* pBodyFrame = NULL;
-	INT64 nTime = 0;
 
 	if (!m_pBodyFrameReader)
 		return false;
@@ -309,8 +313,6 @@ bool ActionDisplay::frameFromKinect()
 	Joint *joints = new Joint[JointType_Count];
 	IBody* ppBodies[BODY_COUNT] = { 0 };
 
-	hr = pBodyFrame->get_RelativeTime(&nTime);
-	//check?
 	hr = pBodyFrame->GetAndRefreshBodyData(_countof(ppBodies), ppBodies);
 	//check?
 
@@ -324,7 +326,6 @@ bool ActionDisplay::frameFromKinect()
 			continue;
 
 		ppBodies[j]->GetJoints(JointType_Count, joints);
-		//anorexia = new BodyFrame();
 		anorexia = new QuatFrame();
 
 		for (int i = 0; i < JointType_Count; i++)
@@ -337,6 +338,7 @@ bool ActionDisplay::frameFromKinect()
 	
 		delete displayQuats[bodyCount - 1];
 		displayQuats[bodyCount - 1] = anorexia;
+
 		if (playback == LIVE) {
 			//displayQuats[bodyCount - 1].setMidSpine(200, 200); 
 		}
@@ -357,7 +359,6 @@ bool ActionDisplay::frameFromKinect()
 	if (j == BODY_COUNT || anorexia == NULL)
 	{
 		delete displayQuats[bodyCount - 1];
-		//displayBodies[bodyCount - 1] = BodyFrame();
 		displayQuats[bodyCount - 1] = new QuatFrame();
 	}
 
@@ -465,6 +466,13 @@ void ActionDisplay::captureKeyframe() {
 
 	GetLocalTime(&granularCurrent);
 
+	//granularPrevTime shall now take on double duty
+	//when in the doctor interface it will work as it does here
+	//but in patient's interface it shall also work as it does here
+	//ie to track time since last keyframe, then at the end of the
+	//keyframe we'll wait and keep displaying the end of the keyframe
+	//while the patient catches up 
+	//this comment superseded by comment directly below
 	if (granularPrevTime.wYear != 0)
 		seconds = granularDiff(granularCurrent, granularPrevTime);
 	else
@@ -475,11 +483,15 @@ void ActionDisplay::captureKeyframe() {
 
 
 	frameFromKinect();
-	prevKeyframe = QuatFrame(*displayQuats[bodyCount - 1]);
+	//this ugly hack should no longer be necessary after time
+	//has been changed to relative, since the only purpose of the
+	//*new is to keep the relative timestamp local to prevKeyFrame
+	//which also means we won't need to deal with time in this function
+	prevKeyframe = *new QuatFrame(*displayQuats[bodyCount - 1]);
 	//prevKeyframe.setMidSpine(600, 200); 
 	prevKeyframe.setTimestamp(seconds);
-	keyframes.pushBackFrame(&prevKeyframe);
-	//prevKeyframe.transformPoints();
+	keyframes.pushBackFrame(new QuatFrame(prevKeyframe));
+
 }
 
 void ActionDisplay::deleteLastKeyframe() {
@@ -491,7 +503,6 @@ void ActionDisplay::deleteLastKeyframe() {
 	}
 	if (keyframes.getCurrFrameCount() > 0) {
 		prevKeyframe = *keyframes.getBackFrame();
-		//prevKeyframe.transformPoints();
 	} else {
 		keyframeCaptured = false;
 	}
@@ -546,6 +557,7 @@ void ActionDisplay::loadPrevDisplay() {
 }
 
 void ActionDisplay::togglePlaying() {
+	//pause time related stuff should stay the same
 	SYSTEMTIME pauseLocal;
 	if (playing) {
 		//Program is currently playing movement and user has decided to pause it
