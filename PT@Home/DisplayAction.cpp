@@ -238,7 +238,7 @@ bool ActionDisplay::renderFrame(int bitField) {
 
 	if (keyframeCaptured) {
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i % 2], 0xFF);
-		renderBody(&prevKeyframe, bitField, colorArray[i%2]);
+		renderBody(keyframes.getBackFrame(), bitField, colorArray[i%2]);
 	}
 
 	if (comparisonOn) {
@@ -483,15 +483,12 @@ void ActionDisplay::captureKeyframe() {
 
 
 	frameFromKinect();
-	//this ugly hack should no longer be necessary after time
-	//has been changed to relative, since the only purpose of the
-	//*new is to keep the relative timestamp local to prevKeyFrame
-	//which also means we won't need to deal with time in this function
-	prevKeyframe = *new QuatFrame(*displayQuats[bodyCount - 1]);
-	//prevKeyframe.setMidSpine(600, 200); 
-	prevKeyframe.setTimestamp(seconds);
-	keyframes.pushBackFrame(new QuatFrame(prevKeyframe));
 
+	QuatFrame *prevKeyframe = new QuatFrame(*displayQuats[bodyCount - 1]);
+	//prevKeyframe.setMidSpine(600, 200); 
+	prevKeyframe->setTimestamp(seconds);
+	keyframes.pushBackFrame(new QuatFrame(*prevKeyframe));
+	delete prevKeyframe;
 }
 
 void ActionDisplay::deleteLastKeyframe() {
@@ -501,9 +498,8 @@ void ActionDisplay::deleteLastKeyframe() {
 	if (keyframes.getCurrFrameCount() > 0) {
 		keyframes.popBackFrame();
 	}
-	if (keyframes.getCurrFrameCount() > 0) {
-		prevKeyframe = *keyframes.getBackFrame();
-	} else {
+
+	if (keyframes.getCurrFrameCount() <= 0) {
 		keyframeCaptured = false;
 	}
 	
