@@ -147,10 +147,12 @@ void QuatFrame::initFromBodyFrame(BodyFrame source)
 QuatFrame *QuatFrame::slerp(const QuatFrame& next, irr::f32 time)
 {
 	//the fact that this works is very confusing
-	//it looks like the time we're passing to slerp is ~30x too big
+	//it looks like the time we're passing to slerp is too big
 	//and I have no idea why that scaling would exist
 	//since we're passing in the correct value betweeen 0 and 1
-	time /= 32;
+	//so why would slerp do all its slerping in the first ~1/85th
+	//is a mystery
+	time /= (double)85;
 	QuatFrame *inter = new QuatFrame();
 	for (int i = 0; i < JOINT_TOTAL; i++)
 		inter->addQuatJoint(this->jointQuats[i]->slerp(*this->jointQuats[i], *next.jointQuats[i], time));
@@ -194,12 +196,6 @@ bool QuatFrame::addQuatJoint(const irr::core::quaternion& joint)
 	if (currQuatCount >= JOINT_TOTAL)
 		return false;
 
-	//this->jointQuats[currQuatCount++]->X = joint.X;
-	//this->jointQuats[currQuatCount++]->Y = joint.Y;
-	//this->jointQuats[currQuatCount++]->Z = joint.Z;
-	//this->jointQuats[currQuatCount++]->W = joint.W;
-
-//	currQuatCount++;
 	this->jointQuats[currQuatCount++]->set(joint);
 
 	if (isReady()) 
@@ -232,7 +228,6 @@ void QuatFrame::initBodyFrame(BodyFrame *frame)
 	for (int i = 0; i < JOINT_TOTAL; i++)
 	{
 		irr::core::vector3df *temp = getPoint(i);
-//		irr::core::vector3df *temp = new irr::core::vector3df(0, 0, 0);
 		frame->addJoint(temp);
 		delete temp;
 	}
@@ -248,26 +243,15 @@ void QuatFrame::addMidSpine(const irr::core::vector3df& mid)
 		init();
 }
 
-//for getPoint and getBone it would be nice
-//to more effectively memoize, right now the 
-//only memos we have are the midspines
 
-//this is now a memory leak waiting to happen
 irr::core::vector3df *QuatFrame::getPoint(int i)
 {
-	//TODO semi-immediate next steps:
-	//1. the mid spine member shall now be
-	//a vector3df that is set by a call
-	//to setMidSpine and returned here
-	//instead of a constant (400, 300, 0)
-	//vector
-	//2. we will eliminate the joints array
+	//Eliminate the joints array
 	//instead building up the bones and
 	//jointQuats arrays(/deques?) directly
 	//of the BodyFrame joints array
 	if (i == JointType_SpineMid)
 	{
-		//return new irr::core::vector3df(*joints[JointType_SpineMid]);
 		return new irr::core::vector3df(400, 300, 0);
 	}
 
@@ -288,13 +272,9 @@ irr::core::vector3df *QuatFrame::getPoint(int i)
 	*temp += *tempParent;
 	irr::core::vector3df *retVal = new irr::core::vector3df(*temp);
 	delete tempParent;
-		delete temp;
-	//	int x, y;
-
-	//	x, y;
+	delete temp;
 
 	return retVal;
-	//return temp;
 }
 
 int genMask(int n)
@@ -329,7 +309,6 @@ int QuatFrame::compare(QuatFrame *other)
 
 irr::core::vector3df *QuatFrame::getBone(int i)
 {
-	//TODO body is rotated about midSpine vector, make that not happen anymore
 	if (i == JointType_SpineMid)
 	{
 		bones[JointType_SpineMid]->set(*joints[JointType_SpineMid]);

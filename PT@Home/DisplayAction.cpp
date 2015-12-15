@@ -137,8 +137,8 @@ void ActionDisplay::run() {
 
 	quit = false;
 	SDL_Event e;
-	//this should now be useless
-	GetLocalTime(&granularBeginning);
+
+	GetLocalTime(&granularPrevTime);
 
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
@@ -177,37 +177,49 @@ double granularDiff(const SYSTEMTIME& from, const SYSTEMTIME& to)
 bool ActionDisplay::renderScreen() {
 	double elapsedTime;
 	int bitField = 0;
-	int frameNumber = 0;
 	
 	if (playing && playCount > 0) {
-		//elapsed time should now be the result of granularDiff(granularPrevTime, granularCurrent);
-		//and then getSingleFrameFromFile returns a boolean indicating whether or not we reached the end of the slerp
-		//at which point we wait for the person to catch up, then increment framenumber and get a new granularPrevTime
 		GetLocalTime(&granularCurrent);
-		elapsedTime = granularDiff(granularBeginning, granularCurrent);
+		elapsedTime = granularDiff(granularPrevTime, granularCurrent);
 		elapsedTime -= pauseTime;
 
-		if (playback == LIVE) {
+		if (playback == LIVE || playback == LIVE_RECORD) {
 			frameFromKinect();
 		}
-		else if (playback == RECORDED) {
-			getSingleFrameFromFile(elapsedTime);
-		}
-		else {
-			//simultaneous playback
-			getSingleFrameFromFile(elapsedTime);
-			frameFromKinect();
-			//this will change drastically, not sure how much of it is worth keeping
-			if (!displayQuats[0]->isReady()) {
-				GetLocalTime(&granularBeginning);
-				elapsedTime = 0;
+
+		if (playback == RECORDED || playback == LIVE_RECORD)
+		{
+			if (getSingleFrameFromFile(elapsedTime))
+			{
+				frameNumber++;
+				GetLocalTime(&granularPrevTime);
+				granularCurrent = granularPrevTime;
 				pauseTime = 0;
-				playCount--;
+				elapsedTime = 0;
+				//we have reached the end of the keyFrame
 			}
+
+
+			if (!displayQuats[0]->isReady()) 
+			{
+				//we've reached the end of the file
+			}
+		}
+		if (playback == LIVE_RECORD)
+		{
+
 			//Compare whether joints match
 			bitField = displayQuats[0]->compare(displayQuats[bodyCount - 1]);
+
+			//super simple way to wait for patient to catch up:
+			//int sum = 0;
+			//for (int i = 0; i < 1<<JOINT_TOTAL; i <<= 1) 
+			//	if (i&bitField)
+			//		sum++;
+			//if (sum >= threshold)
+			//	do stuff;
+
 		}
-		frameNumber++;
 	}
 
 	renderFrame(bitField);
@@ -266,6 +278,8 @@ bool ActionDisplay::renderFrame(int bitField) {
 			loadText("Doing good!", textColor);
 		}
 	} 
+//	SDL_Color textColor = { 255, 0, 0 };
+//	loadText(std::to_string(displayQuats[bodyCount - 1]->getTimestamp()), textColor);
 
     SDL_RenderPresent(renderer);
 
@@ -275,6 +289,9 @@ bool ActionDisplay::renderFrame(int bitField) {
 void ActionDisplay::renderBody(QuatFrame *currQuatBody, int bitField, int color) {
 	BodyFrame *currBody = new BodyFrame();
 	currQuatBody->initBodyFrame(currBody);
+
+	SDL_Color textColor = { 255, 0, 0 };
+	loadText(std::to_string(currQuatBody->getTimestamp()), textColor);
 	
 	irr::core::vector3df **joints = (*currBody).getJoints();
 
@@ -373,13 +390,24 @@ bool ActionDisplay::frameFromKinect()
 	return true;
 }
 
+//returns whther or not we have just reached the end of a keyframe
 bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
-	delete displayQuats[0];
-	displayQuats[0] = moveFromFile->getSingleFrame(elapsedTime);
+
+	QuatFrame *preview = moveFromFile->getSingleFrame(frameNumber, elapsedTime);
+
+	if (preview->isReady())
+	{
+		delete displayQuats[0];
+		displayQuats[0] = moveFromFile->getSingleFrame(frameNumber, elapsedTime);
+	}
+	else
+	{
+		delete preview;
+		return true;
+	}
 	//displayQuats[0].setMidSpine(200, 200); 
 
-	//return displayBodies[0].isReady();
-	return true;
+	return false;
 }
 
 void ActionDisplay::handleKeyPresses(SDL_Event e) {
