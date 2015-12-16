@@ -142,8 +142,9 @@ void QuatFrame::initFromBodyFrame(BodyFrame source)
 }
 //slerps between two QuatFrames. 
 //Time is the time argument
-//passed to irrlicht's slerp method, which expects a value
-//between 0 and 1.
+//passed to irrlicht's slerp method, a value
+//between 0 and 1 indicating the progress of the
+//movement
 QuatFrame *QuatFrame::slerp(const QuatFrame& next, irr::f32 time)
 {
 	//the fact that this works is very confusing
@@ -235,9 +236,7 @@ void QuatFrame::initBodyFrame(BodyFrame *frame)
 
 void QuatFrame::addMidSpine(const irr::core::vector3df& mid)
 {
-	//increment currJointCount?
-	joints[JointType_SpineMid]->set(mid); //= new irr::core::vector3df(mid);
-
+	joints[JointType_SpineMid]->set(mid);
 
 	if (isReady())
 		init();
@@ -297,9 +296,9 @@ int QuatFrame::compare(QuatFrame *other)
 	for (int i = 0; i < JOINT_TOTAL; i++)
 	{
 		double total_diff;
-		total_diff = abs(other->jointQuats[i]->X - jointQuats[i]->X);
-		total_diff += abs(other->jointQuats[i]->Y - jointQuats[i]->Y);
-		total_diff += abs(other->jointQuats[i]->Z - jointQuats[i]->Z);
+		total_diff = 2.5 * abs(other->jointQuats[i]->X - jointQuats[i]->X);
+		total_diff += 2.5 * abs(other->jointQuats[i]->Y - jointQuats[i]->Y);
+		total_diff += 2.5 * abs(other->jointQuats[i]->Z - jointQuats[i]->Z);
 		total_diff += abs(other->jointQuats[i]->W - jointQuats[i]->W);
 		if (total_diff >= QUAT_COMPARE_THRESHOLD)
 			bitField |= genMask(i);
@@ -314,13 +313,15 @@ irr::core::vector3df *QuatFrame::getBone(int i)
 		bones[JointType_SpineMid]->set(*joints[JointType_SpineMid]);
 		return new irr::core::vector3df(*bones[JointType_SpineMid]);
 	}
-	if (!bones[i]->equals(irr::core::vector3df(), 0))
+	//returning trhe existing bone if it has already been
+	//initialized is faster but makes reinitializing problematic
+	//keep around a reInit bool?
+	if (bones[i]->X != 0 || bones[i]->Y != 0 || bones[i]->Z != 0)
 		return new irr::core::vector3df(*bones[i]);
 
 	if (currJointCount == JOINT_TOTAL)
 		bones[i]->set(*joints[i] - *joints[getParent(i)]);
 	else if (currQuatCount == JOINT_TOTAL)
-
 	{
 		//generate bone with only the midspine point, quaternions, and the power of recursion
 		//TODO double check and make sure this makes sense

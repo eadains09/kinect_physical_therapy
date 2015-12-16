@@ -25,6 +25,7 @@ private:
 	int frameNumber; //Which frame to read from file
 	int bodyCount; //Number of bodies being displayed, right now only options are 1 or 2
 	bool playing;
+	bool sysPaused;
 	Movement *moveFromFile;
 	BodyFrame **displayBodies;
 	QuatFrame **displayQuats;

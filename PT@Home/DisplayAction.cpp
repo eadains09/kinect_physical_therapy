@@ -84,6 +84,7 @@ void ActionDisplay::constructUniversalActionDisplay() {
 	playCount = 2;
 	playFileName = trimAddress(playbackFile);
 	pauseTime = 0;
+	sysPaused = false;
 
 	displayBodies = new BodyFrame*[TOTAL_BODIES];
 	for (int i = 0; i < TOTAL_BODIES; i++)
@@ -179,9 +180,14 @@ bool ActionDisplay::renderScreen() {
 	int bitField = 0;
 	
 	if (playing && playCount > 0) {
-		GetLocalTime(&granularCurrent);
-		elapsedTime = granularDiff(granularPrevTime, granularCurrent);
-		elapsedTime -= pauseTime;
+		if (!sysPaused)
+		{
+			GetLocalTime(&granularCurrent);
+			elapsedTime = granularDiff(granularPrevTime, granularCurrent);
+			elapsedTime -= pauseTime;
+		}
+		else
+			elapsedTime = 0;
 
 		if (playback == LIVE || playback == LIVE_RECORD) {
 			frameFromKinect();
@@ -197,6 +203,7 @@ bool ActionDisplay::renderScreen() {
 				pauseTime = 0;
 				elapsedTime = 0;
 				//we have reached the end of the keyFrame
+
 			}
 
 
@@ -212,12 +219,17 @@ bool ActionDisplay::renderScreen() {
 			bitField = displayQuats[0]->compare(displayQuats[bodyCount - 1]);
 
 			//super simple way to wait for patient to catch up:
-			//int sum = 0;
-			//for (int i = 0; i < 1<<JOINT_TOTAL; i <<= 1) 
-			//	if (i&bitField)
-			//		sum++;
-			//if (sum >= threshold)
-			//	do stuff;
+			if (elapsedTime == 0)
+			{
+				int sum = 0;
+				for (int i = 0; i < JOINT_TOTAL; i++)
+					if ((1<<i)&bitField)
+						if(tracking(i))
+							sum++;
+				if (sum > 14)
+					sysPaused = true;
+
+			}
 
 		}
 	}

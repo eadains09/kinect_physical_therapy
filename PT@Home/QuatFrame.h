@@ -11,7 +11,7 @@
 #include "FileWriter.h"
 
 bool getBit(int bitField, int n);
-#define QUAT_COMPARE_THRESHOLD  .25
+#define QUAT_COMPARE_THRESHOLD  .6
 
 //const int JOINT_TOTAL = 25;
 
