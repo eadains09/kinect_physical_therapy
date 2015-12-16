@@ -117,29 +117,13 @@ QuatFrame::QuatFrame(const QuatFrame& source)
 		joints[i] = new irr::core::vector3df();
 		bones[i] = new irr::core::vector3df();
 	}
+
 	for (int i = 0; i < JOINT_TOTAL; i++)
 		addQuatJoint(irr::core::quaternion(*source.jointQuats[i]));
 
 	addMidSpine(irr::core::vector3df(*source.bones[JointType_SpineMid]));
 }
 
-void QuatFrame::initFromBodyFrame(BodyFrame source)
-{
-	irr::core::vector3df **points = source.getJoints();
-	bool reInit = true;
-	for (int i = 0; i < JOINT_TOTAL; i++)
-	{
-		if (joints[i] != NULL)
-			joints[i]->set(*points[i]);
-		else
-		{
-			addJoint(*points[i]);
-			reInit = false;
-		}
-	}
-	if (reInit)
-		init();
-}
 //slerps between two QuatFrames. 
 //Time is the time argument
 //passed to irrlicht's slerp method, a value

@@ -36,7 +36,6 @@ public:
 	QuatFrame(BodyFrame);
 	QuatFrame(const QuatFrame& source);
 	int compare(QuatFrame *other);
-	void initFromBodyFrame(BodyFrame source);
 	QuatFrame *slerp(const QuatFrame& next, irr::f32 time);
 	bool addJoint(irr::f32 x, irr::f32 y, irr::f32 z);
 	bool addJoint(const irr::core::vector3df& joint);

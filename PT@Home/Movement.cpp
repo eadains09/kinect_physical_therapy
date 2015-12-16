@@ -18,43 +18,11 @@ using namespace std;
 
 Movement::Movement() {
     currFrameCount = 0;
-	finished = false;
+	//so deques are supposed to deal with all the allocationy stuff on their own
+	//so if we could transition to that I think it would be for the best
 	qframes = new deque<QuatFrame>();
 }
 
-void Movement::readQuatFrame(std::string path) {
-    FileReader file(path);
-    
-    if(file.isOpen()) {
-        file.findFileStart();
-
-       file.findJointStart();
-
-        while (file.findKeyframeStart()) {
-            QuatFrame currFrame;
-			file.findJointStart();
-
-            while (file.findJointStart()) {
-                irr::core::vector3df currJoint = readJointPoints(&file);
-
-				if (currJoint.X == 0 && currJoint.Y == 0 && currJoint.Z == 0) {//if readJointPoints returned a bogus point
-					continue;
-				}
-				currFrame.addJoint(currJoint);
-				
-            }
-			if (!currFrame.isReady()) {
-				continue;
-			}
-			else {
-				qframes->push_back(currFrame);
-				currFrameCount++;
-			}
-        }
-    }
-
-    file.closeFile();
-}
 
 deque<QuatFrame> Movement::getFrames() {
     return *qframes;
@@ -167,15 +135,10 @@ QuatFrame *Movement::getSingleFrame(int frameNumber, double time)
 	if (time >= qframes->at(frameNumber + 1).getTimestamp())//if we hit the end of a keyframe
 		return new QuatFrame();
 
-	//this has two possible issues, the timestamp we get could be 0
-	//or the time argument we got passed could be larger than the timestamp
-	//and while one of them is an error and the other a bug they are equally disastrous
-	//TODO make sure they don't happen or protect against them
+	//possible issue: the timestamp we get could be 0
 	quotient = time / qframes->at(frameNumber + 1).getTimestamp();
 
-	QuatFrame *temp = qframes->at(frameNumber).slerp(QuatFrame(qframes->at(frameNumber+1)), quotient);
-//	temp->setTimestamp(quotient);
-	return temp;
+	return qframes->at(frameNumber).slerp(QuatFrame(qframes->at(frameNumber+1)), quotient);
 }
 
 
@@ -184,34 +147,17 @@ int Movement::getCurrFrameCount() {
     return currFrameCount;
 }
 
-bool Movement::isFinished() {
-	return finished;
-}
-
-void Movement::resetFinished() {
-	finished = false;
-}
-
 
 Movement::~Movement()
 {
+	//I am ~82% sure the destructor for a deque call the destructor
+	//method on all its members
 	delete qframes;
-//	delete frames;
 }
 
-/*neat fact to bear in mind: we will never, under any circumstances,
-need to log raw points*/
 void Movement::logFrames(std::string fileName)
 {
     FileWriter file(fileName, "keyframes");
-	/*
-	while (frames->size() > 0)
-	{
-		//TODO change qframes and frames to deques of pointers
-		//so we can destruct properly
-		qframes->push_back(*new QuatFrame(frames->front()));
-		frames->pop_front();
-	}*/
 
     if (qframes->size() > 0) {
 		qframes->front().writeFrame(&file);
@@ -231,21 +177,16 @@ void Movement::popBackFrame() {
 	currFrameCount--;
 }
 
-//changing to BodyFrame * to avoid automatically calling destructor on frame
-//at end of function
 void Movement::pushBackFrame(QuatFrame *frame) {
-    qframes->push_back(*new QuatFrame(*frame));
-    currFrameCount++;
+//    qframes->push_back(*new QuatFrame(*frame));
+	//will this non-leaky version work?
+	qframes->push_back(QuatFrame(*frame));
+	currFrameCount++;
 }
 
-//Changing to return BodyFrame * to avoid automatic destructor on joints - where it gets returned calls transform points, meaning what will later be converted to quats are transformed points
+
 QuatFrame* Movement::getBackFrame() {
     return new QuatFrame(qframes->back());
 }
-/*
-void Movement::transformPoints(double *xPos, double *yPos, double *zPos) {
-    *xPos = (*xPos + 1) * 200;
-    *yPos = (*yPos - 1) * -200;
-    *zPos = (*zPos + 1) * 200;
-}*/
+
 
