@@ -62,16 +62,19 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 		bodyCount = 1;
 		comparisonOn = false;
 		exerciseCount = 0;
+		playCount = 1;
 	}
 	else if (playback == RECORDED) {
 		bodyCount = 1;
 		comparisonOn = false;
 		exerciseCount = 1;
+		playCount = 1;
 	}
 	else {
 		bodyCount = 2;
 		comparisonOn = true;
 		exerciseCount = 1;
+		playCount = 2;
 	}
 
 	constructUniversalActionDisplay();
@@ -81,7 +84,6 @@ void ActionDisplay::constructUniversalActionDisplay() {
 	frameNumber = 0;
 	keyframeCaptured = false;
 	playing = true;
-	playCount = 2;
 	playFileName = trimAddress(playbackFile);
 	pauseTime = 0;
 	sysPaused = false;
@@ -189,27 +191,25 @@ bool ActionDisplay::renderScreen() {
 		else
 			elapsedTime = 0;
 
-		if (playback == LIVE || playback == LIVE_RECORD) {
+		if ((playCount == 1) && (playback == LIVE || playback == LIVE_RECORD)) {
 			frameFromKinect();
 		}
 
 		if (playback == RECORDED || playback == LIVE_RECORD)
 		{
-			if (getSingleFrameFromFile(elapsedTime))
+			if (getSingleFrameFromFile(elapsedTime))//we have reached the end of the keyFrame
 			{
 				frameNumber++;
 				GetLocalTime(&granularPrevTime);
 				granularCurrent = granularPrevTime;
 				pauseTime = 0;
 				elapsedTime = 0;
-				//we have reached the end of the keyFrame
-
-			}
-
-
-			if (!displayQuats[0]->isReady()) 
-			{
-				//we've reached the end of the file
+				
+				if (frameNumber == moveFromFile->getCurrFrameCount())//we have reached the end of the file
+				{
+					frameNumber = 0;
+					playCount--;
+				}
 			}
 		}
 		if (playback == LIVE_RECORD)
