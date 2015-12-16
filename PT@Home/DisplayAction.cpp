@@ -253,7 +253,7 @@ bool ActionDisplay::renderFrame(int bitField) {
 	SDL_DestroyTexture(instructionTexture);
     
     renderButtons();
-    
+ 
     //render bodies
 	for (i = 0; i < bodyCount; i++) {
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i % 2], 0xFF);
@@ -264,7 +264,7 @@ bool ActionDisplay::renderFrame(int bitField) {
 		SDL_SetRenderDrawColor(renderer, 0x00, 0x00, colorArray[i % 2], 0xFF);
 		renderBody(keyframes.getBackFrame(), bitField, colorArray[i%2]);
 	}
-
+	
 	if (comparisonOn) {
 		SDL_FreeSurface(instructionSurface);
 		if (errors.size() > 0) {
@@ -290,8 +290,6 @@ bool ActionDisplay::renderFrame(int bitField) {
 			loadText("Doing good!", textColor);
 		}
 	} 
-//	SDL_Color textColor = { 255, 0, 0 };
-//	loadText(std::to_string(displayQuats[bodyCount - 1]->getTimestamp()), textColor);
 
     SDL_RenderPresent(renderer);
 
@@ -302,8 +300,12 @@ void ActionDisplay::renderBody(QuatFrame *currQuatBody, int bitField, int color)
 	BodyFrame *currBody = new BodyFrame();
 	currQuatBody->initBodyFrame(currBody);
 
-	SDL_Color textColor = { 255, 0, 0 };
-	loadText(std::to_string(currQuatBody->getTimestamp()), textColor);
+	//this causes memory leak, I guess to_string requires weird stuff to
+	//not leak, but it seems like debugging a debug statement is something 
+	//I can do when there's nothing else to do
+	//	std::string quatStamp = std::to_string(currQuatBody->getTimestamp());
+//	SDL_Color textColor = { 255, 0, 0 };
+//	loadText(quatStamp, textColor);
 	
 	irr::core::vector3df **joints = (*currBody).getJoints();
 
@@ -410,7 +412,7 @@ bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
 	if (preview->isReady())
 	{
 		delete displayQuats[0];
-		displayQuats[0] = moveFromFile->getSingleFrame(frameNumber, elapsedTime);
+		displayQuats[0] = preview;
 	}
 	else
 	{
