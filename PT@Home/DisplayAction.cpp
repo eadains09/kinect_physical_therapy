@@ -33,11 +33,13 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 		bodyCount = 1;
 		comparisonOn = false;
 		exerciseCount = 0;
+		playCount = 1;
 	}
 	else if (playback == RECORDED) {
 		bodyCount = 1;
 		comparisonOn = false;
 		exerciseCount = 1;
+		playCount = 1;
 	}
 	else { /* LIVE_RECORD */
 		//simultaneous playback
@@ -45,8 +47,9 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 		comparisonOn = true;
 		//TODO if LIVE_RECORD, circle through all exercises for playback (because if it were a single exercise, other constructor would've been used)
 		//playbackFile = getNextFile?
-		playbackFile = "movements/exercise1.dat";
+		playbackFile = "";
 		//exerciseCount = getNumFiles in movement folder
+		playCount = 2;
 	}
 
 	constructUniversalActionDisplay();
@@ -550,9 +553,7 @@ void ActionDisplay::deleteLastKeyframe() {
 		granularPrevTime = granularCurrent;
 	}
 }
-//so we seem to be having too little indirection shaped
-//problems, my guess is therefore that we need more indirection
-//and/or less direction tied to our stack
+
 void ActionDisplay::saveKeyframes() {
 	saveCount++;
 	string defaultFilename = "movements/testMovement" + to_string(saveCount);
@@ -632,8 +633,48 @@ bool ActionDisplay::loadMedia() {
     
 
 	if (playback == RECORDED || playback == LIVE_RECORD) {
-		moveFromFile->readKeyframes(playbackFile);
+		if (playbackFile.length() != 0)
+			moveFromFile->readKeyframes(playbackFile);
+		else
+		{
+			WIN32_FIND_DATA fdFile;
+			HANDLE hFind = NULL;
 
+			char sPath[2048];
+			sprintf_s(sPath, "%s\\*.dat", "./movements/");
+
+
+			if ((hFind = FindFirstFile(sPath, &fdFile)) == INVALID_HANDLE_VALUE)
+			{
+				printf("Path not found: [%s]\n", "./movements/");
+				return false;
+			}
+
+			do
+			{
+				//Find first file will always return "."
+				//    and ".." as the first two directories.
+				if (strcmp(fdFile.cFileName, ".") != 0
+					&& strcmp(fdFile.cFileName, "..") != 0)
+				{
+					//Build up our file path using the passed in
+					//  [sDir] and the file/foldername we just found:
+					sprintf_s(sPath, "%s\\%s", "./movements/", fdFile.cFileName);
+
+					//Is the entity a File or Folder?
+					if (fdFile.dwFileAttributes &FILE_ATTRIBUTE_DIRECTORY)
+					{
+						continue;
+					}
+					else {
+						moveFromFile->readKeyframes(sPath);
+					}
+				}
+			} while (FindNextFile(hFind, &fdFile)); //Find the next file.
+
+			FindClose(hFind); //Always, Always, clean things up!
+
+		}
 
 		/* If loaded file was empty, getCurrFrameCount will be 0
 		 * In that case, subtract one from bodyCount so that only
