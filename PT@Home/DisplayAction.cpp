@@ -40,6 +40,7 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 		comparisonOn = false;
 		exerciseCount = 1;
 		playCount = 1;
+		playbackFile = "";//for completeness, this clause should never be enetered
 	}
 	else { /* LIVE_RECORD */
 		//simultaneous playback
@@ -185,14 +186,14 @@ bool ActionDisplay::renderScreen() {
 	int bitField = 0;
 	
 	if (playing && playCount > 0) {
-		if (!sysPaused)
+		/*if (!sysPaused)
 		{
 			GetLocalTime(&granularCurrent);
 			elapsedTime = granularDiff(granularPrevTime, granularCurrent);
 			elapsedTime -= pauseTime;
 		}
 		else
-			elapsedTime = 0;
+			elapsedTime = 0;*/
 
 		if ((playCount == 1) && (playback == LIVE || playback == LIVE_RECORD)) {
 			frameFromKinect();
@@ -200,13 +201,13 @@ bool ActionDisplay::renderScreen() {
 
 		if (playback == RECORDED || playback == LIVE_RECORD)
 		{
-			if (getSingleFrameFromFile(elapsedTime))//we have reached the end of the keyFrame
+			if (getSingleFrameFromFile(0))//elapsedTime))//we have reached the end of the keyFrame
 			{
 				frameNumber++;
-				GetLocalTime(&granularPrevTime);
-				granularCurrent = granularPrevTime;
-				pauseTime = 0;
-				elapsedTime = 0;
+			//	GetLocalTime(&granularPrevTime);
+			//	granularCurrent = granularPrevTime;
+			//	pauseTime = 0;
+			//	elapsedTime = 0;
 				
 				if (frameNumber == moveFromFile->getCurrFrameCount())//we have reached the end of the file
 				{
@@ -222,17 +223,17 @@ bool ActionDisplay::renderScreen() {
 			bitField = displayQuats[0]->compare(displayQuats[bodyCount - 1]);
 
 			//super simple way to wait for patient to catch up:
-			if (elapsedTime == 0)
-			{
-				int sum = 0;
-				for (int i = 0; i < JOINT_TOTAL; i++)
-					if ((1<<i)&bitField)
-						if(tracking(i))
-							sum++;
-				if (sum > 14)
-					sysPaused = true;
+			//if (elapsedTime == 0)
+			//{
+			//	int sum = 0;
+			//	for (int i = 0; i < JOINT_TOTAL; i++)
+			//		if ((1<<i)&bitField)
+			//			if(tracking(i))
+			//				sum++;
+			//	if (sum > 14)
+			//		sysPaused = true;
 
-			}
+			//}
 
 		}
 	}
@@ -306,9 +307,9 @@ void ActionDisplay::renderBody(QuatFrame *currQuatBody, int bitField, int color)
 	//this causes memory leak, I guess to_string requires weird stuff to
 	//not leak, but it seems like debugging a debug statement is something 
 	//I can do when there's nothing else to do
-	//	std::string quatStamp = std::to_string(currQuatBody->getTimestamp());
-//	SDL_Color textColor = { 255, 0, 0 };
-//	loadText(quatStamp, textColor);
+	//std::string quatStamp = std::to_string(frameNumber+currQuatBody->getTimestamp());
+	//SDL_Color textColor = { 255, 0, 0 };
+	//loadText(quatStamp, textColor);
 	
 	irr::core::vector3df **joints = (*currBody).getJoints();
 
@@ -409,16 +410,30 @@ bool ActionDisplay::frameFromKinect()
 
 //returns whther or not we have just reached the end of a keyframe
 bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
+	double seconds;
 
-	QuatFrame *preview = moveFromFile->getSingleFrame(frameNumber, elapsedTime);
+	GetLocalTime(&granularCurrent);
+
+	if (granularPrevTime.wYear != 0)
+		seconds = granularDiff(granularCurrent, granularPrevTime);
+	else
+		seconds = 0;
+
+//	granularPrevTime = granularCurrent;
+
+	QuatFrame *preview = moveFromFile->getSingleFrame(frameNumber, seconds);
 
 	if (preview->isReady())
 	{
 		delete displayQuats[0];
 		displayQuats[0] = preview;
+		std::string quatStamp = std::to_string(seconds);
+		SDL_Color textColor = { 255, 0, 0 };
+		loadText(quatStamp, textColor);
 	}
 	else
 	{
+		GetLocalTime(&granularPrevTime);
 		delete preview;
 		return true;
 	}
@@ -511,13 +526,6 @@ void ActionDisplay::captureKeyframe() {
 
 	GetLocalTime(&granularCurrent);
 
-	//granularPrevTime shall now take on double duty
-	//when in the doctor interface it will work as it does here
-	//but in patient's interface it shall also work as it does here
-	//ie to track time since last keyframe, then at the end of the
-	//keyframe we'll wait and keep displaying the end of the keyframe
-	//while the patient catches up 
-	//this comment superseded by comment directly below
 	if (granularPrevTime.wYear != 0)
 		seconds = granularDiff(granularCurrent, granularPrevTime);
 	else
@@ -527,7 +535,7 @@ void ActionDisplay::captureKeyframe() {
 
 
 
-	frameFromKinect();
+//	frameFromKinect();
 
 	QuatFrame *prevKeyframe = new QuatFrame(*displayQuats[bodyCount - 1]);
 	//prevKeyframe.setMidSpine(600, 200); 
@@ -686,7 +694,7 @@ bool ActionDisplay::loadMedia() {
 		 }
 	}
 
-	currFont = TTF_OpenFont("freefont-ttf/fonts/FreeMono.ttf", 16);
+	currFont = TTF_OpenFont("./freefont-ttf/fonts/FreeMono.ttf", 16);
 	if (currFont == NULL) {
 		log << printf("Failed to load font. SDL_ttf Error: %s\n", TTF_GetError()) << std::endl;
 		success = false;
@@ -754,7 +762,6 @@ void ActionDisplay::loadPlaybackButtons(int yPos) {
 
 void ActionDisplay::close() {
 	if(playback == RECORDED || playback == LIVE_RECORD) {
-		// moveFromFile.freeFrames();
 		delete moveFromFile;
 	}
 
