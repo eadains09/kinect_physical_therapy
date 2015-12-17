@@ -90,6 +90,7 @@ void ActionDisplay::constructUniversalActionDisplay() {
 	playFileName = trimAddress(playbackFile);
 	pauseTime = 0;
 	sysPaused = false;
+	firstFrame = true;
 
 	displayBodies = new BodyFrame*[TOTAL_BODIES];
 	for (int i = 0; i < TOTAL_BODIES; i++)
@@ -183,7 +184,7 @@ double granularDiff(const SYSTEMTIME& from, const SYSTEMTIME& to)
 bool ActionDisplay::renderScreen() {
 	double elapsedTime;
 	int bitField = 0;
-	
+
 	if (playing && playCount > 0) {
 		if (!sysPaused)
 		{
@@ -194,13 +195,14 @@ bool ActionDisplay::renderScreen() {
 		else
 			elapsedTime = 0;
 
-		if ((playCount == 1) && (playback == LIVE || playback == LIVE_RECORD)) {
+		if (playback == LIVE || playback == LIVE_RECORD) {
 			frameFromKinect();
 		}
 
-		if (playback == RECORDED || playback == LIVE_RECORD)
+		if (playback == RECORDED || (playback == LIVE_RECORD && !sysPaused))
 		{
-			if (getSingleFrameFromFile(elapsedTime))//we have reached the end of the keyFrame
+			//firstFrame = false;
+			if (getSingleFrameFromFile(elapsedTime))//returns true if we have reached the end of the keyFrame
 			{
 				frameNumber++;
 				GetLocalTime(&granularPrevTime);
@@ -212,10 +214,12 @@ bool ActionDisplay::renderScreen() {
 				{
 					frameNumber = 0;
 					playCount--;
+					sysPaused = true;
+					//firstFrame = true;
 				}
 			}
 		}
-		if (playback == LIVE_RECORD)
+		if (playback == LIVE_RECORD && playCount == 1)
 		{
 
 			//Compare whether joints match
@@ -229,11 +233,14 @@ bool ActionDisplay::renderScreen() {
 					if ((1<<i)&bitField)
 						if(tracking(i))
 							sum++;
-				if (sum > 14)
+				if (sum > 6) {
 					sysPaused = true;
-
+				}
+				else {
+					sysPaused = false;
+					GetLocalTime(&granularPrevTime);
+				}
 			}
-
 		}
 	}
 
@@ -268,7 +275,7 @@ bool ActionDisplay::renderFrame(int bitField) {
 		renderBody(keyframes.getBackFrame(), bitField, colorArray[i%2]);
 	}
 	
-	if (comparisonOn) {
+	if (comparisonOn && playCount == 1) {
 		SDL_FreeSurface(instructionSurface);
 		if (errors.size() > 0) {
 			std::set<int>::iterator iter;
@@ -784,6 +791,12 @@ bool ActionDisplay::tracking(int i) {
 	case JointType_ThumbLeft:
 	case JointType_HandTipRight:
 	case JointType_ThumbRight:
+	case JointType_FootLeft:
+	case JointType_FootRight:
+	case JointType_KneeLeft:
+	case JointType_AnkleLeft:
+	case JointType_KneeRight:
+	case JointType_AnkleRight:
 		return false;
 	default:
 		return true;

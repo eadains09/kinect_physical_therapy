@@ -89,6 +89,7 @@ private:
     bool getSingleFrameFromFile(double elapsedTime);
 	string getJointString(int type);
 	bool tracking(int i);
+	bool firstFrame;
 
 
     void captureKeyframe();
