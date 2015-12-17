@@ -287,7 +287,7 @@ bool ActionDisplay::renderFrame(int bitField) {
 		renderBody(keyframes.getBackFrame(), bitField, colorArray[i%2]);
 	}
 	
-	/*if (comparisonOn && playCount == 1) {
+	if (comparisonOn) {
 		SDL_FreeSurface(instructionSurface);
 		if (errors.size() > 0) {
 			std::set<int>::iterator iter;
@@ -311,7 +311,7 @@ bool ActionDisplay::renderFrame(int bitField) {
 			SDL_Color textColor = { 0, 0, 0 };
 			loadText("Doing good!", textColor);
 		}
-	} */
+	} 
 
     SDL_RenderPresent(renderer);
 
@@ -322,16 +322,9 @@ void ActionDisplay::renderBody(QuatFrame *currQuatBody, int bitField, int color)
 	BodyFrame *currBody = new BodyFrame();
 	currQuatBody->initBodyFrame(currBody);
 
-	//this causes memory leak, I guess to_string requires weird stuff to
-	//not leak, but it seems like debugging a debug statement is something 
-	//I can do when there's nothing else to do
-	std::string quatStamp = std::to_string(frameNumber);
-	SDL_Color textColor = { 255, 0, 0 };
-	loadText(quatStamp, textColor);
-
-	log.open("testPlayback.txt", std::ofstream::app);
-	log << "in render body frame Number == " << frameNumber << endl;
-	log.close();
+	//log.open("testPlayback.txt", std::ofstream::app);
+	//log << "in render body frame Number == " << frameNumber << endl;
+	//log.close();
 	
 	irr::core::vector3df **joints = (*currBody).getJoints();
 
@@ -451,9 +444,6 @@ bool ActionDisplay::getSingleFrameFromFile() {
 	{
 		delete displayQuats[0];
 		displayQuats[0] = preview;
-		//std::string quatStamp = std::to_string(seconds);
-		//SDL_Color textColor = { 255, 0, 0 };
-		//loadText(quatStamp, textColor);
 	}
 	else
 	{
@@ -631,11 +621,11 @@ void ActionDisplay::updatePauseTime(bool currPlay) {
 	SYSTEMTIME pauseLocal;
 
 	if (currPlay) {
-		//Program is currently playing movement and user has decided to pause it
+		//Program is currently playing movement and should now be paused
 		GetLocalTime(&granularBeginPauseTime);
 	}
 	else {
-		//Program is currently paused and user has decided to resume playing
+		//Program is currently paused and should now resume playing
 		GetLocalTime(&pauseLocal);
 		pauseTime += granularDiff(granularBeginPauseTime, pauseLocal);
 	}
