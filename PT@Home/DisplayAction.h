@@ -22,10 +22,11 @@ enum PlaybackType {
 class ActionDisplay : public DisplayBase {
 private:
 	// displaying bodies variables
-	int frameNumber; //Which frame to read from file
+	volatile int frameNumber; //Which frame to read from file
 	int bodyCount; //Number of bodies being displayed, right now only options are 1 or 2
 	bool playing;
 	bool sysPaused;
+	int pauseCount;
 	Movement *moveFromFile;
 	BodyFrame **displayBodies;
 	QuatFrame **displayQuats;
@@ -100,6 +101,7 @@ private:
 
     void loadPrevDisplay();
     void togglePlaying();
+	void updatePauseTime(bool currPlay);
     void loadKeyframeButtons(int yPos);
     void loadPlaybackButtons(int yPos);
 

@@ -134,10 +134,15 @@ QuatFrame *Movement::getSingleFrame(int frameNumber, double time)
 		return new QuatFrame();
 	if (time >= qframes->at(frameNumber + 1).getTimestamp())//if we hit the end of a keyframe
 		return new QuatFrame();
+	std::ofstream log;
+	log.open("testPlayback.txt", std::ofstream::app);
 
 	//possible issue: the timestamp we get could be 0
 	quotient = time / qframes->at(frameNumber + 1).getTimestamp();
 
+	log << "frameNumber: " << frameNumber << " quotient: " << quotient << " time: " << time << " next frame timestamp: " << qframes->at(frameNumber + 1).getTimestamp() << endl;
+
+	log.close();
 	return qframes->at(frameNumber).slerp(QuatFrame(qframes->at(frameNumber+1)), quotient);
 }
 

@@ -92,6 +92,7 @@ void ActionDisplay::constructUniversalActionDisplay() {
 	pauseTime = 0;
 	sysPaused = false;
 	firstFrame = true;
+	pauseCount = 0;
 
 	displayBodies = new BodyFrame*[TOTAL_BODIES];
 	for (int i = 0; i < TOTAL_BODIES; i++)
@@ -185,16 +186,9 @@ double granularDiff(const SYSTEMTIME& from, const SYSTEMTIME& to)
 bool ActionDisplay::renderScreen() {
 	double elapsedTime;
 	int bitField = 0;
+	bool endOfFrame = false;
 
 	if (playing && playCount > 0) {
-		/*if (!sysPaused)
-		{
-			GetLocalTime(&granularCurrent);
-			elapsedTime = granularDiff(granularPrevTime, granularCurrent);
-			elapsedTime -= pauseTime;
-		}
-		else
-			elapsedTime = 0;*/
 
 		if (playback == LIVE || playback == LIVE_RECORD) {
 			frameFromKinect();
@@ -204,18 +198,20 @@ bool ActionDisplay::renderScreen() {
 		{
 			if (getSingleFrameFromFile(0))//elapsedTime))//we have reached the end of the keyFrame
 			{
+				pauseTime = 0;
 				frameNumber++;
-			//	GetLocalTime(&granularPrevTime);
-			//	granularCurrent = granularPrevTime;
-			//	pauseTime = 0;
-			//	elapsedTime = 0;
+				endOfFrame = true;
 				
 				if (frameNumber == moveFromFile->getCurrFrameCount())//we have reached the end of the file
 				{
 					frameNumber = 0;
 					playCount--;
 					sysPaused = true;
-					//firstFrame = true;
+					pauseCount = 1;
+					//updatePauseTime(sysPaused);
+					log.open("testPlayback.txt", std::ofstream::app);
+					log << "end of file, restarting frame Number == 0" << endl;
+					log.close();
 				}
 			}
 		}
@@ -227,24 +223,33 @@ bool ActionDisplay::renderScreen() {
 
 			//super simple way to wait for patient to catch up:
 
-			if (elapsedTime == 0)
+			if (endOfFrame || sysPaused)
 			{
 				int sum = 0;
 				for (int i = 0; i < JOINT_TOTAL; i++)
 					if ((1<<i)&bitField)
 						if(tracking(i))
 							sum++;
-				if (sum > 6) {
+				if (sum > 2) {
 					sysPaused = true;
+					if (pauseCount == 0)
+					{
+						updatePauseTime(sysPaused);
+						pauseCount++;
+					}
 				}
 				else {
 					sysPaused = false;
-					GetLocalTime(&granularPrevTime);
+					if (pauseCount == 1) {
+						updatePauseTime(sysPaused);
+						pauseCount = 0;
+						frameNumber = 0;
+					}
 				}
 			}
 		}
 	}
-
+	
 	renderFrame(bitField);
 
 	return true;
@@ -276,7 +281,7 @@ bool ActionDisplay::renderFrame(int bitField) {
 		renderBody(keyframes.getBackFrame(), bitField, colorArray[i%2]);
 	}
 	
-	if (comparisonOn && playCount == 1) {
+	/*if (comparisonOn && playCount == 1) {
 		SDL_FreeSurface(instructionSurface);
 		if (errors.size() > 0) {
 			std::set<int>::iterator iter;
@@ -300,7 +305,7 @@ bool ActionDisplay::renderFrame(int bitField) {
 			SDL_Color textColor = { 0, 0, 0 };
 			loadText("Doing good!", textColor);
 		}
-	} 
+	} */
 
     SDL_RenderPresent(renderer);
 
@@ -314,9 +319,13 @@ void ActionDisplay::renderBody(QuatFrame *currQuatBody, int bitField, int color)
 	//this causes memory leak, I guess to_string requires weird stuff to
 	//not leak, but it seems like debugging a debug statement is something 
 	//I can do when there's nothing else to do
-	//std::string quatStamp = std::to_string(frameNumber+currQuatBody->getTimestamp());
-	//SDL_Color textColor = { 255, 0, 0 };
-	//loadText(quatStamp, textColor);
+	std::string quatStamp = std::to_string(frameNumber);
+	SDL_Color textColor = { 255, 0, 0 };
+	loadText(quatStamp, textColor);
+
+	log.open("testPlayback.txt", std::ofstream::app);
+	log << "in render body frame Number == " << frameNumber << endl;
+	log.close();
 	
 	irr::core::vector3df **joints = (*currBody).getJoints();
 
@@ -418,14 +427,16 @@ bool ActionDisplay::frameFromKinect()
 //returns whther or not we have just reached the end of a keyframe
 bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
 	double seconds;
+	int diff;
 
 	GetLocalTime(&granularCurrent);
 
-	if (granularPrevTime.wYear != 0)
-		seconds = granularDiff(granularCurrent, granularPrevTime);
+	diff = granularDiff(granularCurrent, granularPrevTime);
+	if (diff > pauseTime)
+		seconds = granularDiff(granularCurrent, granularPrevTime) - pauseTime;
 	else
+		//seconds = diff;
 		seconds = 0;
-
 //	granularPrevTime = granularCurrent;
 
 	QuatFrame *preview = moveFromFile->getSingleFrame(frameNumber, seconds);
@@ -434,9 +445,9 @@ bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
 	{
 		delete displayQuats[0];
 		displayQuats[0] = preview;
-		std::string quatStamp = std::to_string(seconds);
-		SDL_Color textColor = { 255, 0, 0 };
-		loadText(quatStamp, textColor);
+		//std::string quatStamp = std::to_string(seconds);
+		//SDL_Color textColor = { 255, 0, 0 };
+		//loadText(quatStamp, textColor);
 	}
 	else
 	{
@@ -534,7 +545,7 @@ void ActionDisplay::captureKeyframe() {
 	GetLocalTime(&granularCurrent);
 
 	if (granularPrevTime.wYear != 0)
-		seconds = granularDiff(granularCurrent, granularPrevTime);
+		seconds = granularDiff(granularCurrent, granularPrevTime)-pauseTime;
 	else
 		seconds = 0;
 
@@ -610,10 +621,10 @@ void ActionDisplay::loadPrevDisplay() {
 	loadNewDisplay();
 }
 
-void ActionDisplay::togglePlaying() {
-	//pause time related stuff should stay the same
+void ActionDisplay::updatePauseTime(bool currPlay) {
 	SYSTEMTIME pauseLocal;
-	if (playing) {
+
+	if (currPlay) {
 		//Program is currently playing movement and user has decided to pause it
 		GetLocalTime(&granularBeginPauseTime);
 	}
@@ -622,6 +633,16 @@ void ActionDisplay::togglePlaying() {
 		GetLocalTime(&pauseLocal);
 		pauseTime += granularDiff(granularBeginPauseTime, pauseLocal);
 	}
+
+//	frameNumber--;
+
+}
+
+void ActionDisplay::togglePlaying() {
+	//pause time related stuff should stay the same
+	SYSTEMTIME pauseLocal;
+
+	updatePauseTime(playing);
 
 	//swap playing variable: if true, becomes false, if false becomes true
 	playing = !playing;
@@ -716,9 +737,9 @@ bool ActionDisplay::loadMedia() {
 		text = "     Beginning workout! Exercise will play once for you to see, then will start tracking you!";
 	}
 	SDL_Color textColor = { 0, 0, 0 };
-	success = success & loadText(text, textColor);
+	success = success && loadText(text, textColor);
 
-	success = success & loadButtons(); // Must load buttons after font, as height of font determines y position of buttons
+	success = success && loadButtons(); // Must load buttons after font, as height of font determines y position of buttons
 
     return success;
 }
@@ -800,10 +821,6 @@ bool ActionDisplay::tracking(int i) {
 	case JointType_ThumbRight:
 	case JointType_FootLeft:
 	case JointType_FootRight:
-	case JointType_KneeLeft:
-	case JointType_AnkleLeft:
-	case JointType_KneeRight:
-	case JointType_AnkleRight:
 		return false;
 	default:
 		return true;
