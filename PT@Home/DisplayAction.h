@@ -87,7 +87,7 @@ private:
     //void renderBody(BodyFrame currBody);
 	void renderBody(QuatFrame *currQuatBody, int bitField, int color);
     bool frameFromKinect();
-    bool getSingleFrameFromFile(double elapsedTime);
+    bool getSingleFrameFromFile();
 	string getJointString(int type);
 	bool tracking(int i);
 	bool firstFrame;

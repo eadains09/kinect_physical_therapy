@@ -144,10 +144,16 @@ void ActionDisplay::run() {
 		exit(0);
 	}
 
+	SDL_Delay(2000);
+
 	quit = false;
 	SDL_Event e;
 
 	GetLocalTime(&granularPrevTime);
+
+	sysPaused = true;
+	pauseCount = 1;
+	updatePauseTime(sysPaused);
 
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
@@ -188,15 +194,15 @@ bool ActionDisplay::renderScreen() {
 	int bitField = 0;
 	bool endOfFrame = false;
 
-	if (playing && playCount > 0) {
-
+	if (playing )//&& playCount > 0) {
+	{
 		if (playback == LIVE || playback == LIVE_RECORD) {
 			frameFromKinect();
 		}
 
 		if (playback == RECORDED || (playback == LIVE_RECORD && !sysPaused))
 		{
-			if (getSingleFrameFromFile(0))//elapsedTime))//we have reached the end of the keyFrame
+			if (getSingleFrameFromFile())//elapsedTime))//we have reached the end of the keyFrame
 			{
 				pauseTime = 0;
 				frameNumber++;
@@ -204,10 +210,10 @@ bool ActionDisplay::renderScreen() {
 				
 				if (frameNumber == moveFromFile->getCurrFrameCount())//we have reached the end of the file
 				{
-					frameNumber = 0;
-					playCount--;
-					sysPaused = true;
-					pauseCount = 1;
+					//frameNumber = 0;
+					//playCount--;
+					//sysPaused = true;
+					//pauseCount = 1;
 					//updatePauseTime(sysPaused);
 					log.open("testPlayback.txt", std::ofstream::app);
 					log << "end of file, restarting frame Number == 0" << endl;
@@ -215,7 +221,7 @@ bool ActionDisplay::renderScreen() {
 				}
 			}
 		}
-		if (playback == LIVE_RECORD && playCount == 1)
+		if (playback == LIVE_RECORD )//&& playCount == 1)
 		{
 
 			//Compare whether joints match
@@ -243,7 +249,7 @@ bool ActionDisplay::renderScreen() {
 					if (pauseCount == 1) {
 						updatePauseTime(sysPaused);
 						pauseCount = 0;
-						frameNumber = 0;
+					//	frameNumber = 0;
 					}
 				}
 			}
@@ -425,7 +431,7 @@ bool ActionDisplay::frameFromKinect()
 }
 
 //returns whther or not we have just reached the end of a keyframe
-bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
+bool ActionDisplay::getSingleFrameFromFile() {
 	double seconds;
 	int diff;
 
@@ -435,8 +441,8 @@ bool ActionDisplay::getSingleFrameFromFile(double elapsedTime) {
 	if (diff > pauseTime)
 		seconds = granularDiff(granularCurrent, granularPrevTime) - pauseTime;
 	else
-		//seconds = diff;
-		seconds = 0;
+		seconds = diff;
+		//seconds = 0;
 //	granularPrevTime = granularCurrent;
 
 	QuatFrame *preview = moveFromFile->getSingleFrame(frameNumber, seconds);
