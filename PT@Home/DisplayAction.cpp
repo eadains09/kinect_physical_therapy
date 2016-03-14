@@ -13,7 +13,10 @@
 #include "QuatFrame.h"
 
 int ActionDisplay::saveCount = 0;
-
+/*  
+ * Default Constructor
+ * Sets playback to live, and displays only 1 body on screen.
+ */
 ActionDisplay::ActionDisplay() : DisplayBase() {
 	playback = LIVE;
 	bodyCount = 1;
@@ -24,6 +27,13 @@ ActionDisplay::ActionDisplay() : DisplayBase() {
 	constructUniversalActionDisplay();
 }
 
+/*
+ * Currently does not work as intended
+ * Constructor for a initiating a display without a specific file
+ * Use cases are when the Physician is capturing keyframes, and when the patient wants to do the full workout (ie. all saved exercises)
+ * There should be no situation where this constructor is used with playback type RECORDED, even though it does not gracefully handle that situation.
+ * It currently does not have the code for looping through all exercises, so this use case is broken. It does work for capturing keyframes as expected however. 
+ */
 ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, PlaybackType p, DisplayType d) : DisplayBase(c, w, r) {
 	playback = p;
 	prevScreen = d;
@@ -57,6 +67,11 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 
 }
 
+/*
+ * Used for initiating the display with a specified playback file.
+ * Should never be used with live only playback, because the point of live only is that there is no file playback, however method does not gracefully handle that situation.
+ * Use cases are doctor wanting to playback previously recorded exercise and patient specifying which exercise they want to do.
+ */
 ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, PlaybackType p, DisplayType d, string pfile) : DisplayBase(c, w, r) {
 	playback = p;
 	prevScreen = d;
@@ -84,6 +99,9 @@ ActionDisplay::ActionDisplay(Controller *c, SDL_Window *w, SDL_Renderer *r, Play
 	constructUniversalActionDisplay();
 }
 
+/*
+ * Initializes all variables that are consistent across all constructors. Called by each constructor at the end.
+ */
 void ActionDisplay::constructUniversalActionDisplay() {
 	frameNumber = 0;
 	keyframeCaptured = false;
@@ -105,12 +123,19 @@ void ActionDisplay::constructUniversalActionDisplay() {
 	log.open("logData.txt");
 }
 
-
+/*
+ * Gets the end of the file being passed in from file selector so that it is ready for opening.
+ * Probably should be called in the constructor actually receiving the file, instead of in the constructUniversalActionDisplay method.
+ */
 string ActionDisplay::trimAddress(string pfile) {
 	size_t found = pfile.find_last_of("\\");
 	return pfile.substr(found + 1);
 }
 
+/*
+ * Initializes the variables required for reading from the Kinect.
+ * Got this code from a Microsoft example, although it does not seem like the Microsoft code properly checks and returns failure values on initialization.
+ */
 bool ActionDisplay::init() {
 	bool success = true;
 	IBodyFrameSource* pBodyFrameSource = NULL;
@@ -133,6 +158,9 @@ bool ActionDisplay::init() {
 	return success;
 }
 
+/*
+ * This method runs on a loop and manages what happens each frame
+ */
 void ActionDisplay::run() {
 	if (!init()) {
 		printf("Failed to initialize Kinect!\n");
@@ -174,6 +202,10 @@ void ActionDisplay::run() {
 	}
 }
 
+/*
+ * Gets the difference between two times (passed in) down to the millisecond.
+ * Used for calculating slerps from one frame to another.
+ */
 double granularDiff(const SYSTEMTIME& from, const SYSTEMTIME& to)
 {
 	double result = 0;
@@ -189,6 +221,11 @@ double granularDiff(const SYSTEMTIME& from, const SYSTEMTIME& to)
 	return result;
 }
 
+/*
+ * Gets the bodies that need to be rendered to the screen for that frame.
+ * Pauses the recorded playback until patient is properly aligned with the recorded movement.
+ * Properly aligned is considered two or less joints being tracked out of alignment.
+ */
 bool ActionDisplay::renderScreen() {
 	double elapsedTime;
 	int bitField = 0;
@@ -261,6 +298,9 @@ bool ActionDisplay::renderScreen() {
 	return true;
 }
 
+/*
+ * Does the actual rendering of the basic frame: including buttons and text, and calls renderBody method on whichever relevant bodies need to be rendered.
+ */
 bool ActionDisplay::renderFrame(int bitField) {
 	int i;
     int colorArray[2] = {0x00, 0xFF};
@@ -318,6 +358,9 @@ bool ActionDisplay::renderFrame(int bitField) {
     return true;
 }
 
+/*
+ * Converts specified QuatFrame into a renderable BodyFrame and renders it in the color specified.
+ */
 void ActionDisplay::renderBody(QuatFrame *currQuatBody, int bitField, int color) {
 	BodyFrame *currBody = new BodyFrame();
 	currQuatBody->initBodyFrame(currBody);
@@ -346,6 +389,9 @@ void ActionDisplay::renderBody(QuatFrame *currQuatBody, int bitField, int color)
 	delete currBody;
 }
 
+/*
+ * Gets a body from the kinect and stores in a QuatFrame.
+ */
 bool ActionDisplay::frameFromKinect()
 {
 	HRESULT hr;
@@ -423,7 +469,8 @@ bool ActionDisplay::frameFromKinect()
 	return true;
 }
 
-//returns whther or not we have just reached the end of a keyframe
+// Reads a single frame from the input file, and logs the time it is being loaded for calculating slerps and pause time.
+// Returns whther or not we have just reached the end of a keyframe
 bool ActionDisplay::getSingleFrameFromFile() {
 	double seconds;
 	int diff;
@@ -456,6 +503,18 @@ bool ActionDisplay::getSingleFrameFromFile() {
 	return false;
 }
 
+/*
+ * Manages the manipulation of the display based on keyboard input.
+ * Different keys do different things based on playback type.
+ * Live Playback:
+     * Space Bar: captures a single keyframe
+     * D key: deletes last keyframe in the stack
+     * S key: saves the current keyframe stack to a file
+     * Backspace/Delete: loads the previous menu screen
+ * Recorded or Live-Recorded Playback:
+     * Space bar: pause/unpause playback
+     * Backspace/Delete: loads the previous menu screen
+ */
 void ActionDisplay::handleKeyPresses(SDL_Event e) {
 	if (playback == LIVE) {
 		switch (e.key.keysym.sym) {
@@ -487,6 +546,9 @@ void ActionDisplay::handleKeyPresses(SDL_Event e) {
 	}
 }
 
+/*
+ * Manages the manipulation of the display based on clicks on on-screen buttons
+ */
 void ActionDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 {
 	//If mouse event happened
@@ -534,6 +596,9 @@ void ActionDisplay::handleButtonEvent(SDL_Event* e, Button *currButton)
 	}
 }
 
+/*
+ * Stores currently displayed body read from kinect (as Quatframe) on the top of the keyframe stack.
+ */
 void ActionDisplay::captureKeyframe() {
 	double seconds;
 	keyframeCaptured = true;
@@ -558,6 +623,9 @@ void ActionDisplay::captureKeyframe() {
 	delete prevKeyframe;
 }
 
+/*
+ * Pops off the top of the keyframe stack, resets time tracking
+ */
 void ActionDisplay::deleteLastKeyframe() {
 	time_t currTime;
 
@@ -576,6 +644,9 @@ void ActionDisplay::deleteLastKeyframe() {
 	}
 }
 
+/*
+ * Saves the keyframe stack to a file specified by user with file selector.
+ */
 void ActionDisplay::saveKeyframes() {
 	saveCount++;
 	string defaultFilename = "movements/testMovement" + to_string(saveCount);
@@ -591,6 +662,9 @@ void ActionDisplay::saveKeyframes() {
 	SetCurrentDirectory("..");
 }
 
+/*
+ * Set file selector up for opening
+ */
 void ActionDisplay::initFileSelector() {
 	ZeroMemory(&saveFile, sizeof(saveFile));
 	saveFile.lStructSize = sizeof(saveFile);
@@ -606,6 +680,9 @@ void ActionDisplay::initFileSelector() {
 	saveFile.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 }
 
+/*
+ * Initializes a new display based on which screen the user came to this display from and loads that screen.
+*/
 void ActionDisplay::loadPrevDisplay() {
 	if (prevScreen == PATIENT_MENU) {
 		newDisplay = new PatientMenuDisplay(control, window, renderer);
@@ -617,6 +694,9 @@ void ActionDisplay::loadPrevDisplay() {
 	loadNewDisplay();
 }
 
+/*
+ * Manages pause time based on whether or not display is paused for playback.
+ */
 void ActionDisplay::updatePauseTime(bool currPlay) {
 	SYSTEMTIME pauseLocal;
 
@@ -634,6 +714,9 @@ void ActionDisplay::updatePauseTime(bool currPlay) {
 
 }
 
+/*
+ * Switches whether or not display is paused for playback, including changing which button is displayed.
+ */
 void ActionDisplay::togglePlaying() {
 	//pause time related stuff should stay the same
 	SYSTEMTIME pauseLocal;
@@ -657,6 +740,10 @@ void ActionDisplay::togglePlaying() {
 	}
 }
 
+/*
+ * Opens playback file and reads the keyframes from it if successfully opened (does nothing if playback is set to LIVE)
+ * Loads buttons and text for screen based on playback type.
+ */
 bool ActionDisplay::loadMedia() {
     bool success = true;
 	string text = "";
@@ -740,6 +827,9 @@ bool ActionDisplay::loadMedia() {
     return success;
 }
 
+/*
+ * Loads specified text to screen in color specified.
+ */
 bool ActionDisplay::loadText(std::string textureText, SDL_Color textColor) {
 	bool success = true;
 	instructionSurface = TTF_RenderText_Blended_Wrapped(currFont, textureText.c_str(), textColor, 630);
@@ -756,6 +846,10 @@ bool ActionDisplay::loadText(std::string textureText, SDL_Color textColor) {
 	return success;
 }
 
+/*
+ * Calls the correct method for which buttons to load based on playback type and sets their y position.
+ * Loads back button since all playback types require that button.
+*/
 bool ActionDisplay::loadButtons() {
 	int yPos;
 	if (instructionDestR.h >= 30) {
@@ -774,16 +868,25 @@ bool ActionDisplay::loadButtons() {
 	return true;
 }
 
+/*
+ * Loads the buttons required for Physician capture keyframe screen, by adding them to a vector (initialized in DisplayBase) from which they will be rendered.
+ */
 void ActionDisplay::loadKeyframeButtons(int yPos) {
 	gButtons.push_back(new Button(BUTTON_SPRITE_ADD, (SCREEN_WIDTH-BUTTON_WIDTH*3)-30, yPos, "art/KeyframeButtons/add.bmp"));
 	gButtons.push_back(new Button(BUTTON_SPRITE_DELETE, (SCREEN_WIDTH-BUTTON_WIDTH*2)-20, yPos, "art/KeyframeButtons/delete.bmp"));
 	gButtons.push_back(new Button(BUTTON_SPRITE_SAVE, (SCREEN_WIDTH-BUTTON_WIDTH)-10, yPos, "art/KeyframeButtons/save.bmp"));
 }
 
+/*
+ * Loads the buttons required for live playback screen, by adding them to a vector (initialized in DisplayBase) from which they will be rendered.
+ */
 void ActionDisplay::loadPlaybackButtons(int yPos) {
 	gButtons.push_back(new Button(BUTTON_SPRITE_PAUSE, (SCREEN_WIDTH-BUTTON_WIDTH)-10, yPos, "art/PlaybackButtons/pause.bmp"));
 }
 
+/*
+ * Closes the display, freeing all memory.
+ */
 void ActionDisplay::close() {
 	if(playback == RECORDED || playback == LIVE_RECORD) {
 		delete moveFromFile;
@@ -809,6 +912,10 @@ void ActionDisplay::close() {
 	SafeRelease(m_pKinectSensor);
 }
 
+/*
+ * Returns a boolean based on whether or not a joint should be tracked for matching up with recorded movement.
+ * Currently not tracking hands or feet.
+ */
 bool ActionDisplay::tracking(int i) {
 	switch (i) {
 	case JointType_HandTipLeft:
@@ -823,7 +930,9 @@ bool ActionDisplay::tracking(int i) {
 	}
 }
 
-
+/*
+ * Converts Joint Type to string that can be rendered to screen for telling user what is not matching.
+ */
 string ActionDisplay::getJointString(int type) {
 	switch (type) {
 	case JointType_SpineShoulder:
